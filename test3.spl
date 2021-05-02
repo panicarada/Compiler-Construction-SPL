@@ -1,0 +1,33 @@
+program Hello;
+type 
+	Int = integer;
+	student = record
+		ID, name	: str;
+		age			: integer;
+		GPA			: real;
+	end;
+	Index = array[-1 .. 10] of record
+									ID : str;
+									Birthday : record 
+										Year, Month, Day : integer;
+									end;
+									Grade : array [(Chinese, Math, English)] of real;
+							   end
+							   ;
+	Index2 = -20 .. -30;
+	Index3 = x .. y;
+	Color = (Red, Green, Blue);
+
+procedure hello(
+	a,b : real;
+	temp : string
+);
+begin
+
+end
+;
+
+	begin
+
+	end
+.

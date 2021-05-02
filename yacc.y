@@ -29,13 +29,14 @@
 %type <NodePtr> expr term factor const_value expression routine
 %type <NodePtr> routine_head routine_body const_part type_part var_part 
 %type <NodePtrList> const_expr_list name_list var_para_list val_para_list routine_part
-%type <NodePtrList> expression_list args_list
+%type <NodePtrList> expression_list args_list field_decl_list
 %type <NodePtr> compound_stmt stmt_list stmt non_label_stmt if_stmt goto_stmt
 %type <NodePtr> while_stmt case_stmt case_expr case_expr_list proc_stmt
 %type <NodePtr> assign_stmt var_decl var_decl_list for_stmt else_clause
 %type <NodePtr> repeat_stmt type_decl_list type_definition function_decl function_head parameters
 %type <NodePtr> para_decl_list para_type_list sub_routine procedure_decl procedure_head
-%type <sValue> program_head simple_type_decl type_decl
+%type <NodePtr> simple_type_decl type_decl field_decl record_type_decl array_type_decl
+%type <sValue> program_head 
 %type <iValue> direction
 
 // 运算符、定界符
@@ -57,7 +58,8 @@
 // 语法树中自定义的token
 %token ROUTINE ROUTINE_BODY ROUTINE_HEAD CONST_PART VAR_PART BRACKET
 %token CASE_STMT CASE_LIST TYPE_PART VAL_PARAM VAR_PARAM PARA_LIST FUNCTION_HEAD
-%token SUB_ROUTINE PROCEDURE_HEAD PROC LABEL_STMT FUNCT
+%token SUB_ROUTINE PROCEDURE_HEAD PROC LABEL_STMT FUNCT FIELD_DECL 
+%token ENUM
 %%
 program 
 	:  program_head routine DOT
@@ -129,7 +131,7 @@ routine_head
 	;
 
 label_part
-	:
+	: 
 	;
 
 const_part
@@ -216,8 +218,8 @@ type_definition
 	: ID EQUAL type_decl SEMI
 	{
 		$$ = new Node(TYPE, 2
-					  , new Node($1, NodeType::Identifier)
-					  , new Node($3, NodeType::Typename));
+					  , new Node($1, NodeType::Typename)
+					  , $3);
 	}
 	;
 
@@ -227,6 +229,9 @@ type_decl
 		$$ = $1;
 	}
 	| array_type_decl
+	{
+		$$ = $1;
+	}
 	| record_type_decl
 	{
 		$$ = $1;
@@ -236,21 +241,46 @@ type_decl
 simple_type_decl
 	: SYS_TYPE
 	{
-		$$ = $1;
+		$$ = new Node($1, NodeType::Typename);
 	}
 	| ID
 	{
-		$$ = $1;
+		$$ = new Node($1, NodeType::Typename);
 	}
 	| LP name_list RP
+	{
+		$$ = new Node(ENUM, $2);
+	}
 	| const_value DOTDOT const_value
+	{
+		$$ = new Node(DOTDOT, 2, $1, $3);
+	}
 	| MINUS const_value DOTDOT const_value
+	{
+		$$ = new Node(DOTDOT, 2,
+					  new Node(MINUS, 1, $2),
+					  $4);
+	}
 	| MINUS const_value DOTDOT MINUS const_value
+	{
+		$$ = new Node(DOTDOT, 2,
+					  new Node(MINUS, 1, $2),
+					  new Node(MINUS, 1, $5));
+	}
 	| ID DOTDOT ID
+	{
+		$$ = new Node(DOTDOT, 2,
+					  new Node($1, NodeType::Identifier),
+					  new Node($3, NodeType::Identifier));
+	}
 	;
 
 array_type_decl
 	: ARRAY LB simple_type_decl RB OF type_decl
+	{
+		$$ = new Node(ARRAY, 1, $6);
+		$$->add($3);
+	}
 	;
 
 record_type_decl
@@ -275,8 +305,8 @@ field_decl_list
 field_decl
 	: name_list COLON type_decl SEMI
 	{
-		$$ = new Node(FIELD_DECL, $1);
-
+		$$ = new Node(FIELD_DECL, 1, $3);
+		$$->add($1);
 	}
 	;
 
@@ -314,18 +344,8 @@ var_decl_list
 var_decl
 	: name_list COLON type_decl SEMI
 	{
-		$$ = new Node(VAR, $1);
-
-
-		
-		$$->add(new Node($3, NodeType::Typename));
-		/*
-			Hacking Trick: 最后一个孩子是类型名称，
-			在语法树中，不希望类型和变量为sibling，但是父节点Operation无法记录类型名称，
-			所以在数组中保留类型名称，在构造语法树时父节点可以访问，
-			但是在数目上假装其不存在，这样按for循环绘制就不会绘制出来
-		*/
-		$$->m_Operation.NumOperands -= 1;
+		$$ = new Node(VAR, 1, $3);
+		$$->add($1);
 	}
 	;
 
@@ -365,14 +385,11 @@ function_head
 	{
 		if ($3)
 		{
-			$$ = new Node(FUNCTION_HEAD, 2
-						  , $3
-						  , new Node($5, NodeType::Typename));
+			$$ = new Node(FUNCTION_HEAD, 2, $3, $5);
 		}
 		else
 		{
-			$$ = new Node(FUNCTION_HEAD, 1
-						  , new Node($5, NodeType::Typename));
+			$$ = new Node(FUNCTION_HEAD, 1, $5);
 		}
 		$$->add(new Node($2, NodeType::Identifier));
 		/*
@@ -434,14 +451,12 @@ para_decl_list
 para_type_list
 	: var_para_list COLON simple_type_decl // var x,y,z : integer，引用传递
 	{
-		$$ = new Node(VAR_PARAM, 1
-					  , new Node($3, NodeType::Typename));
+		$$ = new Node(VAR_PARAM, 1, $3);
 		$$->add($1);
 	}
 	| val_para_list COLON simple_type_decl // x,y,z : integer，形参传递
 	{
-		$$ = new Node(VAL_PARAM, 1
-				      , new Node($3, NodeType::Typename));
+		$$ = new Node(VAL_PARAM, 1, $3);
 		$$->add($1);
 	}
 	;

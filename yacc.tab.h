@@ -114,7 +114,9 @@
      PROCEDURE_HEAD = 330,
      PROC = 331,
      LABEL_STMT = 332,
-     FUNCT = 333
+     FUNCT = 333,
+     FIELD_DECL = 334,
+     ENUM = 335
    };
 #endif
 /* Tokens.  */
@@ -194,6 +196,8 @@
 #define PROC 331
 #define LABEL_STMT 332
 #define FUNCT 333
+#define FIELD_DECL 334
+#define ENUM 335
 
 
 
@@ -210,7 +214,7 @@ typedef union YYSTYPE
 	std::vector<Node*>* NodePtrList; // List
 }
 /* Line 1529 of yacc.c.  */
-#line 214 "yacc.tab.h"
+#line 218 "yacc.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

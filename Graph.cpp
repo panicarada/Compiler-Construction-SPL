@@ -60,10 +60,7 @@ namespace Graph
             case VAR_PART: sText << "[var part]"; break;
             case ASSIGN: sText << "[:=]"; break;
             case SEMI: sText << ";"; break;
-            case VAR: 
-                // Hacking Trick, 根处显示类型，并删去最后一个孩子（类型名）
-                sText << "*" << p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Typename.Name << "*";
-                break;
+            case VAR: sText << "[var]"; break;
             case ROUTINE_HEAD:
                 sText << "[Routine Head]"; break;
             case ROUTINE_BODY:
@@ -104,11 +101,11 @@ namespace Graph
                 sText << "[para list]"; break;
             case FUNCTION_HEAD:
                 // Hacking Trick, 根处显示类型，并删去最后一个孩子（类型名）
-                sText << "function:" << p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
+                sText << "function: " << p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
                 break;
             case PROCEDURE_HEAD:
                 // Hacking Trick, 根处显示类型，并删去最后一个孩子（类型名）
-                sText << "procedure:" << p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
+                sText << "procedure: " << p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
                 break;
             case SUB_ROUTINE:
                 sText << "[subroutine]"; break;
@@ -126,6 +123,16 @@ namespace Graph
                 sText << "[Sys Function]"; break;
             case FUNCT:
                 sText << "[Function]"; break;
+            case FIELD_DECL:
+                sText << "[Field Decl]"; break;
+            case RECORD:
+                sText << "[Record]"; break;
+            case DOTDOT:
+                sText << "[..]"; break;
+            case ENUM:
+                sText << "[Enum]"; break;
+            case ARRAY:
+                sText << "[Array]"; break;
             }
             break;
         }
