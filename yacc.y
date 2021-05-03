@@ -6,6 +6,7 @@
     #include "Interpreter.hpp"
 	#include <fstream>
 
+	int line_number = 1;
     int yylex(void);
     void yyerror(const char *);
 %}
@@ -173,7 +174,7 @@ const_value
     {
         ValConstant temp;
         temp.Type = ConstantType::Char;
-		std::cout << $1 << std::endl;
+		// std::cout << $1 << std::endl;
         temp.cValue = $1;
         $$ = new Node(temp);
     }
@@ -181,7 +182,7 @@ const_value
 	{
 		ValConstant temp;
         temp.Type = ConstantType::String;
-		std::cout << $1 << std::endl;
+		// std::cout << $1 << std::endl;
         temp.sValue = $1;
         $$ = new Node(temp);
 	}
@@ -189,7 +190,7 @@ const_value
 	{
 		ValConstant temp;
 		temp.Type = ConstantType::Boolean;
-		std::cout << $1 << std::endl;
+		// std::cout << $1 << std::endl;
 		temp.bValue = $1;
 		$$ = new Node(temp);
 	}
@@ -344,6 +345,8 @@ var_decl_list
 var_decl
 	: name_list COLON type_decl SEMI
 	{
+
+		std::cout << "line no: " << line_number << std::endl;
 		$$ = new Node(VAR, 1, $3);
 		$$->add($1);
 	}

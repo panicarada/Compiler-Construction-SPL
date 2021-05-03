@@ -91,7 +91,7 @@ public:
         {
             m_Type = Type;
             m_Keyword = Keyword;
-            std::cout << "Keyword: " << m_Keyword << std::endl;
+            // std::cout << "Keyword: " << m_Keyword << std::endl;
         }
     }
     virtual bool isEqual(TypeNode* node) const override
@@ -154,7 +154,6 @@ public:
     TypeNode* m_Const;
     constNode(TypeNode* Const)
     {
-        std::cout << Const->m_Type << std::endl;
         if (Const->m_Type != DataType::d_SYS_TYPE)
         { // 常数的类型只能是系统原始类型
             std::cout << "Invalid constant type!" << std::endl;

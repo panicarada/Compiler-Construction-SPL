@@ -6,10 +6,13 @@
 void yyerror(char *);
 
 std::stringstream ss;
+extern int line_number;
 %}
 
 /* 读取字符串的状态 */
 %x READING_STRING
+/* 在yacc中获取行号 */
+%option yylineno
 
 Letter  [a-zA-Z]
 Digit   [0-9]
@@ -131,23 +134,26 @@ Identifier  ({Letter}|_)({Letter}|{Digit}|_)*
 }
 {Integer}   {
     yylval.iValue=atoi(yytext);
-    std::cout<<"integer number: "<<yylval.iValue<<std::endl;
+    // std::cout<<"integer number: "<<yylval.iValue<<std::endl;
     return INTEGER;
 }
 {Real}  {
     std::stringstream ss;
     ss<<yytext;
     ss>>yylval.dValue;
-    std::cout<<"real number: "<<yylval.dValue<<std::endl;
+    // std::cout<<"real number: "<<yylval.dValue<<std::endl;
     return REAL;
 }
 {Identifier}    {
     yylval.sValue=new char[strlen(yytext)];
     strcpy(yylval.sValue,yytext);
-    std::cout<<"The new Identifier is: "<<yylval.sValue<<std::endl;
+    // std::cout<<"The new Identifier is: "<<yylval.sValue<<std::endl;
     return ID;
 }
 
+"\n" {
+    line_number ++;
+}
 . ;
 
 %%
