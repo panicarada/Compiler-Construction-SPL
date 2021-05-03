@@ -1,4 +1,5 @@
 #pragma once
+#include "Utils.hpp"
 #include <iostream>
 #include <string>
 #include <iomanip>
@@ -7,12 +8,16 @@
 #include <unordered_map>
 
 
+#define ALIGN_WIDTH 12
+
 enum DataType
 {
     d_SYS_TYPE, // integer, real等
     d_ENUM, // 枚举类型，如(red, green, blue)
     d_RECORD, // 结构体
     d_ARRAY, // 数组
+    d_RANGE, // 如1 .. 30, x .. y
+    d_CONSTANT, // const part中定义的常量
     // ...
 };
 class TypeNode
@@ -40,8 +45,8 @@ public:
     virtual std::string toString(int& hPos) const override
     {
         std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(10) << "enum";
-        ss << std::setfill(' ') << std::setw(10);
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "enum";
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH);
         for (auto & it : *m_Set)
         {
             ss << it << ", ";
@@ -71,8 +76,8 @@ public:
     {
         std::stringstream ss;
 
-        ss << std::setfill(' ') << std::setw(10) << "sys_type";
-        ss << std::setfill(' ') << std::setw(10) << m_Keyword;
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "sys_type";
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << m_Keyword;
         return ss.str();
     }
     sysNode(std::string&& Keyword, DataType Type)
@@ -122,20 +127,73 @@ public:
     virtual std::string toString(int& hPos) const override
     { // hPos: 当前水平位置
         std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(10) << "record";
-        ss << std::setfill(' ') << std::setw(10);
-        hPos += 20;
-        for (auto& it : *m_Field)
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "record";
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH);
+        hPos += 2 * ALIGN_WIDTH;
+
+        for (auto it = m_Field->begin(); it != m_Field->end(); )
         {
-            ss << it.first << ": ";
+            ss << it->first << ": ";
             hPos += 2;
-            ss << it.second->toString(hPos) << std::endl;
+            ss << it->second->toString(hPos);
             hPos -= 2;
-            ss << std::setfill(' ') << std::setw(hPos);
+            if ((++it) != m_Field->end())
+                ss << std::endl << std::setfill(' ') << std::setw(hPos);
         }
         // 恢复到原来位置
-        hPos -= 20;
+        hPos -= 2 * ALIGN_WIDTH;
 
+        return ss.str();
+    }
+};
+
+
+class constNode : public TypeNode
+{
+public:
+    TypeNode* m_Const;
+    constNode(TypeNode* Const)
+    {
+        std::cout << Const->m_Type << std::endl;
+        if (Const->m_Type != DataType::d_SYS_TYPE)
+        { // 常数的类型只能是系统原始类型
+            std::cout << "Invalid constant type!" << std::endl;
+            exit(1);
+        }
+        m_Type = DataType::d_CONSTANT;
+        m_Const = Const;
+    }
+    virtual std::string toString(int& hPos) const override
+    {
+        std::stringstream ss;
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "const";
+        hPos += ALIGN_WIDTH;
+        ss << m_Const->toString(hPos);
+        hPos -= ALIGN_WIDTH;
+        return ss.str();
+    }
+};
+class rangeNode : public TypeNode
+{
+public:
+    TypeNode* m_LowerBound; 
+    TypeNode* m_UpperBound;
+    rangeNode(TypeNode* LowerBound, TypeNode* UpperBound)
+    {
+        if (LowerBound->m_Type != DataType::d_CONSTANT)
+        {
+            std::cout << "Invalid range!" << std::endl;
+            exit(1);
+        }
+        m_Type = DataType::d_RANGE;
+        m_LowerBound = LowerBound;
+        m_UpperBound = UpperBound;
+    }
+
+    virtual std::string toString(int& hPos) const override
+    {
+        std::stringstream ss;
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "range";
         return ss.str();
     }
 };
@@ -153,11 +211,12 @@ public:
     virtual std::string toString(int& hPos) const override
     {
         std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(10) << "array";
-        hPos += 10;
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "array";
+        hPos += ALIGN_WIDTH;
         ss << m_IdxType->toString(hPos) << std::endl;
         ss << std::setfill(' ') << std::setw(hPos) << " ";
-        ss << m_EleType->toString(hPos) << std::endl;
+        ss << m_EleType->toString(hPos);
+        hPos -= ALIGN_WIDTH;
         return ss.str();
     }
 };

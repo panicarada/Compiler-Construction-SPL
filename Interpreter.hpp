@@ -28,8 +28,8 @@ namespace Interpreter
         {
             for (auto& it : Table)
             {
-                int hPos = 10;
-                std::cout << std::setfill(' ') << std::setw(10) << it.first
+                int hPos = ALIGN_WIDTH;
+                std::cout << std::setfill(' ') << std::setw(ALIGN_WIDTH) << it.first
                           << it.second->toString(hPos) << std::endl;
             }
 
@@ -57,7 +57,14 @@ namespace Interpreter
         }
     };
     static ST st;
-    TypeNode* getType(Node* p, bool isVarPart = false);
+    enum Scope
+    {
+        s_GLOBAL,
+        s_CONST_PART,
+        s_VAR_PART,
+        s_RANGE,
+    };
+    TypeNode* getType(Node* p, Scope scope = Scope::s_GLOBAL);
     int draw(Node* p, std::ofstream& Out);
     int execute(Node* p, std::ofstream& Out);
 } // namespace name

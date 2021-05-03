@@ -1,12 +1,10 @@
 program Hello;
+const
+	str = "Hello World";
+	a = 1;
+	b = 12;
 type 
-	Index = array[(r, g, b)] of record
-									ID : string;
-									Birthday : record 
-						   				Year, Month, Day : integer;
-						   			end;
-								end;
-
+	Info = array[a..b] of integer;
 	begin
 
 	end

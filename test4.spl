@@ -1,6 +1,8 @@
 program Hello;
+
+const
+	str = "Hello World";
 type 
-	Int = integer;
 	student = record
 		ID, name	: str;
 		age			: integer;

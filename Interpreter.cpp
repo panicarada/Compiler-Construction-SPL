@@ -7,7 +7,7 @@
 
 namespace Interpreter
 {
-    TypeNode* getType(Node* p, bool isVarPart)
+    TypeNode* getType(Node* p, Scope scope)
     { 
         switch (p->m_Type)
         {
@@ -15,15 +15,15 @@ namespace Interpreter
             switch (p->m_Constant.Type)
             {
             case ConstantType::Integer:
-                return new sysNode("integer", DataType::d_SYS_TYPE);
+                return new constNode(st.get("integer"));
             case ConstantType::Real:
-                return new sysNode("real", DataType::d_SYS_TYPE);
+                return new constNode(st.get("real"));
             case ConstantType::Boolean:
-                return new sysNode("boolean", DataType::d_SYS_TYPE);
+                return new constNode(st.get("boolean"));
             case ConstantType::Char:
-                return new sysNode("char", DataType::d_SYS_TYPE);
+                return new constNode(st.get("char"));
             case ConstantType::String:
-                return new sysNode("string", DataType::d_SYS_TYPE);
+                return new constNode(st.get("string"));
             default:
                 std::cout << "Unknown constant type!" << std::endl;
                 exit(1);
@@ -32,9 +32,27 @@ namespace Interpreter
         case NodeType::Typename:
             return st.get(p->m_Typename.Name);
             break;
+        case NodeType::Identifier:
+            if (scope == Scope::s_RANGE)
+            {
+                return st.get(p->m_Identifier.Name);
+            }
         case NodeType::Operation:
             switch (p->m_Operation.Operator)
             {
+            case CONST_PART:
+                for (int i = 0;i < p->m_Operation.NumOperands; ++i)
+                {
+                    getType(p->m_Operation.List_Operands[i], Scope::s_CONST_PART);
+                }
+                break;
+            case EQUAL:
+                if (scope == Scope::s_CONST_PART)
+                { // const part的常数定义
+                    st.insert(p->m_Operation.List_Operands[0]->m_Identifier.Name,
+                              getType(p->m_Operation.List_Operands[1]));
+                }
+                break;
             case ROUTINE:
                 for (int i = 0; i < p->m_Operation.NumOperands; ++i)
                 {
@@ -65,11 +83,11 @@ namespace Interpreter
             case VAR_PART: 
                 for (int i = 0;i < p->m_Operation.NumOperands; ++i)
                 { // 见test3.spl以及对应的AST
-                    getType(p->m_Operation.List_Operands[i], true);
+                    getType(p->m_Operation.List_Operands[i], Scope::s_VAR_PART);
                 }
                 break;
             case VAR: 
-                if (isVarPart)
+                if (scope == Scope::s_VAR_PART)
                 { // var part部分的var，声明全局变量的类型
                     st.insert(p->m_Operation.List_Operands[1]->m_Identifier.Name,
                               getType(p->m_Operation.List_Operands[0]));
@@ -113,14 +131,18 @@ namespace Interpreter
                     }
                     return new recordNode(Field);
                 }
-                break;
             case ARRAY:
                 {
                     // 见test4.spl的AST
                     auto IdxType = getType(p->m_Operation.List_Operands[1]);
-                    int hPos = 0;
                     auto EleType = getType(p->m_Operation.List_Operands[0]);
                     return new arrayNode(IdxType, EleType);
+                }
+            case DOTDOT:
+                {
+                    auto LowerBound = getType(p->m_Operation.List_Operands[0], Scope::s_RANGE);
+                    auto UpperBound = getType(p->m_Operation.List_Operands[1], Scope::s_RANGE);
+                    return new rangeNode(LowerBound, UpperBound);
                 }
             default:
                 break;
