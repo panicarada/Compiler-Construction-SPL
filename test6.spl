@@ -1,0 +1,13 @@
+program Hello;
+type 
+	Index = array[(r, g, b)] of record
+									ID : string;
+									Birthday : record 
+						   				Year, Month, Day : integer;
+						   			end;
+								end;
+
+	begin
+
+	end
+.

@@ -17,15 +17,9 @@ type
 	Index2 = -20 .. -30;
 	Index3 = x .. y;
 	Color = (Red, Green, Blue);
-
-procedure hello(
-	a,b : real;
-	temp : string
-);
-begin
-
-end
-;
+var
+	temp : real;
+	stu  : student;
 
 	begin
 

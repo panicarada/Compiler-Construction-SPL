@@ -63,6 +63,10 @@
         "fstream": "cpp",
         "iomanip": "cpp",
         "sstream": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "__tree": "cpp",
+        "set": "cpp",
+        "filesystem": "cpp",
+        "version": "cpp"
     }
 }
