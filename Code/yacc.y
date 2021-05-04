@@ -6,10 +6,13 @@
     #include "Interpreter.hpp"
 	#include <fstream>
 
-	int line_number = 1;
+
+	unsigned int line_number = 1;
     int yylex(void);
     void yyerror(const char *);
+	std::string TestFile;
 %}
+
 
 %union {
     int iValue; // integer value
@@ -65,7 +68,7 @@
 program 
 	:  program_head routine DOT
 	{
-		std::ofstream outFile("AST.out");
+		std::ofstream outFile(TestFile + "-AST.out");
 		outFile << "Program Name: " << $1 << std::endl;
 		Interpreter::execute($2, outFile);
 		exit(0);
@@ -146,12 +149,12 @@ const_part
 const_expr_list
 	: const_expr_list ID EQUAL const_value SEMI
 	{
-		$$->push_back(new Node(EQUAL, 2, new Node($2, NodeType::Identifier), $4));
+		$$->push_back(new Node(EQUAL, 2, new Node(@2.first_line, $2, NodeType::Identifier), $4));
 	}
 	| ID EQUAL const_value SEMI
 	{
 		$$ = new std::vector<Node *>();
-		$$->push_back(new Node(EQUAL, 2, new Node($1, NodeType::Identifier), $3));
+		$$->push_back(new Node(EQUAL, 2, new Node(@1.first_line, $1, NodeType::Identifier), $3));
 	}
 	;
 
@@ -219,7 +222,7 @@ type_definition
 	: ID EQUAL type_decl SEMI
 	{
 		$$ = new Node(TYPE, 2
-					  , new Node($1, NodeType::Typename)
+					  , new Node(@1.first_line, $1, NodeType::Typename)
 					  , $3);
 	}
 	;
@@ -242,11 +245,11 @@ type_decl
 simple_type_decl
 	: SYS_TYPE
 	{
-		$$ = new Node($1, NodeType::Typename);
+		$$ = new Node(@1.first_line, $1, NodeType::Typename);
 	}
 	| ID
 	{
-		$$ = new Node($1, NodeType::Typename);
+		$$ = new Node(@1.first_line, $1, NodeType::Typename);
 	}
 	| LP name_list RP
 	{
@@ -271,8 +274,8 @@ simple_type_decl
 	| ID DOTDOT ID
 	{
 		$$ = new Node(DOTDOT, 2,
-					  new Node($1, NodeType::Identifier),
-					  new Node($3, NodeType::Identifier));
+					  new Node(@1.first_line, $1, NodeType::Identifier),
+					  new Node(@1.first_line, $3, NodeType::Identifier));
 	}
 	;
 
@@ -314,12 +317,13 @@ field_decl
 name_list
 	: name_list COMMA ID 
 	{
-		$$->push_back(new Node($3, NodeType::Identifier));
+		$$->push_back(new Node(@3.first_line, $3, NodeType::Identifier));
 	}
 	| ID
 	{
+		std::cout << "line no: " << @1.first_line << std::endl;
 		$$ = new std::vector<Node *>();
-		$$->push_back(new Node($1, NodeType::Identifier));
+		$$->push_back(new Node(@1.first_line, $1, NodeType::Identifier));
 	}
 	;
 
@@ -345,8 +349,6 @@ var_decl_list
 var_decl
 	: name_list COLON type_decl SEMI
 	{
-
-		std::cout << "line no: " << line_number << std::endl;
 		$$ = new Node(VAR, 1, $3);
 		$$->add($1);
 	}
@@ -394,7 +396,7 @@ function_head
 		{
 			$$ = new Node(FUNCTION_HEAD, 1, $5);
 		}
-		$$->add(new Node($2, NodeType::Identifier));
+		$$->add(new Node(@2.first_line, $2, NodeType::Identifier));
 		/*
 			Hacking Trick: 最后一个孩子是类型名称，
 			在语法树中，不希望类型和变量为sibling，但是父节点Operation无法记录类型名称，
@@ -418,11 +420,11 @@ procedure_head
 		if ($3)
 		{
 			$$ = new Node(PROCEDURE_HEAD, 1, $3);
-			$$->add(new Node($2, NodeType::Identifier));
+			$$->add(new Node(@2.first_line, $2, NodeType::Identifier));
 		}
 		else
 		{
-			$$ = new Node($2, NodeType::Identifier);
+			$$ = new Node(@2.first_line, $2, NodeType::Identifier);
 		}
 		/*
 			Hacking Trick: 最后一个孩子是类型名称，
@@ -537,19 +539,19 @@ non_label_stmt
 assign_stmt
 	: ID ASSIGN expression
 	{
-		$$ = new Node(ASSIGN, 2, new Node($1, NodeType::Identifier), $3);
+		$$ = new Node(ASSIGN, 2, new Node(@1.first_line, $1, NodeType::Identifier), $3);
 	}
 	| ID LB expression RB ASSIGN expression
 	{
 		$$ = new Node(ASSIGN, 2, 
-					  new Node(BRACKET, 2, new Node($1, NodeType::Identifier), $3),
+					  new Node(BRACKET, 2, new Node(@1.first_line, $1, NodeType::Identifier), $3),
 					  $6);
 	}
 	| ID DOT ID ASSIGN expression
 	{
 		$$ = new Node(ASSIGN, 2,
-					  new Node(DOT, 2, new Node($1, NodeType::Identifier),
-					  				   new Node($3, NodeType::Identifier))
+					  new Node(DOT, 2, new Node(@1.first_line, $1, NodeType::Identifier),
+					  				   new Node(@3.first_line, $3, NodeType::Identifier))
 					  , $5);
 	}
 	;
@@ -557,20 +559,20 @@ assign_stmt
 proc_stmt
 	: ID
 	{
-		$$ = new Node(PROC, 1, new Node($1, NodeType::Identifier));
+		$$ = new Node(PROC, 1, new Node(@1.first_line, $1, NodeType::Identifier));
 	}
 	| ID LP args_list RP
 	{
-		$$ = new Node(PROC, 1, new Node($1, NodeType::Identifier));
+		$$ = new Node(PROC, 1, new Node(@1.first_line, $1, NodeType::Identifier));
 		$$->add($3);
 	}
 	| SYS_PROC
 	{
-		$$ = new Node(SYS_PROC, 1, new Node($1, NodeType::Identifier));
+		$$ = new Node(SYS_PROC, 1, new Node(@1.first_line, $1, NodeType::Identifier));
 	}
 	| SYS_PROC LP expression_list RP
 	{
-		$$ = new Node(SYS_PROC, 1, new Node($1, NodeType::Identifier));
+		$$ = new Node(SYS_PROC, 1, new Node(@1.first_line, $1, NodeType::Identifier));
 		$$->add($3);
 	}
 	| READ LP factor RP // unknown
@@ -609,7 +611,7 @@ while_stmt
 for_stmt
 	: FOR ID ASSIGN expression direction expression DO stmt
 	{
-		$$ = new Node($5, 4, new Node($2, NodeType::Identifier), 
+		$$ = new Node($5, 4, new Node(@2.first_line, $2, NodeType::Identifier), 
 						$4, $6, $8);
 	}
 	;
@@ -641,7 +643,7 @@ case_expr
 	| ID COLON stmt SEMI
 	{
 		$$ = new Node(CASE, 2
-					  , new Node($1, NodeType::Identifier)
+					  , new Node(@1.first_line, $1, NodeType::Identifier)
 					  , $3);
 	}
 	;
@@ -738,23 +740,23 @@ term
 factor
 	: ID
     {
-        $$ = new Node($1, NodeType::Identifier);
+        $$ = new Node(@1.first_line, $1, NodeType::Identifier);
     }
 	| ID LP args_list RP
 	{
 		$$ = new Node(FUNCT, 1
-					  , new Node($1, NodeType::Identifier));
+					  , new Node(@1.first_line, $1, NodeType::Identifier));
 		$$->add($3);
 	}
 	| SYS_FUNCT 
 	{
 		$$ = new Node(SYS_FUNCT, 1
-					  , new Node($1, NodeType::Identifier));
+					  , new Node(@1.first_line, $1, NodeType::Identifier));
 	}
 	| SYS_FUNCT LP args_list RP
 	{
 		$$ = new Node(SYS_FUNCT, 1
-					  , new Node($1, NodeType::Identifier));
+					  , new Node(@1.first_line, $1, NodeType::Identifier));
 		$$->add($3);
 	}
 	| const_value
@@ -776,14 +778,14 @@ factor
 	| ID LB expression RB
 	{
 		$$ = new Node(BRACKET, 2
-					  , new Node($1, NodeType::Identifier)
+					  , new Node(@1.first_line, $1, NodeType::Identifier)
 					  , $3);
 	}
 	| ID DOT ID
 	{
 		$$ = new Node(DOT, 2
-					  , new Node($1, NodeType::Identifier)
-					  , new Node($3, NodeType::Identifier));
+					  , new Node(@1.first_line, $1, NodeType::Identifier)
+					  , new Node(@3.first_line, $3, NodeType::Identifier));
 	}
 	;
 args_list
@@ -810,7 +812,10 @@ int main(int argc, char* argv[])
 	yyin = stdin;
 	if (argc > 1)
 	{
-		std::cout << argv[1] << std::endl;
+		TestFile = argv[1];
+		TestFile = TestFile.substr(TestFile.rfind("/") + 1);
+		TestFile = TestFile.substr(0, TestFile.find("."));
+		std::cout << TestFile << std::endl;
 		fp = fopen(argv[1], "r");
 		if (fp)
 		{ // 成功打开文件

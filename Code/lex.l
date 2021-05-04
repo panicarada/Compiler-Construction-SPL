@@ -6,13 +6,11 @@
 void yyerror(char *);
 
 std::stringstream ss;
-extern int line_number;
+extern unsigned int line_number;
 %}
 
 /* 读取字符串的状态 */
 %x READING_STRING
-/* 在yacc中获取行号 */
-%option yylineno
 
 Letter  [a-zA-Z]
 Digit   [0-9]
@@ -146,8 +144,8 @@ Identifier  ({Letter}|_)({Letter}|{Digit}|_)*
 }
 {Identifier}    {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
-    // std::cout<<"The new Identifier is: "<<yylval.sValue<<std::endl;
     return ID;
 }
 

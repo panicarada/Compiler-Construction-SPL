@@ -14,8 +14,10 @@ type
 				GPA		 : real;
 		   end;	
 var
-	Student : Info;
-	
+	Student : record 
+					t : Info;
+					r : real;
+			  end;
 	begin
 
 	end

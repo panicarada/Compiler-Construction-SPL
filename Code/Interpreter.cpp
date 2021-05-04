@@ -5,6 +5,7 @@
 #include "yacc.tab.h"
 
 
+
 namespace Interpreter
 {
     TypeNode* getType(Node* p, Scope scope)
@@ -50,7 +51,7 @@ namespace Interpreter
                 if (scope == Scope::s_CONST_PART)
                 { // const part的常数定义
                     st.insert(p->m_Operation.List_Operands[0]->m_Identifier.Name,
-                              getType(p->m_Operation.List_Operands[1]));
+                              getType(p->m_Operation.List_Operands[1]), p->m_Operation.List_Operands[0]->m_Line);
                 }
                 break;
             case ROUTINE:
@@ -76,7 +77,7 @@ namespace Interpreter
             case TYPE: // 左边是类型名字，右边是这个名字对应的类型statement
                 // 见test3.spl以及对应的AST
                 st.insert(p->m_Operation.List_Operands[0]->m_Typename.Name,
-                          getType(p->m_Operation.List_Operands[1]));
+                          getType(p->m_Operation.List_Operands[1]), p->m_Operation.List_Operands[0]->m_Line);
                 break;
         
             // 加入(变量名， 类型指针)
@@ -90,7 +91,7 @@ namespace Interpreter
                 if (scope == Scope::s_VAR_PART)
                 { // var part部分的var，声明全局变量的类型
                     st.insert(p->m_Operation.List_Operands[1]->m_Identifier.Name,
-                              getType(p->m_Operation.List_Operands[0]));
+                              getType(p->m_Operation.List_Operands[0]), p->m_Operation.List_Operands[1]->m_Line);
                 }
                 else
                 { // 函数参数部分的var，声明参数的引用类型
@@ -108,7 +109,7 @@ namespace Interpreter
                     for (int i = 0;i < p->m_Operation.NumOperands; ++i)
                     {
                         st.insert(p->m_Operation.List_Operands[i]->m_Identifier.Name,
-                                  node);
+                                  node, p->m_Operation.List_Operands[i]->m_Line);
                     }
                     return node;
                 }

@@ -12,6 +12,7 @@
 #include <vector>
 #include <stdarg.h>
 #include <unordered_map>
+
 enum NodeType
 {
     Constant,
@@ -41,6 +42,7 @@ struct ValConstant
     };
 };
 
+
 struct ValIdentifier
 {
     char* Name; // Index to symbol table
@@ -59,6 +61,7 @@ class Node
 {
 public:
     NodeType m_Type;
+    unsigned int m_Line; // 所在行数
     union 
     {
         ValConstant m_Constant;
@@ -67,12 +70,12 @@ public:
         ValOperation m_Operation;
     };
     Node(ValConstant& Cons)
-        : m_Type(NodeType::Constant)
+        : m_Line(0), m_Type(NodeType::Constant)
     {
         m_Constant = Cons;
     }
-    Node(char* Name, NodeType Type)
-        : m_Type(Type)
+    Node(unsigned int Line, char* Name, NodeType Type)
+        : m_Line(Line), m_Type(Type)
     {
         if (Type == NodeType::Identifier)
         {
@@ -87,7 +90,7 @@ public:
         
     }
     Node(int Operator, std::vector<Node*>* List)
-        : m_Type(NodeType::Operation)
+        : m_Line(0), m_Type(NodeType::Operation)
     {
         m_Operation.Operator = Operator;
         m_Operation.NumOperands = List->size();
@@ -96,6 +99,21 @@ public:
         {
             m_Operation.List_Operands[i] = (*List)[i];
         }
+    }
+    Node(int Operator, int NumOperands, ...)
+        : m_Line(0), m_Type(NodeType::Operation)
+    {
+        va_list ap;
+        m_Operation.Operator = Operator;
+        m_Operation.NumOperands = NumOperands;
+        m_Operation.List_Operands = new Node*[NumOperands];
+        // int i;
+        va_start(ap, NumOperands);
+        for (int i = 0;i < NumOperands; ++i)
+        {
+            m_Operation.List_Operands[i] = va_arg(ap, Node*);
+        }
+        va_end(ap);
     }
     inline void add(Node* node)
     {
@@ -114,21 +132,6 @@ public:
         {
             m_Operation.List_Operands[Offset + i] = (*List)[i];
         }
-    }
-    Node(int Operator, int NumOperands, ...)
-        : m_Type(NodeType::Operation)
-    {
-        va_list ap;
-        m_Operation.Operator = Operator;
-        m_Operation.NumOperands = NumOperands;
-        m_Operation.List_Operands = new Node*[NumOperands];
-        // int i;
-        va_start(ap, NumOperands);
-        for (int i = 0;i < NumOperands; ++i)
-        {
-            m_Operation.List_Operands[i] = va_arg(ap, Node*);
-        }
-        va_end(ap);
     }
     ~Node()
     {

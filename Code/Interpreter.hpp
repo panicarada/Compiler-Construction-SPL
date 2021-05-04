@@ -15,30 +15,33 @@ namespace Interpreter
     class ST
     {
         std::unordered_map<std::string, TypeNode*> Table;
+        std::unordered_map<std::string, unsigned int> LineTable;
     public:
         ST()
         { // 初始化Table，塞入系统类型
-            insert("integer", new sysNode("integer", DataType::d_SYS_TYPE));
-            insert("real", new sysNode("real", DataType::d_SYS_TYPE));
-            insert("boolean", new sysNode("boolean", DataType::d_SYS_TYPE));
-            insert("char", new sysNode("char", DataType::d_SYS_TYPE));
-            insert("string", new sysNode("string", DataType::d_SYS_TYPE));
+            insert("integer", new sysNode("integer", DataType::d_SYS_TYPE), 0);
+            insert("real", new sysNode("real", DataType::d_SYS_TYPE), 0);
+            insert("boolean", new sysNode("boolean", DataType::d_SYS_TYPE), 0);
+            insert("char", new sysNode("char", DataType::d_SYS_TYPE), 0);
+            insert("string", new sysNode("string", DataType::d_SYS_TYPE), 0);
         }
         void show()
         {
             for (auto& it : Table)
             {
-                int hPos = ALIGN_WIDTH;
-                std::cout << std::setfill(' ') << std::setw(ALIGN_WIDTH) << it.first
+                int hPos = ALIGN_WIDTH + ALIGN_WIDTH/2;
+                std::cout << std::setfill(' ') << std::setw(ALIGN_WIDTH / 2) << LineTable[it.first]
+                          << std::setfill(' ') << std::setw(ALIGN_WIDTH) << it.first
                           << it.second->toString(hPos) << std::endl;
             }
 
         }
-        bool insert(std::string str, TypeNode* node)
+        bool insert(std::string str, TypeNode* node, unsigned int Line)
         {
             if (Table.find(str) == Table.end())
             {
                 Table[str] = node;
+                LineTable[str] = Line;
                 return true;
             }
             else
