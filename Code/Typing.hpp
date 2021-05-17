@@ -25,6 +25,9 @@ class TypeNode
 {
 public:
     DataType m_Type;
+    TypeNode* prev;
+    TypeNode* next;
+    // TypeNode* prev, next;
 public:
     virtual bool isEqual(TypeNode* node) const {return false;}; // 检查类型是否一致
     virtual std::string toString(int& hPos) const = 0; // 输出类型信息
@@ -70,7 +73,7 @@ public:
 
 class sysNode : public TypeNode
 {
-private:
+public:
     std::string m_Keyword; // "integer", "real"等
 public:
     virtual std::string toString(int& hPos) const override
@@ -152,32 +155,51 @@ public:
 class constNode : public TypeNode
 {
 public:
-    TypeNode* m_Const;
-    constNode(TypeNode* Const)
+    sysNode* m_sysNode;
+    ValConstant m_Constant;
+    constNode(TypeNode* node, ValConstant Constant)
     {
-        if (Const->m_Type != DataType::d_SYS_TYPE)
+        if (node->m_Type != DataType::d_SYS_TYPE)
         { // 常数的类型只能是系统原始类型
             std::cout << "Invalid constant type!" << std::endl;
             exit(1);
         }
         m_Type = DataType::d_CONSTANT;
-        m_Const = Const;
+        m_sysNode = dynamic_cast<sysNode*>(node);
+        m_Constant = Constant;
     }
     virtual std::string toString(int& hPos) const override
     {
         std::stringstream ss;
         ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "const";
-        hPos += ALIGN_WIDTH;
-        ss << m_Const->toString(hPos);
-        hPos -= ALIGN_WIDTH;
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << m_sysNode->m_Keyword;
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH);
+        switch (m_Constant.Type)
+        {
+            case ConstantType::Integer:
+                ss << m_Constant.iValue; break;
+            case ConstantType::Real:
+                ss << m_Constant.dValue; break;
+            case ConstantType::Boolean:
+                ss << m_Constant.bValue; break;
+            case ConstantType::Char:
+                ss << m_Constant.cValue; break;
+            case ConstantType::String:
+                {
+                    std::string output = std::string("\"") + m_Constant.sValue + std::string("\"");
+                    // 字符串长度可能要调整一下
+                    ss << std::setw(std::max<int>(ALIGN_WIDTH, output.length() + 3)) << output; 
+                    break;
+                }
+        }
         return ss.str();
     }
 };
 class rangeNode : public TypeNode
 {
 public:
-    TypeNode* m_LowerBound; 
-    TypeNode* m_UpperBound;
+    int m_LowerBound; 
+    int m_UpperBound;
     rangeNode(TypeNode* LowerBound, TypeNode* UpperBound)
     {
         if (LowerBound->m_Type != DataType::d_CONSTANT)
@@ -186,14 +208,25 @@ public:
             exit(1);
         }
         m_Type = DataType::d_RANGE;
-        m_LowerBound = LowerBound;
-        m_UpperBound = UpperBound;
+        ValConstant temp_lower = dynamic_cast<constNode*>(LowerBound)->m_Constant;
+        ValConstant temp_upper = dynamic_cast<constNode*>(UpperBound)->m_Constant;
+        
+        if (temp_lower.Type != ConstantType::Integer || temp_upper.Type != ConstantType::Integer)
+        {
+            std::cout << "range只支持整型范围！" << std::endl;
+        }
+        m_LowerBound = temp_lower.iValue;
+        m_UpperBound = temp_upper.iValue;
     }
 
     virtual std::string toString(int& hPos) const override
     {
         std::stringstream ss;
         ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "range";
+        std::string range = std::to_string(m_LowerBound);
+        range += " .. ";
+        range += std::to_string(m_UpperBound);
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << range;
         return ss.str();
     }
 };

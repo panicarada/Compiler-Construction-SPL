@@ -16,15 +16,20 @@ namespace Interpreter
             switch (p->m_Constant.Type)
             {
             case ConstantType::Integer:
-                return new constNode(st.get("integer"));
+                // return st.get("integer");
+                return new constNode(st.get("integer"), p->m_Constant);
             case ConstantType::Real:
-                return new constNode(st.get("real"));
+                // return st.get("real");
+                return new constNode(st.get("real"), p->m_Constant);
             case ConstantType::Boolean:
-                return new constNode(st.get("boolean"));
+                // return st.get("boolean");
+                return new constNode(st.get("boolean"), p->m_Constant);
             case ConstantType::Char:
-                return new constNode(st.get("char"));
+                // return st.get("char");
+                return new constNode(st.get("char"), p->m_Constant);
             case ConstantType::String:
-                return new constNode(st.get("string"));
+                // return st.get("integer");
+                return new constNode(st.get("string"), p->m_Constant);
             default:
                 std::cout << "Unknown constant type!" << std::endl;
                 exit(1);

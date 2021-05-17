@@ -15,7 +15,7 @@ lex.yy.o: lex.yy.c yacc.tab.h Utils.hpp
 yacc.tab.o: yacc.tab.c Utils.hpp Interpreter.hpp
 	$(CC) $(CPP_FLAGS) -c yacc.tab.c
 
-Interpreter.o: Interpreter.cpp Typing.hpp Interpreter.hpp Graph.hpp yacc.tab.h Utils.hpp
+Interpreter.o: Interpreter.cpp Typing.hpp SymbolTable.hpp Interpreter.hpp Graph.hpp yacc.tab.h Utils.hpp
 	$(CC) $(CPP_FLAGS) -c Interpreter.cpp
 
 Typing.o: Typing.cpp Typing.hpp Utils.hpp

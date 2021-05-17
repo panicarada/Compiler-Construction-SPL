@@ -16,7 +16,7 @@ Letter  [a-zA-Z]
 Digit   [0-9]
 Integer (0|[1-9]{Digit}*)
 Real    {Integer}.[0-9]+
-Identifier  ({Letter}|_)({Letter}|{Digit}|_)*
+Identifier  {Letter}({Letter}|{Digit}|_)*
 
 
 %%
