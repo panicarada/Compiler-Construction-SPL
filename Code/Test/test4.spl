@@ -2,13 +2,14 @@ program Hello;
 
 const
 	str = "Hello World";
+	a = 10;
 type 
 	student = record
 		ID, name	: str;
 		age			: integer;
 		GPA			: real;
 	end;
-	Index =array[(r, g, b)] of record
+	Index = array[(r, g, b)] of record
 									ID : str;
 									Birthday : record 
 										Year, Month, Day : integer;
@@ -16,8 +17,6 @@ type
 									Grade : array [(Chinese, Math, English)] of real;
 							   end
 							   ;
-	Index2 = -20 .. -30;
-
 
 	begin
 

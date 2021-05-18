@@ -2,7 +2,7 @@
 #include "Interpreter.hpp"
 #include <unordered_map>
 #include "Graph.hpp"
-#include "yacc.tab.h"
+#include "yacc.tab.hpp"
 
 
 

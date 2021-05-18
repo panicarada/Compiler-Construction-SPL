@@ -1,10 +1,144 @@
 ### 序言
 
+## 1. 引言
+
+#### 1.1 文件结构
+
+<img src="resource/文件目录.png" alt="文件目录" style="zoom:25%;" />
+
+*  根目录
+   *  Code：工程代码区域，**为了跨系统路径统一的方便，只能在这一目录运行可执行文件**`bin/main`。
+      *  bin：可执行文件生成路径
+      *  build：编译产生的目标文件`.o`和`makefile`自动生成的依赖文件`.d`
+      *  include：头文件路径`.hpp`，包括bison编译产生的头文件
+      *  source：源文件路径`.cpp`，包括flex和bison编译产生的文件
+      *  lex_yacc：flex和bison源文件路径
+      *  Test：用于测试的`.spl`代码路径
+      *  Makefile
+   *  Output：程序运行过程中产生的文件，比如语法树
+   *  Resource：存放文档所用图片
+
+#### 1.2 工程编译
+
+采用全自动的`Makefile`文件编译。在路径`./Code`下执行指令
+
+```bash
+make
+```
+
+即可。下面的Makefile对任何工程都适配，只需要简单修改自定义的路径名，以及`flex`和`bison`文件的名字即可
+
+```makefile
+#The Target Binary Program
+LEX			:= flex
+YACC		:= bison
+TARGET      := main
+CC			:= g++
+#The Directories, Source, Includes, Objects, Binary and Resources
+SOURCE_DIR  := source
+INCLUDE_DIR := include
+LEX_YACC	:= lex_yacc
+BUILD_DIR   := build
+TARGET_DIR  := bin
+SRC_EXT     := cpp
+DEP_EXT     := d
+OBJEXT      := o
+
+#Flags, Libraries and Includes
+CPPFLAGS	:= -std=c++17
+INCLUDE     := -I$(INCLUDE_DIR)
+DEPENDENCY  := -I$(INCLUDE_DIR)
+
+# flex和bison文件名
+FLEX_FILE	:= lex
+BISON_FILE	:= yacc
+
+#---------------------------------------------------------------------------------
+#不要修改下面
+#---------------------------------------------------------------------------------
+SOURCES     := $(shell find $(SOURCE_DIR) -type f -name *.$(SRC_EXT))
+OBJECTS     := $(patsubst $(SOURCE_DIR)/%,$(BUILD_DIR)/%,$(SOURCES:.$(SRC_EXT)=.$(OBJEXT)))
+
+#Defauilt Make
+all: lex yacc resources $(TARGET)
+
+lex:
+	$(LEX) -o $(SOURCE_DIR)/$(FLEX_FILE).yy.cpp $(LEX_YACC)/$(FLEX_FILE).l
+
+yacc:
+	$(YACC) -o $(SOURCE_DIR)/$(BISON_FILE).tab.cpp $(LEX_YACC)/$(BISON_FILE).y -d
+# 把生成的yacc.tab.hpp转移到include路径
+	@mv $(SOURCE_DIR)/$(BISON_FILE).tab.hpp $(INCLUDE_DIR)/
+
+#Remake
+remake: cleaner all
+
+#Make the Directories
+directories:
+	@mkdir -p $(TARGET_DIR)
+	@mkdir -p $(BUILD_DIR)
+
+#Clean only Objecst
+clean:
+	@$(RM) -rf $(BUILD_DIR)
+
+#Full Clean, Objects and Binaries
+cleaner: clean
+	@$(RM) -rf $(TARGET_DIR)
+
+#Pull in dependency info for *existing* .o files
+-include $(OBJECTS:.$(OBJEXT)=.$(DEP_EXT))
+
+#Link
+$(TARGET): $(OBJECTS)
+	$(CC) $^ -o $(TARGET_DIR)/$(TARGET) 
+
+#Compile
+$(BUILD_DIR)/%.$(OBJEXT): $(SOURCE_DIR)/%.$(SRC_EXT)
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(INCLUDE) -c -o $@ $<
+	@$(CC) $(CPPFLAGS) $(DEPENDENCY) -MM $(SOURCE_DIR)/$*.$(SRC_EXT) > $(BUILD_DIR)/$*.$(DEP_EXT)
+	@cp -f $(BUILD_DIR)/$*.$(DEP_EXT) $(BUILD_DIR)/$*.$(DEP_EXT).tmp
+	@sed -e 's|.*:|$(BUILD_DIR)/$*.$(OBJEXT):|' < $(BUILD_DIR)/$*.$(DEP_EXT).tmp > $(BUILD_DIR)/$*.$(DEP_EXT)
+	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILD_DIR)/$*.$(DEP_EXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILD_DIR)/$*.$(DEP_EXT)
+	@rm -f $(BUILD_DIR)/$*.$(DEP_EXT).tmp
+
+	
+#Non-File Targets
+.PHONY: all remake clean cleaner resources
+```
+
+#### 1.3 运行说明
+
+请在路径`./Code/`下运行可执行文件
+
+```c++
+./bin/main
+```
+
+如果执行文件时不带参数，则在控制台直接输入spl代码。
+
+<img src="Resource/不带参数运行.png" alt="不带参数输入代码" style="zoom:80%;" />
+
+也可以带一个参数指明`spl`文件名，直接编译整个文件。注意，只需要指明文件名而不用路径，且`spl`文件必须放在目录`./Code/Test`下。
+
+```bash
+./bin/main HelloWorld.spl
+```
+
+#### 1.4 配置说明
+
+Flex：flex 2.5.35(flex-32)
+
+Bison：bison (GNU Bison) 2.3
+
+g++：Apple clang version 12.0.5 (clang-1205.0.22.9)
+
+C++标准：-std = c++17
 
 
 
-
-## 2.词法分析
+##2.词法分析
 
 ####2.1 关键token正则表达式
 
@@ -1008,3 +1142,6 @@ proc_stmt	// 在上级节点中可以利用这个std::vector<>进行平级的初
 
 
 （5）数目不定的分级列表。比如case语句中
+
+
+

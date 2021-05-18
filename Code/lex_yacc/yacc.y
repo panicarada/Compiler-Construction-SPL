@@ -2,16 +2,26 @@
     #include <iostream>    
     #include <stdarg.h>
 	#include <vector>
+	#include <fstream>
+	#include <filesystem>
+
+
     #include "Utils.hpp"
     #include "Interpreter.hpp"
-	#include <fstream>
 
+	#define YYDEBUG 1 // This is new
+
+	extern void yyset_in(FILE * in_str);
 
 	unsigned int line_number = 1;
-    int yylex(void);
+    extern int yylex(void);
+	// extern FILE *yyin;
     void yyerror(const char *);
+	int yyparse(void);
 	std::string TestFile;
 %}
+
+
 
 %union {
     int iValue; // integer value
@@ -805,20 +815,26 @@ void yyerror(const char* s)
 
 int main(int argc, char* argv[])
 {
+	/* yydebug = 1; // debug时才用 */
 	FILE* fp = NULL;
-	extern FILE* yyin;
-	yyin = stdin;
 	if (argc > 1)
 	{
 		TestFile = argv[1];
-		TestFile = TestFile.substr(TestFile.rfind("/") + 1);
-		TestFile = TestFile.substr(0, TestFile.find("."));
 		std::cout << TestFile << std::endl;
-
-		fp = fopen(argv[1], "r");
+		TestFile = "./Test/" + TestFile;
+		fp = fopen(TestFile.c_str(), "r");
 		if (fp)
 		{ // 成功打开文件
-			yyin = fp;
+			yyset_in(fp); // 设置parse对象的指针
+		}
+		else 
+		{
+			std::string msg = "\nYour current directory is \"";
+			msg.append(std::filesystem::current_path());
+			msg.append("\"\nFailed to open file \"");
+			msg.append(TestFile);
+			msg.append("\" !!");
+			raiseError(msg)
 		}
 	}
     yyparse();

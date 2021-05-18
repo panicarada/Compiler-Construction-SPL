@@ -1,13 +1,13 @@
 %{
 #include <iostream>
 #include "Utils.hpp"
-#include "yacc.tab.h"
+#include "yacc.tab.hpp"
 #include <sstream>
-void yyerror(char *);
 
 std::stringstream ss;
 extern unsigned int line_number;
 %}
+
 
 /* 读取字符串的状态 */
 %x READING_STRING

@@ -4,7 +4,7 @@
 #include <string>
 #include <fstream>
 #include "Utils.hpp"
-#include "yacc.tab.h"
+#include "yacc.tab.hpp"
 
 
 namespace Graph

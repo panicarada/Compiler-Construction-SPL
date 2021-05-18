@@ -14,9 +14,9 @@
 #include <unordered_map>
 
 #define raiseError(...) {\
-	fprintf(stderr, "In %s. Line %d.\t", __FILE_NAME__ , __LINE__);\
-	fprintf(stderr, __VA_ARGS__);\
-	fprintf(stderr, "\n");\
+    std::cerr << "In " << __FILE_NAME__ << ". Line " << __LINE__ << ".\t"\
+    << __VA_ARGS__ << std::endl;\
+    exit(1);\
 }
 enum NodeType
 {

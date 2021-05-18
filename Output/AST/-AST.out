@@ -1,0 +1,21 @@
+Program Name: Hello
+
+Graph 0:
+
+
+                       |
+             |----------------------|
+             |                      |
+      [Routine Head]         [Routine Body]
+             |                      |
+             |                      |
+             |                      |
+       [const part]          [Sys procedure]
+             |                      |
+             |                  |---------|
+             |                  |         |
+            [=]            id(writeln) id(str)
+             |
+    |------------|
+    |            |
+ id(str) c("Hello World!")
