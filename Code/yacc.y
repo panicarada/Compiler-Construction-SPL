@@ -13,7 +13,6 @@
 	std::string TestFile;
 %}
 
-
 %union {
     int iValue; // integer value
     double dValue; // double value
@@ -68,7 +67,7 @@
 program 
 	:  program_head routine DOT
 	{
-		std::ofstream outFile(TestFile + "-AST.out");
+		std::ofstream outFile("../Output/AST/" + TestFile + "-AST.out");
 		outFile << "Program Name: " << $1 << std::endl;
 		Interpreter::execute($2, outFile);
 		exit(0);
@@ -87,7 +86,6 @@ routine
 	{
 		// 因为两个都nullable
 		// 所以把所有非空部分拼成一个列表再一次性构造$$，避免了很多的if-else语句
-		
 		std::vector<Node*>* Temp = new std::vector<Node*>();
 		if ($1 != NULL) Temp->push_back($1);
 		if ($2 != NULL) Temp->push_back($2);
@@ -816,6 +814,7 @@ int main(int argc, char* argv[])
 		TestFile = TestFile.substr(TestFile.rfind("/") + 1);
 		TestFile = TestFile.substr(0, TestFile.find("."));
 		std::cout << TestFile << std::endl;
+
 		fp = fopen(argv[1], "r");
 		if (fp)
 		{ // 成功打开文件

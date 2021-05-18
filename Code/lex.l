@@ -11,6 +11,8 @@ extern unsigned int line_number;
 
 /* 读取字符串的状态 */
 %x READING_STRING
+/* 注释状态 */
+%x COMMENT
 
 Letter  [a-zA-Z]
 Digit   [0-9]
@@ -20,6 +22,22 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
 
 
 %%
+"//" {
+    // 注释
+    ss.clear();
+    ss.str("");
+    BEGIN COMMENT;
+}
+<COMMENT>"\n" {
+    // 注释碰到回车结束
+    BEGIN INITIAL;
+    std::cout<<"comment: "<<ss.str()<<std::endl;
+}
+<COMMENT>. {
+    // 注释状态忽略一切，为了调试，输出一下注释内容
+    ss<<yytext[0];
+}
+
 "(" return LP;
 ")" return RP;
 "[" return LB;

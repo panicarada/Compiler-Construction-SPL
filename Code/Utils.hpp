@@ -13,6 +13,11 @@
 #include <stdarg.h>
 #include <unordered_map>
 
+#define raiseError(...) {\
+	fprintf(stderr, "In %s. Line %d.\t", __FILE_NAME__ , __LINE__);\
+	fprintf(stderr, __VA_ARGS__);\
+	fprintf(stderr, "\n");\
+}
 enum NodeType
 {
     Constant,
@@ -29,6 +34,7 @@ enum ConstantType
     String,
     Boolean
 };
+// 常数数据
 struct ValConstant
 {
     ConstantType Type;
@@ -42,19 +48,20 @@ struct ValConstant
     };
 };
 
-
+// 名字数据
 struct ValIdentifier
 {
     char* Name; // Index to symbol table
 };
 
+// 提前声明Node类
 class Node;
-
+// 操作数据
 struct ValOperation
 {
-    int Operator;
-    int NumOperands;
-    Node** List_Operands;
+    int Operator; // 操作符，都是yacc.y中定义的token
+    int NumOperands; // 子节点数目
+    Node** List_Operands; // 子节点
 };
 
 class Node
@@ -87,7 +94,12 @@ public:
             m_Typename.Name = new char[strlen(Name)];
             strcpy(m_Typename.Name, Name);
         }
-        
+        else 
+        {
+            std::string msg = "Unknown Type: ";
+            msg.append(std::to_string(Type));
+            raiseError(msg.c_str());
+        }
     }
     Node(int Operator, std::vector<Node*>* List)
         : m_Line(0), m_Type(NodeType::Operation)
@@ -107,7 +119,6 @@ public:
         m_Operation.Operator = Operator;
         m_Operation.NumOperands = NumOperands;
         m_Operation.List_Operands = new Node*[NumOperands];
-        // int i;
         va_start(ap, NumOperands);
         for (int i = 0;i < NumOperands; ++i)
         {
@@ -149,12 +160,3 @@ public:
         }
     }
 };
-
-union TableValue
-{
-    int iValue;
-    double dValue;
-};
-
-
-static std::unordered_map<std::string, TableValue> SymbolTable;

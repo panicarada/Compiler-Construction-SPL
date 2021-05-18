@@ -5,16 +5,16 @@ const
 	b = 12;
 	a = 14;
 type 
-	Date = record
+	Date = record	// 日期
 				Year : integer;
 				Month: 1 .. 12;
 				Days : 1 .. 30;
 	   	   end;
-	Info = record
+	Info = record	// 信息
 				Birthday : Date;
 				GPA		 : real;
 		   end;
-	color = (red, green, blue);
+	color = (red, green, blue);	// 颜色的rgb值
 var
 	Student : record 
 					t : Info;

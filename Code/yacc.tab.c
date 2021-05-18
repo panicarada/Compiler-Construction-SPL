@@ -266,7 +266,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 17 "yacc.y"
+#line 16 "yacc.y"
 {
     int iValue; // integer value
     double dValue; // double value
@@ -646,19 +646,19 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    69,    69,    78,    86,   100,   116,   137,   142,   146,
-     150,   154,   162,   169,   176,   184,   192,   203,   207,   211,
-     215,   222,   231,   235,   239,   246,   250,   254,   258,   262,
-     268,   274,   283,   291,   298,   302,   310,   318,   322,   331,
-     335,   339,   343,   350,   358,   362,   366,   371,   376,   380,
-     389,   411,   418,   440,   444,   447,   451,   457,   462,   469,
-     475,   482,   495,   501,   512,   515,   522,   528,   529,   530,
-     531,   532,   533,   534,   535,   536,   540,   544,   550,   560,
-     564,   569,   573,   578,   582,   595,   596,   599,   605,   612,
-     619,   620,   623,   629,   633,   639,   643,   651,   660,   664,
-     671,   675,   679,   683,   687,   691,   695,   701,   705,   709,
-     713,   719,   723,   727,   731,   735,   741,   745,   751,   756,
-     762,   766,   770,   774,   778,   784,   792,   796
+       0,    68,    68,    77,    85,    98,   114,   135,   140,   144,
+     148,   152,   160,   167,   174,   182,   190,   201,   205,   209,
+     213,   220,   229,   233,   237,   244,   248,   252,   256,   260,
+     266,   272,   281,   289,   296,   300,   308,   316,   320,   329,
+     333,   337,   341,   348,   356,   360,   364,   369,   374,   378,
+     387,   409,   416,   438,   442,   445,   449,   455,   460,   467,
+     473,   480,   493,   499,   510,   513,   520,   526,   527,   528,
+     529,   530,   531,   532,   533,   534,   538,   542,   548,   558,
+     562,   567,   571,   576,   580,   593,   594,   597,   603,   610,
+     617,   618,   621,   627,   631,   637,   641,   649,   658,   662,
+     669,   673,   677,   681,   685,   689,   693,   699,   703,   707,
+     711,   717,   721,   725,   729,   733,   739,   743,   749,   754,
+     760,   764,   768,   772,   776,   782,   790,   794
 };
 #endif
 
@@ -1789,9 +1789,9 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 70 "yacc.y"
+#line 69 "yacc.y"
     {
-		std::ofstream outFile(TestFile + "-AST.out");
+		std::ofstream outFile("../Output/AST/" + TestFile + "-AST.out");
 		outFile << "Program Name: " << (yyvsp[(1) - (3)].sValue) << std::endl;
 		Interpreter::execute((yyvsp[(2) - (3)].NodePtr), outFile);
 		exit(0);
@@ -1799,7 +1799,7 @@ yyreduce:
     break;
 
   case 3:
-#line 79 "yacc.y"
+#line 78 "yacc.y"
     {
 		(yyval.sValue) = new char[strlen((yyvsp[(2) - (3)].sValue))];
 		strcpy((yyval.sValue), (yyvsp[(2) - (3)].sValue));
@@ -1807,11 +1807,10 @@ yyreduce:
     break;
 
   case 4:
-#line 87 "yacc.y"
+#line 86 "yacc.y"
     {
 		// 因为两个都nullable
 		// 所以把所有非空部分拼成一个列表再一次性构造$$，避免了很多的if-else语句
-		
 		std::vector<Node*>* Temp = new std::vector<Node*>();
 		if ((yyvsp[(1) - (2)].NodePtr) != NULL) Temp->push_back((yyvsp[(1) - (2)].NodePtr));
 		if ((yyvsp[(2) - (2)].NodePtr) != NULL) Temp->push_back((yyvsp[(2) - (2)].NodePtr));
@@ -1821,7 +1820,7 @@ yyreduce:
     break;
 
   case 5:
-#line 101 "yacc.y"
+#line 99 "yacc.y"
     {
 		// 因为两个都nullable
 		// 所以把所有非空部分拼成一个列表再一次性构造$$，避免了很多的if-else语句
@@ -1837,7 +1836,7 @@ yyreduce:
     break;
 
   case 6:
-#line 117 "yacc.y"
+#line 115 "yacc.y"
     {
 		// 因为很多部分有nullable
 		// 所以把所有非空部分拼成一个列表再一次性构造$$，避免了很多的if-else语句
@@ -1859,26 +1858,26 @@ yyreduce:
     break;
 
   case 8:
-#line 143 "yacc.y"
+#line 141 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(CONST_PART, (yyvsp[(2) - (2)].NodePtrList));
 	;}
     break;
 
   case 9:
-#line 146 "yacc.y"
+#line 144 "yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 10:
-#line 151 "yacc.y"
+#line 149 "yacc.y"
     {
 		(yyval.NodePtrList)->push_back(new Node(EQUAL, 2, new Node((yylsp[(2) - (5)]).first_line, (yyvsp[(2) - (5)].sValue), NodeType::Identifier), (yyvsp[(4) - (5)].NodePtr)));
 	;}
     break;
 
   case 11:
-#line 155 "yacc.y"
+#line 153 "yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<Node *>();
 		(yyval.NodePtrList)->push_back(new Node(EQUAL, 2, new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Identifier), (yyvsp[(3) - (4)].NodePtr)));
@@ -1886,7 +1885,7 @@ yyreduce:
     break;
 
   case 12:
-#line 163 "yacc.y"
+#line 161 "yacc.y"
     {
         ValConstant temp;
         temp.Type = ConstantType::Integer;
@@ -1896,7 +1895,7 @@ yyreduce:
     break;
 
   case 13:
-#line 170 "yacc.y"
+#line 168 "yacc.y"
     {
         ValConstant temp;
         temp.Type = ConstantType::Real;
@@ -1906,7 +1905,7 @@ yyreduce:
     break;
 
   case 14:
-#line 177 "yacc.y"
+#line 175 "yacc.y"
     {
         ValConstant temp;
         temp.Type = ConstantType::Char;
@@ -1917,7 +1916,7 @@ yyreduce:
     break;
 
   case 15:
-#line 185 "yacc.y"
+#line 183 "yacc.y"
     {
 		ValConstant temp;
         temp.Type = ConstantType::String;
@@ -1928,7 +1927,7 @@ yyreduce:
     break;
 
   case 16:
-#line 193 "yacc.y"
+#line 191 "yacc.y"
     {
 		ValConstant temp;
 		temp.Type = ConstantType::Boolean;
@@ -1939,33 +1938,33 @@ yyreduce:
     break;
 
   case 17:
-#line 204 "yacc.y"
+#line 202 "yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(2) - (2)].NodePtr);
 	;}
     break;
 
   case 18:
-#line 207 "yacc.y"
+#line 205 "yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 19:
-#line 212 "yacc.y"
+#line 210 "yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 20:
-#line 216 "yacc.y"
+#line 214 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(TYPE_PART, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 21:
-#line 223 "yacc.y"
+#line 221 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(TYPE, 2
 					  , new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Typename)
@@ -1974,56 +1973,56 @@ yyreduce:
     break;
 
   case 22:
-#line 232 "yacc.y"
+#line 230 "yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 23:
-#line 236 "yacc.y"
+#line 234 "yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 24:
-#line 240 "yacc.y"
+#line 238 "yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 25:
-#line 247 "yacc.y"
+#line 245 "yacc.y"
     {
 		(yyval.NodePtr) = new Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), NodeType::Typename);
 	;}
     break;
 
   case 26:
-#line 251 "yacc.y"
+#line 249 "yacc.y"
     {
 		(yyval.NodePtr) = new Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), NodeType::Typename);
 	;}
     break;
 
   case 27:
-#line 255 "yacc.y"
+#line 253 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(ENUM, (yyvsp[(2) - (3)].NodePtrList));
 	;}
     break;
 
   case 28:
-#line 259 "yacc.y"
+#line 257 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(DOTDOT, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 29:
-#line 263 "yacc.y"
+#line 261 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(DOTDOT, 2,
 					  new Node(MINUS, 1, (yyvsp[(2) - (4)].NodePtr)),
@@ -2032,7 +2031,7 @@ yyreduce:
     break;
 
   case 30:
-#line 269 "yacc.y"
+#line 267 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(DOTDOT, 2,
 					  new Node(MINUS, 1, (yyvsp[(2) - (5)].NodePtr)),
@@ -2041,7 +2040,7 @@ yyreduce:
     break;
 
   case 31:
-#line 275 "yacc.y"
+#line 273 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(DOTDOT, 2,
 					  new Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), NodeType::Identifier),
@@ -2050,7 +2049,7 @@ yyreduce:
     break;
 
   case 32:
-#line 284 "yacc.y"
+#line 282 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(ARRAY, 1, (yyvsp[(6) - (6)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(3) - (6)].NodePtr));
@@ -2058,21 +2057,21 @@ yyreduce:
     break;
 
   case 33:
-#line 292 "yacc.y"
+#line 290 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(RECORD, (yyvsp[(2) - (3)].NodePtrList));
 	;}
     break;
 
   case 34:
-#line 299 "yacc.y"
+#line 297 "yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 35:
-#line 303 "yacc.y"
+#line 301 "yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<Node *>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2080,7 +2079,7 @@ yyreduce:
     break;
 
   case 36:
-#line 311 "yacc.y"
+#line 309 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(FIELD_DECL, 1, (yyvsp[(3) - (4)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (4)].NodePtrList));
@@ -2088,14 +2087,14 @@ yyreduce:
     break;
 
   case 37:
-#line 319 "yacc.y"
+#line 317 "yacc.y"
     {
 		(yyval.NodePtrList)->push_back(new Node((yylsp[(3) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), NodeType::Identifier));
 	;}
     break;
 
   case 38:
-#line 323 "yacc.y"
+#line 321 "yacc.y"
     {
 		std::cout << "line no: " << (yylsp[(1) - (1)]).first_line << std::endl;
 		(yyval.NodePtrList) = new std::vector<Node *>();
@@ -2104,33 +2103,33 @@ yyreduce:
     break;
 
   case 39:
-#line 332 "yacc.y"
+#line 330 "yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(2) - (2)].NodePtr);
 	;}
     break;
 
   case 40:
-#line 335 "yacc.y"
+#line 333 "yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 41:
-#line 340 "yacc.y"
+#line 338 "yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 42:
-#line 344 "yacc.y"
+#line 342 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(VAR_PART, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 43:
-#line 351 "yacc.y"
+#line 349 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(VAR, 1, (yyvsp[(3) - (4)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (4)].NodePtrList));
@@ -2138,21 +2137,21 @@ yyreduce:
     break;
 
   case 44:
-#line 359 "yacc.y"
+#line 357 "yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 45:
-#line 363 "yacc.y"
+#line 361 "yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 46:
-#line 367 "yacc.y"
+#line 365 "yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<Node *>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2160,7 +2159,7 @@ yyreduce:
     break;
 
   case 47:
-#line 372 "yacc.y"
+#line 370 "yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<Node *>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2168,12 +2167,12 @@ yyreduce:
     break;
 
   case 48:
-#line 376 "yacc.y"
+#line 374 "yacc.y"
     {(yyval.NodePtrList) = NULL;;}
     break;
 
   case 49:
-#line 381 "yacc.y"
+#line 379 "yacc.y"
     {
 		if ((yyvsp[(3) - (4)].NodePtr))
 			(yyval.NodePtr) = new Node(FUNCTION, 2, (yyvsp[(1) - (4)].NodePtr), (yyvsp[(3) - (4)].NodePtr));
@@ -2183,7 +2182,7 @@ yyreduce:
     break;
 
   case 50:
-#line 390 "yacc.y"
+#line 388 "yacc.y"
     {
 		if ((yyvsp[(3) - (5)].NodePtr))
 		{
@@ -2205,14 +2204,14 @@ yyreduce:
     break;
 
   case 51:
-#line 412 "yacc.y"
+#line 410 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(PROCEDURE, 2, (yyvsp[(1) - (4)].NodePtr), (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
 
   case 52:
-#line 419 "yacc.y"
+#line 417 "yacc.y"
     {
 		if ((yyvsp[(3) - (3)].NodePtr))
 		{
@@ -2234,33 +2233,33 @@ yyreduce:
     break;
 
   case 53:
-#line 441 "yacc.y"
+#line 439 "yacc.y"
     { 
 		(yyval.NodePtr) = (yyvsp[(2) - (3)].NodePtr);
 	;}
     break;
 
   case 54:
-#line 444 "yacc.y"
+#line 442 "yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 55:
-#line 448 "yacc.y"
+#line 446 "yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 56:
-#line 452 "yacc.y"
+#line 450 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(PARA_LIST, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 57:
-#line 458 "yacc.y"
+#line 456 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(VAR_PARAM, 1, (yyvsp[(3) - (3)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (3)].NodePtrList));
@@ -2268,7 +2267,7 @@ yyreduce:
     break;
 
   case 58:
-#line 463 "yacc.y"
+#line 461 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(VAL_PARAM, 1, (yyvsp[(3) - (3)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (3)].NodePtrList));
@@ -2276,21 +2275,21 @@ yyreduce:
     break;
 
   case 59:
-#line 470 "yacc.y"
+#line 468 "yacc.y"
     {
 		(yyval.NodePtrList) = (yyvsp[(2) - (2)].NodePtrList);
 	;}
     break;
 
   case 60:
-#line 476 "yacc.y"
+#line 474 "yacc.y"
     {
 		(yyval.NodePtrList) = (yyvsp[(1) - (1)].NodePtrList);
 	;}
     break;
 
   case 61:
-#line 483 "yacc.y"
+#line 481 "yacc.y"
     {
 		if ((yyvsp[(1) - (1)].NodePtr))
 		{
@@ -2304,14 +2303,14 @@ yyreduce:
     break;
 
   case 62:
-#line 496 "yacc.y"
+#line 494 "yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(2) - (3)].NodePtr);
 	;}
     break;
 
   case 63:
-#line 502 "yacc.y"
+#line 500 "yacc.y"
     {
 		if ((yyvsp[(1) - (3)].NodePtr) == NULL)
 		{
@@ -2325,12 +2324,12 @@ yyreduce:
     break;
 
   case 64:
-#line 512 "yacc.y"
+#line 510 "yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 65:
-#line 516 "yacc.y"
+#line 514 "yacc.y"
     {
 		ValConstant temp;
 		temp.Type = ConstantType::Integer;
@@ -2340,66 +2339,66 @@ yyreduce:
     break;
 
   case 66:
-#line 523 "yacc.y"
+#line 521 "yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 67:
-#line 528 "yacc.y"
+#line 526 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 68:
-#line 529 "yacc.y"
+#line 527 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 69:
-#line 530 "yacc.y"
+#line 528 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 70:
-#line 531 "yacc.y"
+#line 529 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 71:
-#line 532 "yacc.y"
+#line 530 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 72:
-#line 533 "yacc.y"
+#line 531 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 73:
-#line 534 "yacc.y"
+#line 532 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 74:
-#line 535 "yacc.y"
+#line 533 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 75:
-#line 536 "yacc.y"
+#line 534 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
   case 76:
-#line 541 "yacc.y"
+#line 539 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(ASSIGN, 2, new Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), NodeType::Identifier), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 77:
-#line 545 "yacc.y"
+#line 543 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(ASSIGN, 2, 
 					  new Node(BRACKET, 2, new Node((yylsp[(1) - (6)]).first_line, (yyvsp[(1) - (6)].sValue), NodeType::Identifier), (yyvsp[(3) - (6)].NodePtr)),
@@ -2408,7 +2407,7 @@ yyreduce:
     break;
 
   case 78:
-#line 551 "yacc.y"
+#line 549 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(ASSIGN, 2,
 					  new Node(DOT, 2, new Node((yylsp[(1) - (5)]).first_line, (yyvsp[(1) - (5)].sValue), NodeType::Identifier),
@@ -2418,14 +2417,14 @@ yyreduce:
     break;
 
   case 79:
-#line 561 "yacc.y"
+#line 559 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(PROC, 1, new Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), NodeType::Identifier));
 	;}
     break;
 
   case 80:
-#line 565 "yacc.y"
+#line 563 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(PROC, 1, new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
@@ -2433,14 +2432,14 @@ yyreduce:
     break;
 
   case 81:
-#line 570 "yacc.y"
+#line 568 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(SYS_PROC, 1, new Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), NodeType::Identifier));
 	;}
     break;
 
   case 82:
-#line 574 "yacc.y"
+#line 572 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(SYS_PROC, 1, new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
@@ -2448,7 +2447,7 @@ yyreduce:
     break;
 
   case 84:
-#line 583 "yacc.y"
+#line 581 "yacc.y"
     {
 		if ((yyvsp[(5) - (5)].NodePtr))
 		{
@@ -2462,31 +2461,31 @@ yyreduce:
     break;
 
   case 85:
-#line 595 "yacc.y"
+#line 593 "yacc.y"
     {(yyval.NodePtr) = (yyvsp[(2) - (2)].NodePtr);;}
     break;
 
   case 86:
-#line 596 "yacc.y"
+#line 594 "yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 87:
-#line 600 "yacc.y"
+#line 598 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(REPEAT, 2, (yyvsp[(2) - (4)].NodePtr), (yyvsp[(4) - (4)].NodePtr));
 	;}
     break;
 
   case 88:
-#line 606 "yacc.y"
+#line 604 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(WHILE, 2, (yyvsp[(2) - (4)].NodePtr), (yyvsp[(4) - (4)].NodePtr));
 	;}
     break;
 
   case 89:
-#line 613 "yacc.y"
+#line 611 "yacc.y"
     {
 		(yyval.NodePtr) = new Node((yyvsp[(5) - (8)].iValue), 4, new Node((yylsp[(2) - (8)]).first_line, (yyvsp[(2) - (8)].sValue), NodeType::Identifier), 
 						(yyvsp[(4) - (8)].NodePtr), (yyvsp[(6) - (8)].NodePtr), (yyvsp[(8) - (8)].NodePtr));
@@ -2494,45 +2493,45 @@ yyreduce:
     break;
 
   case 90:
-#line 619 "yacc.y"
+#line 617 "yacc.y"
     {(yyval.iValue) = TO;;}
     break;
 
   case 91:
-#line 620 "yacc.y"
+#line 618 "yacc.y"
     {(yyval.iValue) = DOWNTO;;}
     break;
 
   case 92:
-#line 624 "yacc.y"
+#line 622 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(CASE_STMT, 2, (yyvsp[(2) - (5)].NodePtr), (yyvsp[(4) - (5)].NodePtr));
 	;}
     break;
 
   case 93:
-#line 630 "yacc.y"
+#line 628 "yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 94:
-#line 634 "yacc.y"
+#line 632 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(CASE_LIST, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 95:
-#line 640 "yacc.y"
+#line 638 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(CASE, 2, (yyvsp[(1) - (4)].NodePtr), (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
 
   case 96:
-#line 644 "yacc.y"
+#line 642 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(CASE, 2
 					  , new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Identifier)
@@ -2541,7 +2540,7 @@ yyreduce:
     break;
 
   case 97:
-#line 652 "yacc.y"
+#line 650 "yacc.y"
     {
 		ValConstant temp;
 		temp.Type = ConstantType::Integer;
@@ -2551,14 +2550,14 @@ yyreduce:
     break;
 
   case 98:
-#line 661 "yacc.y"
+#line 659 "yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 99:
-#line 665 "yacc.y"
+#line 663 "yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<Node*>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2566,126 +2565,126 @@ yyreduce:
     break;
 
   case 100:
-#line 672 "yacc.y"
+#line 670 "yacc.y"
     {
         (yyval.NodePtr) = new Node(GE, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 101:
-#line 676 "yacc.y"
+#line 674 "yacc.y"
     {
         (yyval.NodePtr) = new Node(GT, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 102:
-#line 680 "yacc.y"
+#line 678 "yacc.y"
     {
         (yyval.NodePtr) = new Node(LE, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 103:
-#line 684 "yacc.y"
+#line 682 "yacc.y"
     {
         (yyval.NodePtr) = new Node(LT, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 104:
-#line 688 "yacc.y"
+#line 686 "yacc.y"
     {
         (yyval.NodePtr) = new Node(EQUAL, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 105:
-#line 692 "yacc.y"
+#line 690 "yacc.y"
     {
         (yyval.NodePtr) = new Node(UNEQUAL, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 106:
-#line 696 "yacc.y"
+#line 694 "yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     ;}
     break;
 
   case 107:
-#line 702 "yacc.y"
+#line 700 "yacc.y"
     {
         (yyval.NodePtr) = new Node(PLUS, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 108:
-#line 706 "yacc.y"
+#line 704 "yacc.y"
     {
         (yyval.NodePtr) = new Node(MINUS, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 109:
-#line 710 "yacc.y"
+#line 708 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(OR, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 110:
-#line 714 "yacc.y"
+#line 712 "yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     ;}
     break;
 
   case 111:
-#line 720 "yacc.y"
+#line 718 "yacc.y"
     {
         (yyval.NodePtr) = new Node(MUL, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 112:
-#line 724 "yacc.y"
+#line 722 "yacc.y"
     {
         (yyval.NodePtr) = new Node(DIV, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 113:
-#line 728 "yacc.y"
+#line 726 "yacc.y"
     {
         (yyval.NodePtr) = new Node(MOD, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 114:
-#line 732 "yacc.y"
+#line 730 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(AND, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 115:
-#line 736 "yacc.y"
+#line 734 "yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     ;}
     break;
 
   case 116:
-#line 742 "yacc.y"
+#line 740 "yacc.y"
     {
         (yyval.NodePtr) = new Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), NodeType::Identifier);
     ;}
     break;
 
   case 117:
-#line 746 "yacc.y"
+#line 744 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(FUNCT, 1
 					  , new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Identifier));
@@ -2694,7 +2693,7 @@ yyreduce:
     break;
 
   case 118:
-#line 752 "yacc.y"
+#line 750 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(SYS_FUNCT, 1
 					  , new Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), NodeType::Identifier));
@@ -2702,7 +2701,7 @@ yyreduce:
     break;
 
   case 119:
-#line 757 "yacc.y"
+#line 755 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(SYS_FUNCT, 1
 					  , new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Identifier));
@@ -2711,35 +2710,35 @@ yyreduce:
     break;
 
   case 120:
-#line 763 "yacc.y"
+#line 761 "yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     ;}
     break;
 
   case 121:
-#line 767 "yacc.y"
+#line 765 "yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(2) - (3)].NodePtr);
     ;}
     break;
 
   case 122:
-#line 771 "yacc.y"
+#line 769 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(NOT, 1, (yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 123:
-#line 775 "yacc.y"
+#line 773 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(MINUS, 1, (yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 124:
-#line 779 "yacc.y"
+#line 777 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(BRACKET, 2
 					  , new Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), NodeType::Identifier)
@@ -2748,7 +2747,7 @@ yyreduce:
     break;
 
   case 125:
-#line 785 "yacc.y"
+#line 783 "yacc.y"
     {
 		(yyval.NodePtr) = new Node(DOT, 2
 					  , new Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), NodeType::Identifier)
@@ -2757,14 +2756,14 @@ yyreduce:
     break;
 
   case 126:
-#line 793 "yacc.y"
+#line 791 "yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 127:
-#line 797 "yacc.y"
+#line 795 "yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<Node *>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2773,7 +2772,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 2777 "yacc.tab.c"
+#line 2776 "yacc.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2993,7 +2992,7 @@ yyreturn:
 }
 
 
-#line 802 "yacc.y"
+#line 800 "yacc.y"
 
 void yyerror(const char* s)
 {
@@ -3011,6 +3010,7 @@ int main(int argc, char* argv[])
 		TestFile = TestFile.substr(TestFile.rfind("/") + 1);
 		TestFile = TestFile.substr(0, TestFile.find("."));
 		std::cout << TestFile << std::endl;
+
 		fp = fopen(argv[1], "r");
 		if (fp)
 		{ // 成功打开文件
