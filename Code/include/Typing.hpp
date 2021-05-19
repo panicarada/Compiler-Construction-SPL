@@ -1,10 +1,10 @@
 #pragma once
-#include "Utils.hpp"
+#include "AST.hpp"
 #include <iostream>
 #include <string>
 #include <iomanip>
 #include <sstream>
-#include <set>
+#include <vector>
 #include <unordered_map>
 
 
@@ -19,6 +19,8 @@ enum DataType
     d_ARRAY, // 数组
     d_RANGE, // 如1 .. 30, x .. y
     d_CONSTANT, // const part中定义的常量
+    d_FUNCTION, // 函数
+    d_PROCEDURE,    // 过程
     // ...
 };
 class TypeNode
@@ -36,22 +38,22 @@ public:
 class enumNode : public TypeNode
 {
 public:
-    std::set<std::string>* m_Set;
+    std::vector<std::string>* m_List;
     unsigned int m_ID;
     static unsigned int Counter;
 public:
-    enumNode(std::set<std::string>* Set)
+    enumNode(std::vector<std::string>* List)
         : m_ID(Counter++)
     {
         m_Type = DataType::d_ENUM;
-        m_Set = Set;
+        m_List = List;
     }
     virtual std::string toString(int& hPos) const override
     {
         std::stringstream ss;
         ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "enum";
         ss << std::setfill(' ') << std::setw(ALIGN_WIDTH);
-        for (auto & it : *m_Set)
+        for (auto & it : *m_List)
         {
             ss << it << ", ";
         }
@@ -84,19 +86,10 @@ public:
         ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << m_Keyword;
         return ss.str();
     }
-    sysNode(std::string&& Keyword, DataType Type)
+    sysNode(std::string&& Keyword)
     {
-        if (Type != DataType::d_SYS_TYPE)
-        {
-            std::cout << "Invalid Constructor!!" << std::endl;
-            exit(1);
-        }
-        else
-        {
-            m_Type = Type;
-            m_Keyword = Keyword;
-            // std::cout << "Keyword: " << m_Keyword << std::endl;
-        }
+        m_Type = DataType::d_SYS_TYPE;
+        m_Keyword = Keyword;
     }
     virtual bool isEqual(TypeNode* node) const override
     {
@@ -128,27 +121,7 @@ public:
     {
         m_Field = Field;
     }
-    virtual std::string toString(int& hPos) const override
-    { // hPos: 当前水平位置
-        std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "record";
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH);
-        hPos += 2 * ALIGN_WIDTH;
-
-        for (auto it = m_Field->begin(); it != m_Field->end(); )
-        {
-            ss << it->first << ": ";
-            hPos += 2;
-            ss << it->second->toString(hPos);
-            hPos -= 2;
-            if ((++it) != m_Field->end())
-                ss << std::endl << std::setfill(' ') << std::setw(hPos);
-        }
-        // 恢复到原来位置
-        hPos -= 2 * ALIGN_WIDTH;
-
-        return ss.str();
-    }
+    virtual std::string toString(int& hPos) const override;
 };
 
 
@@ -156,8 +129,8 @@ class constNode : public TypeNode
 {
 public:
     sysNode* m_sysNode;
-    ValConstant m_Constant;
-    constNode(TypeNode* node, ValConstant Constant)
+    AST::ValConstant m_Constant;
+    constNode(TypeNode* node, AST::ValConstant Constant)
     {
         if (node->m_Type != DataType::d_SYS_TYPE)
         { // 常数的类型只能是系统原始类型
@@ -168,32 +141,7 @@ public:
         m_sysNode = dynamic_cast<sysNode*>(node);
         m_Constant = Constant;
     }
-    virtual std::string toString(int& hPos) const override
-    {
-        std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "const";
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << m_sysNode->m_Keyword;
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH);
-        switch (m_Constant.Type)
-        {
-            case ConstantType::Integer:
-                ss << m_Constant.iValue; break;
-            case ConstantType::Real:
-                ss << m_Constant.dValue; break;
-            case ConstantType::Boolean:
-                ss << m_Constant.bValue; break;
-            case ConstantType::Char:
-                ss << m_Constant.cValue; break;
-            case ConstantType::String:
-                {
-                    std::string output = std::string("\"") + m_Constant.sValue + std::string("\"");
-                    // 字符串长度可能要调整一下
-                    ss << std::setw(std::max<int>(ALIGN_WIDTH, output.length() + 3)) << output; 
-                    break;
-                }
-        }
-        return ss.str();
-    }
+    virtual std::string toString(int& hPos) const override;
 };
 class rangeNode : public TypeNode
 {
@@ -208,27 +156,17 @@ public:
             exit(1);
         }
         m_Type = DataType::d_RANGE;
-        ValConstant temp_lower = dynamic_cast<constNode*>(LowerBound)->m_Constant;
-        ValConstant temp_upper = dynamic_cast<constNode*>(UpperBound)->m_Constant;
+        AST::ValConstant temp_lower = dynamic_cast<constNode*>(LowerBound)->m_Constant;
+        AST::ValConstant temp_upper = dynamic_cast<constNode*>(UpperBound)->m_Constant;
         
-        if (temp_lower.Type != ConstantType::Integer || temp_upper.Type != ConstantType::Integer)
+        if (temp_lower.Type != AST::ConstantType::Integer || temp_upper.Type != AST::ConstantType::Integer)
         {
             std::cout << "range只支持整型范围！" << std::endl;
         }
         m_LowerBound = temp_lower.iValue;
         m_UpperBound = temp_upper.iValue;
     }
-
-    virtual std::string toString(int& hPos) const override
-    {
-        std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "range";
-        std::string range = std::to_string(m_LowerBound);
-        range += " .. ";
-        range += std::to_string(m_UpperBound);
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << range;
-        return ss.str();
-    }
+    virtual std::string toString(int& hPos) const override;
 };
 
 class arrayNode : public TypeNode
@@ -241,15 +179,31 @@ public:
     {
         m_Type = DataType::d_ARRAY;
     }
-    virtual std::string toString(int& hPos) const override
-    {
-        std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "array";
-        hPos += ALIGN_WIDTH;
-        ss << m_IdxType->toString(hPos) << std::endl;
-        ss << std::setfill(' ') << std::setw(hPos) << " ";
-        ss << m_EleType->toString(hPos);
-        hPos -= ALIGN_WIDTH;
-        return ss.str();
-    }
+    virtual std::string toString(int& hPos) const override;
+};
+
+
+
+class ST; // 提前声明符号表类
+class functNode : public TypeNode
+{
+public:
+    TypeNode* m_resType; // 返回类型
+    ST* m_val_table;    // 形参表
+    ST* m_var_table;    // 引用参数表
+    AST::Node* m_body; // 函数体的指针，指向<Routine-Body>
+public:
+    functNode(TypeNode* resType, AST::Node* body);
+    virtual std::string toString(int& hPos) const override;
+};
+
+class procNode : public TypeNode 
+{
+public:
+    ST* m_val_table;    // 形参表
+    ST* m_var_table;    // 引用参数表
+    AST::Node* m_body;  // 过程体的指针，指向<Routine-body>
+public:
+    procNode(AST::Node* body);
+    virtual std::string toString(int& hPos) const override;
 };

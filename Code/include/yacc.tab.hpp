@@ -204,14 +204,14 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 26 "lex_yacc/yacc.y"
+#line 25 "lex_yacc/yacc.y"
 {
     int iValue; // integer value
     double dValue; // double value
     char cValue; // char value
     char* sValue;
-    Node* NodePtr; // Node Pointer
-	std::vector<Node*>* NodePtrList; // List
+    AST::Node* NodePtr; // Node Pointer
+	std::vector<AST::Node*>* NodePtrList; // List
 }
 /* Line 1529 of yacc.c.  */
 #line 218 "source/yacc.tab.hpp"

@@ -1,10 +1,11 @@
 build/Interpreter.o: source/Interpreter.cpp include/Interpreter.hpp \
-  include/Utils.hpp include/Typing.hpp include/SymbolTable.hpp \
-  include/Graph.hpp include/yacc.tab.hpp
+  include/AST.hpp include/Typing.hpp include/SymbolTable.hpp \
+  include/Plot_txt.hpp include/yacc.tab.hpp include/Plot_py.hpp
 source/Interpreter.cpp:
 include/Interpreter.hpp:
-include/Utils.hpp:
+include/AST.hpp:
 include/Typing.hpp:
 include/SymbolTable.hpp:
-include/Graph.hpp:
+include/Plot_txt.hpp:
 include/yacc.tab.hpp:
+include/Plot_py.hpp:

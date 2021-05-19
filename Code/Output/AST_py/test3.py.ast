@@ -1,0 +1,14 @@
+// AST Tree
+digraph {
+	0 [label=Routine shape=diamond]
+	0 -> 1
+	1 [label="Routine-Head" shape=diamond]
+	1 -> 2
+	2 [label="type-part" shape=diamond]
+	2 -> 3
+	3 [label=Type shape=diamond]
+	3 -> 4
+	4 [label=a shape=oval]
+	3 -> 5
+	5 [label=Student shape=oval]
+}

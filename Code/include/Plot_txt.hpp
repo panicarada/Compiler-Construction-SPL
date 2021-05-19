@@ -3,11 +3,11 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include "Utils.hpp"
+#include "AST.hpp"
 #include "yacc.tab.hpp"
 
 
-namespace Graph
+namespace Plot_txt
 {
     const int ColGap = 1; // distance of graph columns
     const int LineGap = 3; // distance of graph lines
@@ -20,7 +20,7 @@ namespace Graph
                         int Col_End, int Line_End);
 
     /* recursive drawing of the syntax tree */
-    void drawNode(Node* p, int Col_Start, int Line_Start, 
+    void drawNode(AST::Node* p, int Col_Start, int Line_Start, 
                 int& Col_End, int& Col_Mid);
 
 

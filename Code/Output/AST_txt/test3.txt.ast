@@ -1,0 +1,33 @@
+program:  Hello
+
+Graph 0:
+
+
+                                                                                                           |
+                                                                                                           |
+                                                                                                           |
+                                                                                                    [Routine Head]
+                                                                                                           |
+                                         |--------------------------------------------------------------------------------------------------------------------------------------------------|
+                                         |                                                                                |                                                                 |
+                                    [type part]                                                                       [Function]                                                       [Procedure]
+                                         |                                                                                |                                                                 |
+      |----------------------------------------------------------------------|                      |----------------------------------------|                                    |-------------------------|
+      |                                   |                                  |                      |                                        |                                    |                         |
+   [Type]                              [Type]                             [Type]             function: print                           [subroutine]                       procedure: print2           [subroutine]
+      |                                   |                                  |                      |                                        |                                    |                         |
+  |-----|       |-----------------------------|                          |----|                 |------------------|                         |                                    |                         |
+  |     |       |                             |                          |    |                 |                  |                         |                                    |                         |
+ Int integer Student                      [Record]                       a Student         [para list]          integer               [Routine Body]                         [para list]             [Routine Body]
+                                              |                                                 |                                            |                                    |                         |
+                               |---------------------------------|                       |--------------|                                    |                            |---------------|                 |
+                               |                   |             |                       |              |                                    |                            |               |                 |
+                          [Field Decl]       [Field Decl]   [Field Decl]              [Value]       [Variant]                                ;                         [Value]         [Value]       [Sys procedure]
+                               |                   |             |                       |              |                                    |                            |               |                 |
+                       |------|-------|        |-------|     |------|                |-------|    |------|                         |---------------------|            |-------|       |-------|         |---------|
+                       |      |       |        |       |     |      |                |       |    |      |                         |                     |            |       |       |       |         |         |
+                     string id(ID) id(name) integer id(age) real id(GPA)           string id(str) a id(student)             [Sys procedure]       [Sys procedure]   string id(str) Student id(age) id(writeln) id(str)
+                                                                                                                                   |                     |
+                                                                                                                             |-----------|           |---------|
+                                                                                                                             |           |           |         |
+                                                                                                                        id(writeln) id(student) id(writeln) id(str)

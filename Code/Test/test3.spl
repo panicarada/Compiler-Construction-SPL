@@ -1,27 +1,33 @@
 program Hello;
 type 
 	Int = integer;
-	student = record
-		ID, name	: str;
+	Student = record
+		ID, name	: string;
 		age			: integer;
 		GPA			: real;
 	end;
-	Index = array[-1 .. 10] of record
-									ID : str;
-									Birthday : record 
-										Year, Month, Day : integer;
-									end;
-									Grade : array [(Chinese, Math, English)] of real;
-							   end
-							   ;
-	Index2 = -20 .. -30;
-	Index3 = x .. y;
-	Color = (Red, Green, Blue);
-var
-	temp : real;
-	stu  : student;
+	a = Student;
+function print(
+	str  : string;
+var 
+	student : a
+) : integer;
+begin
+	writeln(student);
+	writeln(str);
+end
+;
 
-	begin
+procedure print2(
+	str  : string;
+	age  : Student
+);
+begin
+	writeln(str);
+end;
 
-	end
+
+begin
+
+end
 .

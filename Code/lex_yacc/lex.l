@@ -1,6 +1,6 @@
 %{
 #include <iostream>
-#include "Utils.hpp"
+#include "AST.hpp"
 #include "yacc.tab.hpp"
 #include <sstream>
 
@@ -8,6 +8,7 @@ std::stringstream ss;
 extern unsigned int line_number;
 %}
 
+%option yylineno
 
 /* 读取字符串的状态 */
 %x READING_STRING

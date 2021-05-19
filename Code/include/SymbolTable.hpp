@@ -5,77 +5,52 @@
 
 
 class ST
+{
+    std::unordered_map<std::string, TypeNode*> Table;
+    std::unordered_map<std::string, unsigned int> LineTable;
+private:
+    enum Scope
     {
-        std::unordered_map<std::string, TypeNode*> Table;
-        std::unordered_map<std::string, unsigned int> LineTable;
-    public:
-        ST()
-        { // 初始化Table，塞入系统类型
-            insert("integer", new sysNode("integer", DataType::d_SYS_TYPE), 0);
-            insert("real", new sysNode("real", DataType::d_SYS_TYPE), 0);
-            insert("boolean", new sysNode("boolean", DataType::d_SYS_TYPE), 0);
-            insert("char", new sysNode("char", DataType::d_SYS_TYPE), 0);
-            insert("string", new sysNode("string", DataType::d_SYS_TYPE), 0);
-        }
-        void show()
-        {
-            std::cout << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "name"
-                      << std::setfill(' ') << std::setw(ALIGN_WIDTH / 2) << "line"
-                      << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "type"
-                      << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "attribute" << std::endl;
-                    
-
-
-            for (auto& it : Table)
-            {
-                int hPos = ALIGN_WIDTH + ALIGN_WIDTH/2;
-                std::cout << std::setfill(' ') << std::setw(ALIGN_WIDTH) << it.first
-                          << std::setfill(' ') << std::setw(ALIGN_WIDTH / 2) << LineTable[it.first]
-                          << it.second->toString(hPos) << std::endl;
-            }
-
-        }
-        bool insert(std::string str, TypeNode* node, unsigned int Line)
-        {
-            if (Table.find(str) == Table.end())
-            {
-                node->prev = node->next = nullptr;
-                Table[str] = node;
-                LineTable[str] = Line;
-                return true;
-            }
-            else
-            { // 原本就存在str这一个key
-                // 用指针连接
-                Table[str]->next = node;
-                node->prev = Table[str];
-                Table[str] = node;
-                return false;
-            }
-        }
-        TypeNode* get(std::string str)
-        {
-            if (Table.find(str) != Table.end())
-            {
-                return Table[str];
-            }
-            return NULL;
-        }
-        TypeNode* pop(std::string str)
-        {
-            if (Table.find(str) == Table.end())
-            { // 如果不存在，没办法删除
-                std::cout << "当前符号表中不存在名称: \"" << str << "\"" << std::endl;
-                exit(1);
-            }
-            else 
-            {   // 取出链表尾部
-                TypeNode* res = Table[str];
-                Table[str] = Table[str]->prev;
-                Table[str]->next = nullptr;
-                res->prev = nullptr;
-
-                return res;
-            }
-        }
+        s_GLOBAL,
+        s_CONST_PART,
+        s_VAR_PART,
+        s_RANGE,
     };
+    TypeNode* getType(AST::Node* p, Scope scope = Scope::s_GLOBAL);
+public:
+    inline bool isEmpty() const
+    {
+        return Table.empty();
+    }
+    ST(bool addSys = true)
+    { // 初始化Table，塞入系统类型
+        if (addSys)
+        {   // 是否要默认添加系统类型
+            insert("integer", new sysNode("integer"), 0);
+            insert("real", new sysNode("real"), 0);
+            insert("boolean", new sysNode("boolean"), 0);
+            insert("char", new sysNode("char"), 0);
+            insert("string", new sysNode("string"), 0);
+        }
+    }
+    // 给定语法树的根节点，构造符号表
+    void setup(AST::Node* p);
+
+    // 输出符号表
+    void show(); 
+
+    // 向符号表中加入符号以及对应的属性
+    // 返回是否为首次插入
+    bool insert(std::string str, TypeNode* node, unsigned int Line);
+
+    // 根据符号名获取对应类型
+    // 如果不存在，则返回nullptr
+    TypeNode* get(std::string str, unsigned int line);
+
+    // 按照当前符号表检查节点
+    TypeNode* check(AST::Node* p);
+
+    // 弹出该名字对应的最近一次加入到符号表的符号
+    // 返回弹出的类型节点
+    TypeNode* pop(std::string str);
+};

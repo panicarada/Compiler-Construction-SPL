@@ -4,7 +4,7 @@
 
 #### 1.1 文件结构
 
-<img src="resource/文件目录.png" alt="文件目录" style="zoom:25%;" />
+<img src="resource/文件目录.png" alt="文件目录" style="zoom:40%;" />
 
 *  根目录
    *  Code：工程代码区域，**为了跨系统路径统一的方便，只能在这一目录运行可执行文件**`bin/main`。
@@ -15,7 +15,10 @@
       *  lex_yacc：flex和bison源文件路径
       *  Test：用于测试的`.spl`代码路径
       *  Makefile
-   *  Output：程序运行过程中产生的文件，比如语法树
+      *  Output：程序**运行过程**中产生的输出文件，比如语法树；也存放输出语法树图像的python代码。
+         *  AST_txt：文本格式的语法树
+         *  AST_raw：描述语法树的文本流，用于python代码进行进一步的处理
+         *  AST_py：python代码解析`AST_raw`中文件后，输出的语法树图片
    *  Resource：存放文档所用图片
 
 #### 1.2 工程编译
@@ -32,7 +35,7 @@ make
 #The Target Binary Program
 LEX			:= flex
 YACC		:= bison
-TARGET      := main
+TARGET  := main
 CC			:= g++
 #The Directories, Source, Includes, Objects, Binary and Resources
 SOURCE_DIR  := source
@@ -110,7 +113,7 @@ $(BUILD_DIR)/%.$(OBJEXT): $(SOURCE_DIR)/%.$(SRC_EXT)
 
 #### 1.3 运行说明
 
-请在路径`./Code/`下运行可执行文件
+**注：请在路径`./Code/`下运行**
 
 ```c++
 ./bin/main
@@ -123,20 +126,44 @@ $(BUILD_DIR)/%.$(OBJEXT): $(SOURCE_DIR)/%.$(SRC_EXT)
 也可以带一个参数指明`spl`文件名，直接编译整个文件。注意，只需要指明文件名而不用路径，且`spl`文件必须放在目录`./Code/Test`下。
 
 ```bash
-./bin/main HelloWorld.spl
+./bin/main test6		# 输入时不需要声明文件后缀，默认都是.spl
 ```
+
+这一过程会在目录`./Code/Output/AST_txt`产生对应的txt版本的语法树，如下所示
+
+<img src="Resource/AST_txt示例.png" alt="AST_txt示例" style="zoom:50%;" />
+
+同时在`./Code/Output/AST_raw`产生描述语法树的文件，用于之后使用python进一步处理，产生图像。
+
+配置好python以及所需的依赖包【见1.4】以后，可以运行python代码产生图片格式的语法树，路径为`./Code/Output/AST_py`
+
+```bash
+python ./Output/main.py test6
+```
+
+<img src="Resource/AST_py示例.jpg" alt="AST_py示例" style="zoom:100%;" />
 
 #### 1.4 配置说明
 
-Flex：flex 2.5.35(flex-32)
+*  Flex：flex 2.5.35(flex-32)
 
-Bison：bison (GNU Bison) 2.3
+*  Bison：bison (GNU Bison) 2.3
 
-g++：Apple clang version 12.0.5 (clang-1205.0.22.9)
+*  g++：Apple clang version 12.0.5 (clang-1205.0.22.9)
 
-C++标准：-std = c++17
+*  C++标准：-std = c++17
 
+*  Python3.9：用于绘制语法树，非必要
 
+   *  依赖包：graphviz，安装详见https://graphviz.org/download/#windows
+
+      安装环境graphviz之后，为了在python中运行，需要
+
+      ```bash
+      pip3 install graphviz
+      ```
+
+      
 
 ##2.词法分析
 
@@ -680,9 +707,7 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
 
    case_expr_list ： case_expr_list case_expr | case_expr
 
-   case_expr ： const_value COLON stmt SEMI
-
-      				 | ID COLON stmt SEMI
+   case_expr ： const_value COLON stmt SEMI | ID COLON stmt SEMI
 
    ```pascal
    const
@@ -700,7 +725,7 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
      end
    .
    ```
-
+   
    （8）跳转语句：整数为语句的`label`
 
    goto_stmt ： GOTO INTEGER
@@ -714,7 +739,7 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
    end
    .
    ```
-
+   
 9. 表达式：变量值、常数、函数返回值等算数组合的结果，采用常规的算数优先级（括号 > 乘除 > 加减，括号 > 交 > 并，同等级按照左结合）。
 
    expression_list ： expression_list COMMA expression | expression
@@ -1139,9 +1164,57 @@ proc_stmt	// 在上级节点中可以利用这个std::vector<>进行平级的初
 	| ...
 ```
 
+<img src="Resource/平级列表.png" alt="平级列表" style="zoom:30%;" />
 
+（5）数目不定的分级列表。比如case语句中。
 
-（5）数目不定的分级列表。比如case语句中
+```c++
+case_stmt
+	: CASE expression OF case_expr_list END
+	{
+		$$ = new Node(CASE_STMT, 2, $2, $4);
+	}
+	;
+case_expr_list
+	: case_expr_list case_expr 
+	{
+		$$->add($2);
+	}
+	| case_expr
+	{
+		$$ = new Node(CASE_LIST, 1, $1);
+	}
+	;
+case_expr
+	: const_value COLON stmt SEMI
+	{
+		$$ = new Node(CASE, 2, $1, $3);
+	}
+	| ID COLON stmt SEMI
+	{
+		$$ = new Node(CASE, 2
+					  , new Node(@1.first_line, $1, NodeType::Identifier)
+					  , $3);
+	}
+	;
+```
 
+比如下面的spl代码
 
+```pascal
+program Hello;
+begin
+        case str of
+        	"Nihao" : writeln(1);
+        	"Hi" : writeln(1);
+        	"Hello World": writeln(1);
+        end;
+end
+.
+```
 
+对应的语法树为
+
+<img src="Resource/case列表.png" alt="case列表" style="zoom:25%;" />
+
+（6）

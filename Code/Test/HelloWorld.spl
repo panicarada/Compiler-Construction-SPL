@@ -1,7 +1,0 @@
-program Hello;
-const
-        str = "Hello World!";
-begin
-        writeln(str);
-end
-.
