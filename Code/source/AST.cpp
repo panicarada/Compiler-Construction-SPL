@@ -3,8 +3,8 @@
 
 namespace AST
 {
-    Node::Node(ValConstant& Cons)
-        : m_Line(0), m_Attribute(Attribute::Constant)
+    Node::Node(unsigned int Line, ValConstant& Cons)
+        : m_Line(Line), m_Attribute(Attribute::Constant)
     {
         m_Constant = Cons;
     }
@@ -28,8 +28,8 @@ namespace AST
             raiseError(msg.c_str());
         }
     }
-    Node::Node(int Operator, std::vector<Node*>* List)
-        : m_Line(0), m_Attribute(Attribute::Operation)
+    Node::Node(unsigned int Line, int Operator, std::vector<Node*>* List)
+        : m_Line(Line), m_Attribute(Attribute::Operation)
     {
         m_Operation.Operator = Operator;
         m_Operation.NumOperands = List->size();
@@ -39,8 +39,8 @@ namespace AST
             m_Operation.List_Operands[i] = (*List)[i];
         }
     }
-    Node::Node(int Operator, int NumOperands, ...)
-        : m_Line(0), m_Attribute(Attribute::Operation)
+    Node::Node(unsigned int Line, int Operator, int NumOperands, ...)
+        : m_Line(Line), m_Attribute(Attribute::Operation)
     {
         va_list ap;
         m_Operation.Operator = Operator;

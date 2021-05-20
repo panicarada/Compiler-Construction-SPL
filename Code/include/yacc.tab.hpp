@@ -114,7 +114,7 @@
      PROCEDURE_HEAD = 330,
      PROC = 331,
      LABEL_STMT = 332,
-     FUNCT = 333,
+     CALL_FUNCT = 333,
      FIELD_DECL = 334,
      ENUM = 335
    };
@@ -195,7 +195,7 @@
 #define PROCEDURE_HEAD 330
 #define PROC 331
 #define LABEL_STMT 332
-#define FUNCT 333
+#define CALL_FUNCT 333
 #define FIELD_DECL 334
 #define ENUM 335
 

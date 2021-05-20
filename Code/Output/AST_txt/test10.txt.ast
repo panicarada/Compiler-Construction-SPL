@@ -1,0 +1,28 @@
+
+Graph 0:
+
+                                              0:
+                                               |
+                                               |
+                                               |
+                                       1: [Routine Head]
+                                               |
+         |---------------------|--------------------------------------|
+         |                     |                                      |
+  2: [type part]         6: [var part]                         10: [Function]
+         |                     |                                      |
+         |                     |                            |------------------------|
+         |                     |                            |                        |
+     3: [Type]              7: [var]               11: function: print        17: [subroutine]
+         |                     |                            |                        |
+   |--------|          |-------------|                  |---------------|            |
+   |        |          |             |                  |               |            |
+ 4: int 5: integer 8: boolean 9: id(is_print)    12: [para list]     16: int 18: [Routine Body]
+                                                        |                            |
+                                                        |                           |-
+                                                        |                           |
+                                                   13: [Value]                   19: <if>
+                                                        |                           |
+                                                  |-----------|                     |
+                                                  |           |                     |
+                                              14: string 15: id(str)         20: id(is_print)

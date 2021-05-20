@@ -1,126 +1,68 @@
 // AST Tree
 digraph {
-	0 [label=Routine shape=diamond]
+	0 [label="0: Routine" shape=diamond]
 	0 -> 1
-	1 [label="Routine-Head" shape=diamond]
+	1 [label="1: Routine-Head" shape=diamond]
 	1 -> 2
-	2 [label="type-part" shape=diamond]
+	2 [label="2: type-part" shape=diamond]
 	2 -> 3
-	3 [label=Type shape=diamond]
+	3 [label="3: Type" shape=diamond]
 	3 -> 4
-	4 [label=index shape=oval]
+	4 [label="4: index" shape=oval]
 	3 -> 5
-	5 [label=".." shape=diamond]
+	5 [label="5: .." shape=diamond]
 	5 -> 6
-	6 [label="-" shape=diamond]
+	6 [label="6: -" shape=diamond]
 	6 -> 7
-	7 [label=10 shape=rect]
+	7 [label="7: 10" shape=rect]
 	5 -> 8
-	8 [label=10 shape=rect]
+	8 [label="8: 10" shape=rect]
 	1 -> 9
-	9 [label="var-part" shape=diamond]
+	9 [label="9: var-part" shape=diamond]
 	9 -> 10
-	10 [label=var shape=diamond]
+	10 [label="10: var" shape=diamond]
 	10 -> 11
-	11 [label=integer shape=oval]
+	11 [label="11: integer" shape=oval]
 	10 -> 12
-	12 [label="id(idx)" shape=oval]
+	12 [label="12: id(idx)" shape=oval]
 	1 -> 13
-	13 [label=Function shape=diamond]
+	13 [label="13: Function" shape=diamond]
 	13 -> 14
-	14 [label="function:Hello" shape=diamond]
+	14 [label="14: function:Hello" shape=diamond]
 	14 -> 15
-	15 [label="para-list" shape=diamond]
+	15 [label="15: para-list" shape=diamond]
 	15 -> 16
-	16 [label=Value shape=diamond]
+	16 [label="16: Value" shape=diamond]
 	16 -> 17
-	17 [label=integer shape=oval]
+	17 [label="17: integer" shape=oval]
 	16 -> 18
-	18 [label="id(a)" shape=oval]
+	18 [label="18: id(a)" shape=oval]
 	16 -> 19
-	19 [label="id(b)" shape=oval]
+	19 [label="19: id(b)" shape=oval]
 	16 -> 20
-	20 [label="id(c)" shape=oval]
+	20 [label="20: id(c)" shape=oval]
 	15 -> 21
-	21 [label=Variant shape=diamond]
+	21 [label="21: Variant" shape=diamond]
 	21 -> 22
-	22 [label=string shape=oval]
+	22 [label="22: string" shape=oval]
 	21 -> 23
-	23 [label="id(str)" shape=oval]
+	23 [label="23: id(str)" shape=oval]
 	15 -> 24
-	24 [label=Value shape=diamond]
+	24 [label="24: Value" shape=diamond]
 	24 -> 25
-	25 [label=real shape=oval]
+	25 [label="25: real" shape=oval]
 	24 -> 26
-	26 [label="id(GPA)" shape=oval]
+	26 [label="26: id(GPA)" shape=oval]
 	14 -> 27
-	27 [label=integer shape=oval]
+	27 [label="27: integer" shape=oval]
 	13 -> 28
-	28 [label=subroutine shape=diamond]
+	28 [label="28: subroutine" shape=diamond]
 	28 -> 29
-	29 [label="Routine-Body" shape=diamond]
+	29 [label="29: Routine-Body" shape=diamond]
 	29 -> 30
-	30 [label="Down-to" shape=diamond]
+	30 [label="30: :=" shape=diamond]
 	30 -> 31
-	31 [label="id(idx)" shape=oval]
+	31 [label="31: id(idx)" shape=oval]
 	30 -> 32
-	32 [label=10 shape=rect]
-	30 -> 33
-	33 [label=1 shape=rect]
-	30 -> 34
-	34 [label="Sys-procedure" shape=diamond]
-	34 -> 35
-	35 [label="id(writeln)" shape=oval]
-	34 -> 36
-	36 [label="id(ide)" shape=oval]
-	1 -> 37
-	37 [label=Function shape=diamond]
-	37 -> 38
-	38 [label="function:H2" shape=diamond]
-	38 -> 39
-	39 [label=char shape=oval]
-	1 -> 40
-	40 [label=Function shape=diamond]
-	40 -> 41
-	41 [label="function:H3" shape=diamond]
-	41 -> 42
-	42 [label=boolean shape=oval]
-	0 -> 43
-	43 [label="Routine-Body" shape=diamond]
-	43 -> 44
-	44 [label="case-statement" shape=diamond]
-	44 -> 45
-	45 [label="id(str)" shape=oval]
-	44 -> 46
-	46 [label="case-list" shape=diamond]
-	46 -> 47
-	47 [label=case shape=diamond]
-	47 -> 48
-	48 [label=Nihao shape=rect]
-	47 -> 49
-	49 [label="Sys-procedure" shape=diamond]
-	49 -> 50
-	50 [label="id(writeln)" shape=oval]
-	49 -> 51
-	51 [label=1 shape=rect]
-	46 -> 52
-	52 [label=case shape=diamond]
-	52 -> 53
-	53 [label=Hi shape=rect]
-	52 -> 54
-	54 [label="Sys-procedure" shape=diamond]
-	54 -> 55
-	55 [label="id(writeln)" shape=oval]
-	54 -> 56
-	56 [label=1 shape=rect]
-	46 -> 57
-	57 [label=case shape=diamond]
-	57 -> 58
-	58 [label="Hello World" shape=rect]
-	57 -> 59
-	59 [label="Sys-procedure" shape=diamond]
-	59 -> 60
-	60 [label="id(writeln)" shape=oval]
-	59 -> 61
-	61 [label=1 shape=rect]
+	32 [label="32: 1.234" shape=rect]
 }

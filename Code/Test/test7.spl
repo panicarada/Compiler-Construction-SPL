@@ -10,7 +10,7 @@ var str	 	: string;
 	GPA 	: real
 ) : integer;
 begin
-	idx := 1.234;
+	idx := 1;
 end
 ;
 

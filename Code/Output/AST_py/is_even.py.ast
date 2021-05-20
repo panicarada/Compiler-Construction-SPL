@@ -1,0 +1,76 @@
+// AST Tree
+digraph {
+	0 [label="[0] Routine" shape=diamond]
+	0 -> 1
+	1 [label="[1] Routine-Head" shape=diamond]
+	1 -> 2
+	2 [label="[2] const-part" shape=diamond]
+	2 -> 3
+	3 [label="[3] =" shape=diamond]
+	3 -> 4
+	4 [label="[4] id(zero)" shape=oval]
+	3 -> 5
+	5 [label="[5] 0" shape=rect]
+	1 -> 6
+	6 [label="[6] type-part" shape=diamond]
+	6 -> 7
+	7 [label="[7] Type" shape=diamond]
+	7 -> 8
+	8 [label="[8] int" shape=oval]
+	7 -> 9
+	9 [label="[9] integer" shape=oval]
+	6 -> 10
+	10 [label="[10] Type" shape=diamond]
+	10 -> 11
+	11 [label="[11] bool" shape=oval]
+	10 -> 12
+	12 [label="[12] boolean" shape=oval]
+	1 -> 13
+	13 [label="[13] Function" shape=diamond]
+	13 -> 14
+	14 [label="[14] function:is_even" shape=diamond]
+	14 -> 15
+	15 [label="[15] para-list" shape=diamond]
+	15 -> 16
+	16 [label="[16] Value" shape=diamond]
+	16 -> 17
+	17 [label="[17] int" shape=oval]
+	16 -> 18
+	18 [label="[18] id(num)" shape=oval]
+	14 -> 19
+	19 [label="[19] bool" shape=oval]
+	13 -> 20
+	20 [label="[20] subroutine" shape=diamond]
+	20 -> 21
+	21 [label="[21] Routine-Body" shape=diamond]
+	21 -> 22
+	22 [label="[22] case-statement" shape=diamond]
+	22 -> 23
+	23 [label="[23] %" shape=diamond]
+	23 -> 24
+	24 [label="[24] id(num)" shape=oval]
+	23 -> 25
+	25 [label="[25] 2" shape=rect]
+	22 -> 26
+	26 [label="[26] case-list" shape=diamond]
+	26 -> 27
+	27 [label="[27] case" shape=diamond]
+	27 -> 28
+	28 [label="[28] id(zero)" shape=oval]
+	27 -> 29
+	29 [label="[29] :=" shape=diamond]
+	29 -> 30
+	30 [label="[30] id(is_even)" shape=oval]
+	29 -> 31
+	31 [label="[31] true" shape=rect]
+	26 -> 32
+	32 [label="[32] case" shape=diamond]
+	32 -> 33
+	33 [label="[33] 1" shape=rect]
+	32 -> 34
+	34 [label="[34] :=" shape=diamond]
+	34 -> 35
+	35 [label="[35] id(is_even)" shape=oval]
+	34 -> 36
+	36 [label="[36] true" shape=rect]
+}

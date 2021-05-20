@@ -70,7 +70,7 @@
 // 语法树中自定义的token
 %token ROUTINE ROUTINE_BODY ROUTINE_HEAD CONST_PART VAR_PART BRACKET
 %token CASE_STMT CASE_LIST TYPE_PART VAL_PARAM VAR_PARAM PARA_LIST FUNCTION_HEAD
-%token SUB_ROUTINE PROCEDURE_HEAD PROC LABEL_STMT FUNCT FIELD_DECL 
+%token SUB_ROUTINE PROCEDURE_HEAD PROC LABEL_STMT CALL_FUNCT FIELD_DECL 
 %token ENUM
 %%
 program 
@@ -98,7 +98,7 @@ routine
 		std::vector<AST::Node*>* Temp = new std::vector<AST::Node*>();
 		if ($1 != NULL) Temp->push_back($1);
 		if ($2 != NULL) Temp->push_back($2);
-		if (Temp->size() > 0) $$ = new AST::Node(ROUTINE, Temp);
+		if (Temp->size() > 0) $$ = new AST::Node(0, ROUTINE, Temp);
 		else $$ = nullptr;
 	}
 	;
@@ -113,7 +113,7 @@ sub_routine
 		if ($1) Temp->push_back($1);
 		if ($2) Temp->push_back($2);
 		if (Temp->size() > 0)
-			$$ = new AST::Node(SUB_ROUTINE, Temp);
+			$$ = new AST::Node(0, SUB_ROUTINE, Temp);
 		else
 			$$ = NULL;
 	}
@@ -135,7 +135,7 @@ routine_head
 				Temp->push_back(node);
 		}
 		if (Temp->size() > 0)
-			$$ = new AST::Node(ROUTINE_HEAD, Temp);
+			$$ = new AST::Node(0, ROUTINE_HEAD, Temp);
 		else
 			$$ = NULL;
 	}
@@ -148,7 +148,7 @@ label_part
 const_part
 	: CONST const_expr_list
 	{
-		$$ = new AST::Node(CONST_PART, $2);
+		$$ = new AST::Node(0, CONST_PART, $2);
 	}
 	| {$$ = NULL;}
 	;
@@ -156,12 +156,12 @@ const_part
 const_expr_list
 	: const_expr_list ID EQUAL const_value SEMI
 	{
-		$$->push_back(new AST::Node(EQUAL, 2, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier), $4));
+		$$->push_back(new AST::Node(@3.first_line, EQUAL, 2, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier), $4));
 	}
 	| ID EQUAL const_value SEMI
 	{
 		$$ = new std::vector<AST::Node*>();
-		$$->push_back(new AST::Node(EQUAL, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3));
+		$$->push_back(new AST::Node(@2.first_line, EQUAL, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3));
 	}
 	;
 
@@ -171,14 +171,14 @@ const_value
         AST::ValConstant temp;
         temp.Type = AST::ConstantType::Integer;
         temp.iValue = $1;
-        $$ = new AST::Node(temp);
+        $$ = new AST::Node(@1.first_line, temp);
     }
 	| REAL
     {
         AST::ValConstant temp;
         temp.Type = AST::ConstantType::Real;
         temp.dValue = $1;
-        $$ = new AST::Node(temp);
+        $$ = new AST::Node(@1.first_line, temp);
     }
 	| CHAR
     {
@@ -186,7 +186,7 @@ const_value
         temp.Type = AST::ConstantType::Char;
 		// std::cout << $1 << std::endl;
         temp.cValue = $1;
-        $$ = new AST::Node(temp);
+        $$ = new AST::Node(@1.first_line, temp);
     }
 	| STRING
 	{
@@ -194,7 +194,7 @@ const_value
         temp.Type = AST::ConstantType::String;
 		// std::cout << $1 << std::endl;
         temp.sValue = $1;
-        $$ = new AST::Node(temp);
+        $$ = new AST::Node(@1.first_line, temp);
 	}
 	| SYS_CON
 	{
@@ -202,7 +202,7 @@ const_value
 		temp.Type = AST::ConstantType::Boolean;
 		// std::cout << $1 << std::endl;
 		temp.bValue = $1;
-		$$ = new AST::Node(temp);
+		$$ = new AST::Node(@1.first_line, temp);
 	}
 	;
 
@@ -221,14 +221,14 @@ type_decl_list
 	}
 	| type_definition
 	{
-		$$ = new AST::Node(TYPE_PART, 1, $1);
+		$$ = new AST::Node(0, TYPE_PART, 1, $1);
 	}
 	;
 
 type_definition
 	: ID EQUAL type_decl SEMI
 	{
-		$$ = new AST::Node(TYPE, 2
+		$$ = new AST::Node(@2.first_line, TYPE, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Typename)
 					  , $3);
 	}
@@ -260,27 +260,27 @@ simple_type_decl
 	}
 	| LP name_list RP
 	{
-		$$ = new AST::Node(ENUM, $2);
+		$$ = new AST::Node(@1.first_line, ENUM, $2);
 	}
 	| const_value DOTDOT const_value
 	{
-		$$ = new AST::Node(DOTDOT, 2, $1, $3);
+		$$ = new AST::Node(@2.first_line, DOTDOT, 2, $1, $3);
 	}
 	| MINUS const_value DOTDOT const_value
 	{
-		$$ = new AST::Node(DOTDOT, 2,
-					  new AST::Node(MINUS, 1, $2),
+		$$ = new AST::Node(@3.first_line, DOTDOT, 2,
+					  new AST::Node(@1.first_line, MINUS, 1, $2),
 					  $4);
 	}
 	| MINUS const_value DOTDOT MINUS const_value
 	{
-		$$ = new AST::Node(DOTDOT, 2,
-					  new AST::Node(MINUS, 1, $2),
-					  new AST::Node(MINUS, 1, $5));
+		$$ = new AST::Node(@3.first_line, DOTDOT, 2,
+					  new AST::Node(@1.first_line, MINUS, 1, $2),
+					  new AST::Node(@1.first_line, MINUS, 1, $5));
 	}
 	| ID DOTDOT ID
 	{
-		$$ = new AST::Node(DOTDOT, 2,
+		$$ = new AST::Node(@2.first_line, DOTDOT, 2,
 					  new AST::Node(@1.first_line, $1, AST::Attribute::Identifier),
 					  new AST::Node(@1.first_line, $3, AST::Attribute::Identifier));
 	}
@@ -289,7 +289,7 @@ simple_type_decl
 array_type_decl
 	: ARRAY LB simple_type_decl RB OF type_decl
 	{
-		$$ = new AST::Node(ARRAY, 1, $6);
+		$$ = new AST::Node(@1.first_line, ARRAY, 1, $6);
 		$$->add($3);
 	}
 	;
@@ -297,7 +297,7 @@ array_type_decl
 record_type_decl
 	: RECORD field_decl_list END
 	{
-		$$ = new AST::Node(RECORD, $2);
+		$$ = new AST::Node(@1.first_line, RECORD, $2);
 	}
 	;
 
@@ -316,7 +316,7 @@ field_decl_list
 field_decl
 	: name_list COLON type_decl SEMI
 	{
-		$$ = new AST::Node(FIELD_DECL, 1, $3);
+		$$ = new AST::Node(0, FIELD_DECL, 1, $3);
 		$$->add($1);
 	}
 	;
@@ -349,14 +349,14 @@ var_decl_list
 	}
 	| var_decl
 	{
-		$$ = new AST::Node(VAR_PART, 1, $1);
+		$$ = new AST::Node(0, VAR_PART, 1, $1);
 	}
 	;
 
 var_decl
 	: name_list COLON type_decl SEMI
 	{
-		$$ = new AST::Node(VAR, 1, $3);
+		$$ = new AST::Node(@2.first_line, VAR, 1, $3);
 		$$->add($1);
 	}
 	;
@@ -387,9 +387,9 @@ function_decl
 	: function_head SEMI sub_routine SEMI
 	{
 		if ($3)
-			$$ = new AST::Node(FUNCTION, 2, $1, $3);
+			$$ = new AST::Node(@2.first_line, FUNCTION, 2, $1, $3);
 		else
-			$$ = new AST::Node(FUNCTION, 1, $1);
+			$$ = new AST::Node(@2.first_line, FUNCTION, 1, $1);
 	}
 	;
 function_head
@@ -397,11 +397,11 @@ function_head
 	{
 		if ($3)
 		{
-			$$ = new AST::Node(FUNCTION_HEAD, 2, $3, $5);
+			$$ = new AST::Node(@1.first_line, FUNCTION_HEAD, 2, $3, $5);
 		}
 		else
 		{
-			$$ = new AST::Node(FUNCTION_HEAD, 1, $5);
+			$$ = new AST::Node(@1.first_line, FUNCTION_HEAD, 1, $5);
 		}
 		$$->add(new AST::Node(@2.first_line, $2, AST::Attribute::Identifier));
 		/*
@@ -417,7 +417,7 @@ function_head
 procedure_decl
 	: procedure_head SEMI sub_routine SEMI
 	{
-		$$ = new AST::Node(PROCEDURE, 2, $1, $3);
+		$$ = new AST::Node(0, PROCEDURE, 2, $1, $3);
 	}
 	;
 
@@ -426,7 +426,7 @@ procedure_head
 	{
 		if ($3)
 		{
-			$$ = new AST::Node(PROCEDURE_HEAD, 1, $3);
+			$$ = new AST::Node(@1.first_line, PROCEDURE_HEAD, 1, $3);
 			$$->add(new AST::Node(@2.first_line, $2, AST::Attribute::Identifier));
 		}
 		else
@@ -457,18 +457,18 @@ para_decl_list
 	}
 	| para_type_list
 	{
-		$$ = new AST::Node(PARA_LIST, 1, $1);
+		$$ = new AST::Node(0, PARA_LIST, 1, $1);
 	}
 	;
 para_type_list
 	: var_para_list COLON simple_type_decl // var x,y,z : integer，引用传递
 	{
-		$$ = new AST::Node(VAR_PARAM, 1, $3);
+		$$ = new AST::Node(0, VAR_PARAM, 1, $3);
 		$$->add($1);
 	}
 	| val_para_list COLON simple_type_decl // x,y,z : integer，形参传递
 	{
-		$$ = new AST::Node(VAL_PARAM, 1, $3);
+		$$ = new AST::Node(0, VAL_PARAM, 1, $3);
 		$$->add($1);
 	}
 	;
@@ -490,7 +490,7 @@ routine_body
 	{
 		if ($1)
 		{
-			$$ = new AST::Node(ROUTINE_BODY, 1, $1);
+			$$ = new AST::Node(0, ROUTINE_BODY, 1, $1);
 		}
 		else
 		{
@@ -513,7 +513,7 @@ stmt_list
 		}
 		else
 		{
-			$$ = new AST::Node(SEMI, 2, $1, $2);
+			$$ = new AST::Node(0, SEMI, 2, $1, $2);
 		}
 	}
 	| {$$ = NULL;}
@@ -524,7 +524,7 @@ stmt
 		AST::ValConstant temp;
 		temp.Type = AST::ConstantType::Integer;
 		temp.iValue = $1;
-		$$ = new AST::Node(LABEL_STMT, 2, new AST::Node(temp), $3);
+		$$ = new AST::Node(@1.first_line, LABEL_STMT, 2, new AST::Node(@1.first_line, temp), $3);
 	}
 	| non_label_stmt
 	{
@@ -546,18 +546,18 @@ non_label_stmt
 assign_stmt
 	: ID ASSIGN expression
 	{
-		$$ = new AST::Node(ASSIGN, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3);
+		$$ = new AST::Node(@2.first_line, ASSIGN, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3);
 	}
 	| ID LB expression RB ASSIGN expression
 	{
-		$$ = new AST::Node(ASSIGN, 2, 
-					  new AST::Node(BRACKET, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3),
+		$$ = new AST::Node(@5.first_line, ASSIGN, 2, 
+					  new AST::Node(@2.first_line, BRACKET, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3),
 					  $6);
 	}
 	| ID DOT ID ASSIGN expression
 	{
-		$$ = new AST::Node(ASSIGN, 2,
-					  new AST::Node(DOT, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier),
+		$$ = new AST::Node(@4.first_line, ASSIGN, 2,
+					  new AST::Node(@2.first_line, DOT, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier),
 					  				   new AST::Node(@3.first_line, $3, AST::Attribute::Identifier))
 					  , $5);
 	}
@@ -566,20 +566,20 @@ assign_stmt
 proc_stmt
 	: ID
 	{
-		$$ = new AST::Node(PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
+		$$ = new AST::Node(@1.first_line, PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
 	| ID LP args_list RP
 	{
-		$$ = new AST::Node(PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
+		$$ = new AST::Node(@1.first_line, PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
 	| SYS_PROC
 	{
-		$$ = new AST::Node(SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
+		$$ = new AST::Node(@1.first_line, SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
 	| SYS_PROC LP expression_list RP
 	{
-		$$ = new AST::Node(SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
+		$$ = new AST::Node(@1.first_line, SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
 	| READ LP factor RP // unknown
@@ -590,11 +590,11 @@ if_stmt
 	{
 		if ($5)
 		{
-			$$ = new AST::Node(IF, 3, $2, $4, $5);
+			$$ = new AST::Node(@1.first_line, IF, 3, $2, $4, $5);
 		}
 		else 
 		{
-			$$ = new AST::Node(IF, 2, $2, $4);
+			$$ = new AST::Node(@1.first_line, IF, 2, $2, $4);
 		}
 	}
 	;
@@ -605,20 +605,20 @@ else_clause
 repeat_stmt
 	: REPEAT stmt_list UNTIL expression
 	{
-		$$ = new AST::Node(REPEAT, 2, $2, $4);
+		$$ = new AST::Node(@1.first_line, REPEAT, 2, $2, $4);
 	}
 	;
 while_stmt
 	: WHILE expression DO stmt
 	{
-		$$ = new AST::Node(WHILE, 2, $2, $4);
+		$$ = new AST::Node(@1.first_line, WHILE, 2, $2, $4);
 	}
 	;
 
 for_stmt
 	: FOR ID ASSIGN expression direction expression DO stmt
 	{
-		$$ = new AST::Node($5, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier), 
+		$$ = new AST::Node(@1.first_line, $5, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier), 
 						$4, $6, $8);
 	}
 	;
@@ -629,7 +629,7 @@ direction // 这条是没问题的，返回token
 case_stmt
 	: CASE expression OF case_expr_list END
 	{
-		$$ = new AST::Node(CASE_STMT, 2, $2, $4);
+		$$ = new AST::Node(@1.first_line, CASE_STMT, 2, $2, $4);
 	}
 	;
 case_expr_list
@@ -639,17 +639,17 @@ case_expr_list
 	}
 	| case_expr
 	{
-		$$ = new AST::Node(CASE_LIST, 1, $1);
+		$$ = new AST::Node(0, CASE_LIST, 1, $1);
 	}
 	;
 case_expr
 	: const_value COLON stmt SEMI
 	{
-		$$ = new AST::Node(CASE, 2, $1, $3);
+		$$ = new AST::Node(@1.first_line, CASE, 2, $1, $3);
 	}
 	| ID COLON stmt SEMI
 	{
-		$$ = new AST::Node(CASE, 2
+		$$ = new AST::Node(@1.first_line, CASE, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier)
 					  , $3);
 	}
@@ -660,7 +660,7 @@ goto_stmt
 		AST::ValConstant temp;
 		temp.Type = AST::ConstantType::Integer;
         temp.iValue = $2;
-		$$ = new AST::Node(GOTO, 1, new AST::Node(temp));
+		$$ = new AST::Node(@1.first_line, GOTO, 1, new AST::Node(@2.first_line, temp));
 	}
 	;
 expression_list
@@ -677,27 +677,27 @@ expression_list
 expression
 	: expression GE expr 
     {
-        $$ = new AST::Node(GE, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, GE, 2, $1, $3);
     }
 	| expression GT expr
     {
-        $$ = new AST::Node(GT, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, GT, 2, $1, $3);
     }
 	| expression LE expr
     {
-        $$ = new AST::Node(LE, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, LE, 2, $1, $3);
     }
 	| expression LT expr
     {
-        $$ = new AST::Node(LT, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, LT, 2, $1, $3);
     }
 	| expression EQUAL expr
     {
-        $$ = new AST::Node(EQUAL, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, EQUAL, 2, $1, $3);
     }
 	| expression UNEQUAL expr
     {
-        $$ = new AST::Node(UNEQUAL, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, UNEQUAL, 2, $1, $3);
     }
 	| expr
     {
@@ -707,15 +707,15 @@ expression
 expr
 	: expr PLUS term
     {
-        $$ = new AST::Node(PLUS, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, PLUS, 2, $1, $3);
     }
 	| expr MINUS term
     {
-        $$ = new AST::Node(MINUS, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, MINUS, 2, $1, $3);
     }
 	| expr OR term
 	{
-		$$ = new AST::Node(OR, 2, $1, $3);
+		$$ = new AST::Node(@2.first_line, OR, 2, $1, $3);
 	}
 	| term
     {
@@ -725,19 +725,19 @@ expr
 term
 	: term MUL factor
     {
-        $$ = new AST::Node(MUL, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, MUL, 2, $1, $3);
     }
 	| term DIV factor
     {
-        $$ = new AST::Node(DIV, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, DIV, 2, $1, $3);
     }
 	| term MOD factor
     {
-        $$ = new AST::Node(MOD, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, MOD, 2, $1, $3);
     }
 	| term AND factor
 	{
-		$$ = new AST::Node(AND, 2, $1, $3);
+		$$ = new AST::Node(@2.first_line, AND, 2, $1, $3);
 	}
 	| factor
     {
@@ -751,18 +751,18 @@ factor
     }
 	| ID LP args_list RP
 	{
-		$$ = new AST::Node(FUNCT, 1
+		$$ = new AST::Node(@1.first_line, CALL_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
 	| SYS_FUNCT 
 	{
-		$$ = new AST::Node(SYS_FUNCT, 1
+		$$ = new AST::Node(@1.first_line, SYS_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
 	| SYS_FUNCT LP args_list RP
 	{
-		$$ = new AST::Node(SYS_FUNCT, 1
+		$$ = new AST::Node(@1.first_line, SYS_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
@@ -776,21 +776,21 @@ factor
     }
 	| NOT factor
 	{
-		$$ = new AST::Node(NOT, 1, $2);
+		$$ = new AST::Node(@1.first_line, NOT, 1, $2);
 	}
 	| MINUS factor
 	{
-		$$ = new AST::Node(MINUS, 1, $2);
+		$$ = new AST::Node(@1.first_line, MINUS, 1, $2);
 	}
 	| ID LB expression RB
 	{
-		$$ = new AST::Node(BRACKET, 2
+		$$ = new AST::Node(@1.first_line, BRACKET, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier)
 					  , $3);
 	}
 	| ID DOT ID
 	{
-		$$ = new AST::Node(DOT, 2
+		$$ = new AST::Node(@2.first_line, DOT, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier)
 					  , new AST::Node(@3.first_line, $3, AST::Attribute::Identifier));
 	}
@@ -819,7 +819,7 @@ int main(int argc, char* argv[])
 	if (argc > 1)
 	{
 		inFilename = argv[1];
-		std::cout << inFilename << std::endl;
+		/* std::cout << inFilename << std::endl; */
 		std::string temp_filename = "./Test/" + inFilename + ".spl";
 		fp = fopen(temp_filename.c_str(), "r");
 		if (fp)

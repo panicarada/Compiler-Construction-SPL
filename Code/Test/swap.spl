@@ -1,0 +1,30 @@
+program swap;
+type 
+	Color = array[(red, green, blue)] of real;
+	Color_list = array[1 .. 100] of Color;
+var
+	temp : real;
+	temp_color : Color;
+function swap(
+var 
+	color1, color2 : Color;
+	list1, list2 : Color_list
+) : integer;
+begin
+	temp := color1[red];
+	color1[red] := color2[red];
+	color2[red] := temp;
+
+	temp_color := list1[0];
+	list1[0] := list2[0];
+	list2[0] := temp_color;
+
+
+
+	swap := 0;	// return 0;
+end;
+
+begin
+
+end
+.

@@ -22,7 +22,7 @@ public:
         symbol_table = new ST();
         main_entry = nullptr;
     }
-    int draw(AST::Node* p, std::ofstream& Out);
-    int plot(AST::Node* p, std::ofstream& Out);
+    int plot_txt(AST::Node* p, std::ofstream& Out);
+    int plot_py(AST::Node* p, std::ofstream& Out);
     int execute(AST::Node* p, std::string& Filename, std::string& Program);
 };

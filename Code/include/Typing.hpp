@@ -29,6 +29,22 @@ namespace Typing
         // ...
     };
 
+    static std::string NodeType_toString(NodeType type)
+    {
+        switch (type)
+        {
+            case t_SYS_TYPE: return "sys_type";
+            case t_ENUM: return "enum";
+            case t_RECORD: return "record";
+            case t_RANGE: return "range";
+            case t_CONSTANT: return "constant";
+            case t_FUNCTION: return "function";
+            case t_PROCEDURE: return "procedure";
+            default:
+                raiseError("Unknown node type!");
+        }
+    }
+
     enum DataType
     {
         d_INTEGER,
@@ -37,6 +53,20 @@ namespace Typing
         d_STRING,
         d_BOOLEAN,
     };
+    static std::string DataType_toString(DataType type)
+    {
+        switch (type)
+        {
+            case d_INTEGER: return "integer";
+            case d_REAL: return "real";
+            case d_CHAR: return "char";
+            case d_STRING: return "string";
+            case d_BOOLEAN: return "boolean";
+            default:
+                raiseError("Unknown data type!");
+        }
+    }
+
     class Node
     {
     public:
@@ -118,6 +148,7 @@ namespace Typing
         }
         recordNode(std::map<std::string, Node*>* Field)
         {
+            m_Type = NodeType::t_RECORD;
             m_Field = Field;
         }
         virtual std::string toString(int& hPos) const override;
@@ -194,18 +225,21 @@ namespace Typing
     {
     public:
         std::string m_name; // 函数名字
+        std::vector<std::pair<std::string, bool>> m_Params;    // 参数字符串表，主要是反应参数顺序
         Node* m_resType; // 返回类型
         ST* m_val_table;    // 形参表
         ST* m_var_table;    // 引用参数表
         AST::Node* m_body; // 函数体的指针，指向<Routine-Body>
     public:
         functNode(std::string name, Node* resType, AST::Node* body);
+        void addParam(bool isVar, std::string paramName, Node* node, unsigned int line);
         virtual std::string toString(int& hPos) const override;
     };
 
     class procNode : public Node 
     {
     public:
+        std::vector<std::string> params;    // 参数字符串表，主要是反应参数顺序
         ST* m_val_table;    // 形参表
         ST* m_var_table;    // 引用参数表
         AST::Node* m_body;  // 过程体的指针，指向<Routine-body>

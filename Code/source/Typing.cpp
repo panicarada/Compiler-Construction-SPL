@@ -156,6 +156,18 @@ namespace Typing
         m_var_table = new ST(false);
         m_val_table = new ST(false);
     }
+    void functNode::addParam(bool isVar, std::string paramName, Node* node, unsigned int line)
+    {
+        m_Params.push_back(std::pair<std::string, bool>(paramName, isVar));
+        if (isVar)
+        {
+            m_var_table->insert(paramName, node, line);
+        }
+        else 
+        {
+            m_val_table->insert(paramName, node, line);
+        }
+    }
 
     std::string functNode::toString(int& hPos) const
     { // 只是输出函数名字和返回参数，后续再完整地显示输入参数，这在Symbol Table::show()中实现

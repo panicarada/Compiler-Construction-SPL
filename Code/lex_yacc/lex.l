@@ -23,7 +23,8 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
 
 
 %%
-"//" {
+
+<INITIAL>"//" {
     // 注释
     ss.clear();
     ss.str("");
@@ -65,7 +66,7 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
 "<=" return LE;
 "<" return LT;
 "=" return EQUAL;
-"MOD" return MOD;
+"MOD"|"%" return MOD;
 ";" {
     // std::cout<<"Hello SEMI"<<std::endl;
     return SEMI;

@@ -20,7 +20,7 @@ namespace Plot_txt
                         int Col_End, int Line_End);
 
     /* recursive drawing of the syntax tree */
-    void drawNode(AST::Node* p, int Col_Start, int Line_Start, 
+    void plotNode(AST::Node* p, int Col_Start, int Line_Start, 
                 int& Col_End, int& Col_Mid);
 
 

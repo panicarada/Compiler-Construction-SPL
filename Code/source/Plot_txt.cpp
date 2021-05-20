@@ -1,9 +1,10 @@
 #include "Plot_txt.hpp"
+#include "Typing.hpp"
 #include <sstream>
 
 namespace Plot_txt
 {
-    void drawNode (
+    void plotNode (
         AST::Node* p,
         int Col_Start, int Line_Start, // 绘制前所在column和line
         int& Col_End, // 绘制结束后所在Col（绘制一个节点不会换行）
@@ -16,6 +17,7 @@ namespace Plot_txt
         int Kids_Col_End, Kids_Col_Mid;
         int Kids_Col_Start;
         if (!p) return;
+        sText << p->m_Id << ": ";
         switch (p->m_Attribute)
         {
             case AST::Attribute::Constant:
@@ -55,6 +57,7 @@ namespace Plot_txt
                     case UNEQUAL: sText << "[!=]"; break;
                     case PLUS: sText << "[+]"; break;
                     case MINUS: sText << "[-]"; break;
+                    case MOD: sText << "[%]"; break; 
                     case MUL: sText << "[*]"; break;
                     case DIV: sText << "[/]"; break;
                     case CONST_PART: sText << "[const part]"; break;
@@ -122,8 +125,8 @@ namespace Plot_txt
                         sText << "[Label]"; break;
                     case SYS_FUNCT:
                         sText << "[Sys Function]"; break;
-                    case FUNCT:
-                        sText << "[Function]"; break;
+                    case CALL_FUNCT:
+                        sText << "[Call Function]"; break;
                     case FIELD_DECL:
                         sText << "[Field Decl]"; break;
                     case RECORD:
@@ -157,7 +160,7 @@ namespace Plot_txt
             Kids_Col_Start = Col_Start;
             for (int i = 0;i < p->m_Operation.NumOperands; ++i)
             {
-                drawNode(p->m_Operation.List_Operands[i], Kids_Col_Start, Line_Start + Height + LineGap, Kids_Col_End, Kids_Col_Mid);
+                plotNode(p->m_Operation.List_Operands[i], Kids_Col_Start, Line_Start + Height + LineGap, Kids_Col_End, Kids_Col_Mid);
                 Kids_Col_Start = Kids_Col_End;
             }
 
@@ -176,7 +179,7 @@ namespace Plot_txt
             Kids_Col_Start = Col_Start;
             for (int i = 0;i < p->m_Operation.NumOperands; ++i)
             {
-                drawNode(p->m_Operation.List_Operands[i], Kids_Col_Start, Line_Start+Height+LineGap, Kids_Col_End, Kids_Col_Mid);
+                plotNode(p->m_Operation.List_Operands[i], Kids_Col_Start, Line_Start+Height+LineGap, Kids_Col_End, Kids_Col_Mid);
                 drawArrow(Col_Mid, Line_Start + Height, Kids_Col_Mid, Line_Start + Height + LineGap - 1);
                 Kids_Col_Start = Kids_Col_End;
             }

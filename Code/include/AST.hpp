@@ -13,7 +13,6 @@
 #include <stdarg.h>
 #include <map>
 
-
 #define raiseError(...) {\
     std::cerr << "In " << __FILE_NAME__ << ". Line " << __LINE__ << ".\t"\
     << __VA_ARGS__ << std::endl;\
@@ -77,6 +76,7 @@ namespace AST
     {
     public:
         Typing::Node* m_Type;   // 节点真正的数据类型，在语义分析之后获得
+        int m_Id; // 在语法树上的ID，在语义分析之后获得，方便检查
     public:
         Attribute m_Attribute;
         unsigned int m_Line; // 所在行数
@@ -87,10 +87,10 @@ namespace AST
             ValIdentifier m_Typename;
             ValOperation m_Operation;
         };
-        Node(ValConstant& Cons);
+        Node(unsigned int Line, ValConstant& Cons);
         Node(unsigned int Line, char* Name, Attribute attribute);
-        Node(int Operator, std::vector<Node*>* List);
-        Node(int Operator, int NumOperands, ...);
+        Node(unsigned int Line, int Operator, std::vector<Node*>* List);
+        Node(unsigned int Line, int Operator, int NumOperands, ...);
         void add(Node* node);
         void add(std::vector<Node *>* List);
         ~Node();

@@ -1,0 +1,36 @@
+program Fibo;
+
+type 
+	int = integer;
+	ans = record 	
+			 n_steps : int;		// 计算用了多少步
+			 fibo_n  : int; 	// fibo(n)，最终计算结果
+		  end;
+var
+	temp : ans;
+function fibo(
+	n : integer
+) : ans;
+begin
+	if n = 1 then begin
+		temp.n_steps := 1;
+		fibo.fibo_n  := 1;
+	end
+	else begin
+		fibo.n_steps := 1;
+		temp := fibo(n-1);
+		fibo.n_steps := temp.n_steps + 1;
+		fibo.fibo_n  := temp.fibo_n;
+		temp := fibo(n-2, 1);
+		temp := fibo(n-2);
+		fibo.n_steps := fibo.n_steps + temp.n_steps;
+		fibo.fibo_n  := fibo.fibo_n  + temp.fibo_n;
+	end
+	;
+end
+;
+
+begin
+	
+end
+.

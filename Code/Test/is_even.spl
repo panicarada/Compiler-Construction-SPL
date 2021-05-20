@@ -1,0 +1,22 @@
+program is_even;	// 判断是否为偶数
+const
+	zero = 0;
+type
+	int = integer;
+	bool = boolean;
+
+function is_even(
+	num : int
+) : bool;
+begin
+	case num % 2 of 
+		zero: is_even := true;
+		1: is_even := false;
+	end;
+end
+;
+
+begin
+
+end
+.

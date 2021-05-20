@@ -20,6 +20,6 @@ with io.open(filename, mode="r", encoding="utf-8") as file:
             if word == "*edge*":
                 dot.edge(next(words), next(words))
             else:
-                dot.node(word, label=next(words), shape=next(words))
+                dot.node(word, label="[" + word + "] " + next(words), shape=next(words))
 
 dot.render('./AST_py/' + sys.argv[1] + '.py.ast', view=True)
