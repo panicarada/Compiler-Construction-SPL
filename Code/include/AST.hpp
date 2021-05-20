@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <stdarg.h>
-#include <unordered_map>
+#include <map>
 
 
 #define raiseError(...) {\
@@ -20,9 +20,14 @@
     exit(1);\
 }
 
+
+namespace Typing
+{   // 提前声明Typing类型节点
+    class Node;
+}
 namespace AST
 {
-    enum NodeType
+    enum Attribute
     {
         Constant,
         Identifier,  
@@ -71,7 +76,9 @@ namespace AST
     class Node
     {
     public:
-        NodeType m_Type;
+        Typing::Node* m_Type;   // 节点真正的数据类型，在语义分析之后获得
+    public:
+        Attribute m_Attribute;
         unsigned int m_Line; // 所在行数
         union 
         {
@@ -80,88 +87,12 @@ namespace AST
             ValIdentifier m_Typename;
             ValOperation m_Operation;
         };
-        Node(ValConstant& Cons)
-            : m_Line(0), m_Type(NodeType::Constant)
-        {
-            m_Constant = Cons;
-        }
-        Node(unsigned int Line, char* Name, NodeType Type)
-            : m_Line(Line), m_Type(Type)
-        {
-            if (Type == NodeType::Identifier)
-            {
-                m_Identifier.Name = new char[strlen(Name)];
-                strcpy(m_Identifier.Name, Name);
-            }
-            else if (Type == NodeType::Typename)
-            {
-                m_Typename.Name = new char[strlen(Name)];
-                strcpy(m_Typename.Name, Name);
-            }
-            else 
-            {
-                std::string msg = "Unknown Type: ";
-                msg.append(std::to_string(Type));
-                raiseError(msg.c_str());
-            }
-        }
-        Node(int Operator, std::vector<Node*>* List)
-            : m_Line(0), m_Type(NodeType::Operation)
-        {
-            m_Operation.Operator = Operator;
-            m_Operation.NumOperands = List->size();
-            m_Operation.List_Operands = new Node*[List->size()];
-            for (int i = 0;i < List->size(); ++i)
-            {
-                m_Operation.List_Operands[i] = (*List)[i];
-            }
-        }
-        Node(int Operator, int NumOperands, ...)
-            : m_Line(0), m_Type(NodeType::Operation)
-        {
-            va_list ap;
-            m_Operation.Operator = Operator;
-            m_Operation.NumOperands = NumOperands;
-            m_Operation.List_Operands = new Node*[NumOperands];
-            va_start(ap, NumOperands);
-            for (int i = 0;i < NumOperands; ++i)
-            {
-                m_Operation.List_Operands[i] = va_arg(ap, Node*);
-            }
-            va_end(ap);
-        }
-        inline void add(Node* node)
-        {
-            m_Operation.NumOperands += 1;
-            m_Operation.List_Operands = (Node **) realloc(m_Operation.List_Operands, 
-                                                        m_Operation.NumOperands * sizeof(Node *));
-            m_Operation.List_Operands[m_Operation.NumOperands - 1] = node;
-        }
-        inline void add(std::vector<Node *>* List)
-        {
-            int Offset = m_Operation.NumOperands;
-            m_Operation.NumOperands += List->size();
-            m_Operation.List_Operands = (Node **) realloc(m_Operation.List_Operands,
-                                                        m_Operation.NumOperands * sizeof(Node *));
-            for (int i = 0;i < List->size(); ++i)
-            {
-                m_Operation.List_Operands[Offset + i] = (*List)[i];
-            }
-        }
-        ~Node()
-        {
-            if (m_Type == NodeType::Identifier && m_Identifier.Name)
-            {
-                delete m_Identifier.Name;
-            }
-            else if (m_Type == NodeType::Operation)
-            {
-                for (int i = 0;i < m_Operation.NumOperands; ++i)
-                {
-                    delete m_Operation.List_Operands[i];
-                }
-                delete m_Operation.List_Operands;
-            }
-        }
+        Node(ValConstant& Cons);
+        Node(unsigned int Line, char* Name, Attribute attribute);
+        Node(int Operator, std::vector<Node*>* List);
+        Node(int Operator, int NumOperands, ...);
+        void add(Node* node);
+        void add(std::vector<Node *>* List);
+        ~Node();
     };
 }

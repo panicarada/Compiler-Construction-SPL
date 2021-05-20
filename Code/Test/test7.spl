@@ -10,31 +10,12 @@ var str	 	: string;
 	GPA 	: real
 ) : integer;
 begin
-	for idx := 10 downto 1 do
-	begin
-		writeln(ide);
-	end;
+	idx := 1.234;
 end
 ;
 
-function H2 : char;
-begin
-
-end
-;
-
-function H3 : boolean;
-begin
-
-end;
-
-
 
 begin
-        case str of
-        	"Nihao" : writeln(1);
-        	"Hi" : writeln(1);
-        	"Hello World": writeln(1);
-        end;
+    
 end
 .

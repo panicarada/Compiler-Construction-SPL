@@ -16,9 +16,9 @@ namespace Plot_txt
         int Kids_Col_End, Kids_Col_Mid;
         int Kids_Col_Start;
         if (!p) return;
-        switch (p->m_Type)
+        switch (p->m_Attribute)
         {
-            case AST::NodeType::Constant:
+            case AST::Attribute::Constant:
                 sText << "c(";
                 switch (p->m_Constant.Type)
                 {
@@ -34,14 +34,14 @@ namespace Plot_txt
                 }
                 sText << ")";
                 break;
-            case AST::NodeType::Identifier:
+            case AST::Attribute::Identifier:
                 // std::cout << "Name: "<< p->ID.Name << std::endl;
                 sText << "id(" << p->m_Identifier.Name << ")";
                 break;
-            case AST::NodeType::Typename:
+            case AST::Attribute::Typename:
                 sText << p->m_Typename.Name;
                 break;
-            case AST::NodeType::Operation:
+            case AST::Attribute::Operation:
                 switch (p->m_Operation.Operator)
                 {
                     case GE: sText << "[>=]"; break;
@@ -145,9 +145,9 @@ namespace Plot_txt
             Col_Mid = Col_Start + Width / 2;
 
             // 如果node is leaf
-            if (p->m_Type == AST::NodeType::Constant ||
-                p->m_Type == AST::NodeType::Identifier ||
-                p->m_Type == AST::NodeType::Typename ||
+            if (p->m_Attribute == AST::Attribute::Constant ||
+                p->m_Attribute == AST::Attribute::Identifier ||
+                p->m_Attribute == AST::Attribute::Typename ||
                 p->m_Operation.NumOperands == 0)
             {
                 drawBox(Text, real_Col_Start, Line_Start);

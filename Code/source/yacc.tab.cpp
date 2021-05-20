@@ -1879,7 +1879,7 @@ yyreduce:
   case 10:
 #line 158 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtrList)->push_back(new AST::Node(EQUAL, 2, new AST::Node((yylsp[(2) - (5)]).first_line, (yyvsp[(2) - (5)].sValue), AST::NodeType::Identifier), (yyvsp[(4) - (5)].NodePtr)));
+		(yyval.NodePtrList)->push_back(new AST::Node(EQUAL, 2, new AST::Node((yylsp[(2) - (5)]).first_line, (yyvsp[(2) - (5)].sValue), AST::Attribute::Identifier), (yyvsp[(4) - (5)].NodePtr)));
 	;}
     break;
 
@@ -1887,7 +1887,7 @@ yyreduce:
 #line 162 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
-		(yyval.NodePtrList)->push_back(new AST::Node(EQUAL, 2, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Identifier), (yyvsp[(3) - (4)].NodePtr)));
+		(yyval.NodePtrList)->push_back(new AST::Node(EQUAL, 2, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier), (yyvsp[(3) - (4)].NodePtr)));
 	;}
     break;
 
@@ -1974,7 +1974,7 @@ yyreduce:
 #line 230 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(TYPE, 2
-					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Typename)
+					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Typename)
 					  , (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
@@ -2003,14 +2003,14 @@ yyreduce:
   case 25:
 #line 254 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::NodeType::Typename);
+		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Typename);
 	;}
     break;
 
   case 26:
 #line 258 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::NodeType::Typename);
+		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Typename);
 	;}
     break;
 
@@ -2050,8 +2050,8 @@ yyreduce:
 #line 282 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(DOTDOT, 2,
-					  new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::NodeType::Identifier),
-					  new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), AST::NodeType::Identifier));
+					  new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::Attribute::Identifier),
+					  new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
@@ -2096,7 +2096,7 @@ yyreduce:
   case 37:
 #line 326 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtrList)->push_back(new AST::Node((yylsp[(3) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), AST::NodeType::Identifier));
+		(yyval.NodePtrList)->push_back(new AST::Node((yylsp[(3) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
@@ -2105,7 +2105,7 @@ yyreduce:
     {
 		// std::cout << "line no: " << @1.first_line << std::endl;
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
-		(yyval.NodePtrList)->push_back(new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::NodeType::Identifier));
+		(yyval.NodePtrList)->push_back(new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
@@ -2199,7 +2199,7 @@ yyreduce:
 		{
 			(yyval.NodePtr) = new AST::Node(FUNCTION_HEAD, 1, (yyvsp[(5) - (5)].NodePtr));
 		}
-		(yyval.NodePtr)->add(new AST::Node((yylsp[(2) - (5)]).first_line, (yyvsp[(2) - (5)].sValue), AST::NodeType::Identifier));
+		(yyval.NodePtr)->add(new AST::Node((yylsp[(2) - (5)]).first_line, (yyvsp[(2) - (5)].sValue), AST::Attribute::Identifier));
 		/*
 			Hacking Trick: 最后一个孩子是类型名称，
 			在语法树中，不希望类型和变量为sibling，但是父节点Operation无法记录类型名称，
@@ -2223,11 +2223,11 @@ yyreduce:
 		if ((yyvsp[(3) - (3)].NodePtr))
 		{
 			(yyval.NodePtr) = new AST::Node(PROCEDURE_HEAD, 1, (yyvsp[(3) - (3)].NodePtr));
-			(yyval.NodePtr)->add(new AST::Node((yylsp[(2) - (3)]).first_line, (yyvsp[(2) - (3)].sValue), AST::NodeType::Identifier));
+			(yyval.NodePtr)->add(new AST::Node((yylsp[(2) - (3)]).first_line, (yyvsp[(2) - (3)].sValue), AST::Attribute::Identifier));
 		}
 		else
 		{
-			(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, (yyvsp[(2) - (3)].sValue), AST::NodeType::Identifier);
+			(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, (yyvsp[(2) - (3)].sValue), AST::Attribute::Identifier);
 		}
 		/*
 			Hacking Trick: 最后一个孩子是类型名称，
@@ -2400,7 +2400,7 @@ yyreduce:
   case 76:
 #line 548 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node(ASSIGN, 2, new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::NodeType::Identifier), (yyvsp[(3) - (3)].NodePtr));
+		(yyval.NodePtr) = new AST::Node(ASSIGN, 2, new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::Attribute::Identifier), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
@@ -2408,7 +2408,7 @@ yyreduce:
 #line 552 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(ASSIGN, 2, 
-					  new AST::Node(BRACKET, 2, new AST::Node((yylsp[(1) - (6)]).first_line, (yyvsp[(1) - (6)].sValue), AST::NodeType::Identifier), (yyvsp[(3) - (6)].NodePtr)),
+					  new AST::Node(BRACKET, 2, new AST::Node((yylsp[(1) - (6)]).first_line, (yyvsp[(1) - (6)].sValue), AST::Attribute::Identifier), (yyvsp[(3) - (6)].NodePtr)),
 					  (yyvsp[(6) - (6)].NodePtr));
 	;}
     break;
@@ -2417,8 +2417,8 @@ yyreduce:
 #line 558 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(ASSIGN, 2,
-					  new AST::Node(DOT, 2, new AST::Node((yylsp[(1) - (5)]).first_line, (yyvsp[(1) - (5)].sValue), AST::NodeType::Identifier),
-					  				   new AST::Node((yylsp[(3) - (5)]).first_line, (yyvsp[(3) - (5)].sValue), AST::NodeType::Identifier))
+					  new AST::Node(DOT, 2, new AST::Node((yylsp[(1) - (5)]).first_line, (yyvsp[(1) - (5)].sValue), AST::Attribute::Identifier),
+					  				   new AST::Node((yylsp[(3) - (5)]).first_line, (yyvsp[(3) - (5)].sValue), AST::Attribute::Identifier))
 					  , (yyvsp[(5) - (5)].NodePtr));
 	;}
     break;
@@ -2426,14 +2426,14 @@ yyreduce:
   case 79:
 #line 568 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node(PROC, 1, new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::NodeType::Identifier));
+		(yyval.NodePtr) = new AST::Node(PROC, 1, new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
   case 80:
 #line 572 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node(PROC, 1, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Identifier));
+		(yyval.NodePtr) = new AST::Node(PROC, 1, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
 	;}
     break;
@@ -2441,14 +2441,14 @@ yyreduce:
   case 81:
 #line 577 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node(SYS_PROC, 1, new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::NodeType::Identifier));
+		(yyval.NodePtr) = new AST::Node(SYS_PROC, 1, new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
   case 82:
 #line 581 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node(SYS_PROC, 1, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Identifier));
+		(yyval.NodePtr) = new AST::Node(SYS_PROC, 1, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
 	;}
     break;
@@ -2494,7 +2494,7 @@ yyreduce:
   case 89:
 #line 620 "lex_yacc/yacc.y"
     {
-		(yyval.NodePtr) = new AST::Node((yyvsp[(5) - (8)].iValue), 4, new AST::Node((yylsp[(2) - (8)]).first_line, (yyvsp[(2) - (8)].sValue), AST::NodeType::Identifier), 
+		(yyval.NodePtr) = new AST::Node((yyvsp[(5) - (8)].iValue), 4, new AST::Node((yylsp[(2) - (8)]).first_line, (yyvsp[(2) - (8)].sValue), AST::Attribute::Identifier), 
 						(yyvsp[(4) - (8)].NodePtr), (yyvsp[(6) - (8)].NodePtr), (yyvsp[(8) - (8)].NodePtr));
 	;}
     break;
@@ -2541,7 +2541,7 @@ yyreduce:
 #line 651 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(CASE, 2
-					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Identifier)
+					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier)
 					  , (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
@@ -2686,7 +2686,7 @@ yyreduce:
   case 116:
 #line 749 "lex_yacc/yacc.y"
     {
-        (yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::NodeType::Identifier);
+        (yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier);
     ;}
     break;
 
@@ -2694,7 +2694,7 @@ yyreduce:
 #line 753 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(FUNCT, 1
-					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Identifier));
+					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
 	;}
     break;
@@ -2703,7 +2703,7 @@ yyreduce:
 #line 759 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(SYS_FUNCT, 1
-					  , new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::NodeType::Identifier));
+					  , new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
@@ -2711,7 +2711,7 @@ yyreduce:
 #line 764 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(SYS_FUNCT, 1
-					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Identifier));
+					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
 	;}
     break;
@@ -2748,7 +2748,7 @@ yyreduce:
 #line 786 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(BRACKET, 2
-					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::NodeType::Identifier)
+					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier)
 					  , (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
@@ -2757,8 +2757,8 @@ yyreduce:
 #line 792 "lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(DOT, 2
-					  , new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::NodeType::Identifier)
-					  , new AST::Node((yylsp[(3) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), AST::NodeType::Identifier));
+					  , new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::Attribute::Identifier)
+					  , new AST::Node((yylsp[(3) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 

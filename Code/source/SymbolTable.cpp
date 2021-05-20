@@ -3,42 +3,42 @@
 #include "yacc.tab.hpp"
 
 
-TypeNode* ST::getType(AST::Node* p, Scope scope)
+Typing::Node* ST::getType(AST::Node* p, Scope scope)
 { 
-    switch (p->m_Type)
+    switch (p->m_Attribute)
     {
-        case AST::NodeType::Constant:
+        case AST::Attribute::Constant:
             switch (p->m_Constant.Type)
             {
                 case AST::ConstantType::Integer:
-                    return new constNode(get("integer", p->m_Line), p->m_Constant);
+                    return new Typing::constNode(get("integer", 0) , p->m_Constant);
                 case AST::ConstantType::Real:
-                    return new constNode(get("real", p->m_Line), p->m_Constant);
+                    return new Typing::constNode(get("real", 0) , p->m_Constant);
                 case AST::ConstantType::Boolean:
-                    return new constNode(get("boolean", p->m_Line), p->m_Constant);
+                    return new Typing::constNode(get("boolean", 0) , p->m_Constant);
                 case AST::ConstantType::Char:
-                    return new constNode(get("char", p->m_Line), p->m_Constant);
+                    return new Typing::constNode(get("char", 0) , p->m_Constant);
                 case AST::ConstantType::String:
-                    return new constNode(get("string", p->m_Line), p->m_Constant);
+                    return new Typing::constNode(get("string", 0) , p->m_Constant);
                 default:
                     raiseError("Unknown constant Type!");
             }
             break;
-        case AST::NodeType::Typename:
+        case AST::Attribute::Typename:
             {
                 return get(p->m_Typename.Name, p->m_Line);
             }
-        case AST::NodeType::Identifier:
+        case AST::Attribute::Identifier:
             if (scope == Scope::s_RANGE)
             {
                 return get(p->m_Identifier.Name, p->m_Line);
             }
-        case AST::NodeType::Operation:
+        case AST::Attribute::Operation:
             switch (p->m_Operation.Operator)
             {
                 case PROCEDURE:
                 {
-                    procNode* procedure = dynamic_cast<procNode*>(getType(p->m_Operation.List_Operands[0]));
+                    Typing::procNode* procedure = dynamic_cast<Typing::procNode*>(getType(p->m_Operation.List_Operands[0]));
                     if (p->m_Operation.NumOperands == 2)
                     { // 具有subroutine 
                         AST::Node* subroutine = p->m_Operation.List_Operands[1];
@@ -49,7 +49,7 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                 case PROCEDURE_HEAD:
                 {
                     std::string name = p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
-                    procNode* procedure = new procNode(nullptr);
+                    Typing::procNode* procedure = new Typing::procNode(nullptr);
                     this->insert(name, procedure, // 过程的行数取过程名的函数
                                  p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Line); 
                     if (p->m_Operation.NumOperands > 0)
@@ -58,7 +58,7 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                         for (int i = 0;i < paraList->m_Operation.NumOperands; ++i)
                         {
                             AST::Node* para_group = paraList->m_Operation.List_Operands[i];
-                            TypeNode* type = getType(para_group->m_Operation.List_Operands[0]);
+                            Typing::Node* type = getType(para_group->m_Operation.List_Operands[0]);
                             for (int j = 1;j < para_group->m_Operation.NumOperands; ++j)
                             {
                                 auto param = para_group->m_Operation.List_Operands[j];
@@ -81,18 +81,42 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                 }
                 case FUNCTION:
                 {
-                    functNode* function = dynamic_cast<functNode*>(getType(p->m_Operation.List_Operands[0]));
+                    Typing::functNode* function = dynamic_cast<Typing::functNode*>(getType(p->m_Operation.List_Operands[0]));
                     if (p->m_Operation.NumOperands == 2)
-                    { // 具有subroutine 
+                    {   // 具有subroutine 
                         AST::Node* subroutine = p->m_Operation.List_Operands[1];
                         function->m_body = subroutine->m_Operation.List_Operands[0];
+
+                        // 检查函数体的类型
+                        for (auto& it : function->m_val_table->Table)
+                        {   // 先把函数的参数表暂时加入符号表中
+                            insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+                        }   
+                        for (auto& it : function->m_var_table->Table)
+                        {   // 类型检查时不区分引用类型
+                            insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+                        }
+
+                        // 检查函数体
+                        check(function->m_body);
+
+                        // 把刚才加入的符号弹出
+                        for (auto& it : function->m_val_table->Table)
+                        {
+                            pop(it.first);
+                        }
+                        for (auto& it : function->m_var_table->Table)
+                        {
+                            pop(it.first);
+                        }
                     }
+                    
                     return function;
                 }
                 case FUNCTION_HEAD:
                 {
                     std::string name = p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
-                    functNode* function = new functNode(getType(p->m_Operation.List_Operands[p->m_Operation.NumOperands-1]), nullptr);
+                    Typing::functNode* function = new Typing::functNode(name, getType(p->m_Operation.List_Operands[p->m_Operation.NumOperands-1]), nullptr);
                     this->insert(name, function, // 函数的行数取函数名的函数
                                  p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Line); 
                     if (p->m_Operation.NumOperands > 1)
@@ -101,7 +125,7 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                         for (int i = 0;i < paraList->m_Operation.NumOperands; ++i)
                         {
                             AST::Node* para_group = paraList->m_Operation.List_Operands[i];
-                            TypeNode* type = getType(para_group->m_Operation.List_Operands[0]);
+                            Typing::Node* type = getType(para_group->m_Operation.List_Operands[0]);
                             for (int j = 1;j < para_group->m_Operation.NumOperands; ++j)
                             {
                                 auto param = para_group->m_Operation.List_Operands[j];
@@ -138,7 +162,7 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                 case MINUS:
                     if (scope == Scope::s_RANGE)
                     { // 在range中，一定是负数
-                        auto TypeNode = dynamic_cast<constNode*>(getType(p->m_Operation.List_Operands[0]));
+                        auto TypeNode = dynamic_cast<Typing::constNode*>(getType(p->m_Operation.List_Operands[0]));
                         if (TypeNode->m_Constant.Type == AST::ConstantType::Integer)
                         {
                             TypeNode->m_Constant.iValue = -TypeNode->m_Constant.iValue;
@@ -158,10 +182,7 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                     }
                     break;
                 case ROUTINE:
-                    for (int i = 0; i < p->m_Operation.NumOperands; ++i)
-                    {
-                        getType(p->m_Operation.List_Operands[i]);
-                    }
+                    getType(p->m_Operation.List_Operands[0]);
                     break;
                 case ROUTINE_HEAD:
                     for (int i = 0;i < p->m_Operation.NumOperands; ++i)
@@ -214,7 +235,7 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                         {
                             enunList->push_back(p->m_Operation.List_Operands[i]->m_Identifier.Name);
                         }
-                        auto node = new enumNode(enunList);
+                        auto node = new Typing::enumNode(enunList);
                         for (int i = 0;i < p->m_Operation.NumOperands; ++i)
                         {
                             insert(p->m_Operation.List_Operands[i]->m_Identifier.Name,
@@ -225,8 +246,8 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                     break;
                 case RECORD:
                     {
-                        auto Field = new std::unordered_map<std::string, TypeNode*>();
-                        TypeNode* temp;
+                        auto Field = new std::map<std::string, Typing::Node*>();
+                        Typing::Node* temp;
                         
                         for (int i = 0;i < p->m_Operation.NumOperands; ++i)
                         {  
@@ -239,20 +260,20 @@ TypeNode* ST::getType(AST::Node* p, Scope scope)
                                 (*Field)[Name] = temp;
                             }
                         }
-                        return new recordNode(Field);
+                        return new Typing::recordNode(Field);
                     }
                 case ARRAY:
                     {
                         // 见test4.spl的AST
                         auto IdxType = getType(p->m_Operation.List_Operands[1]);
                         auto EleType = getType(p->m_Operation.List_Operands[0]);
-                        return new arrayNode(IdxType, EleType);
+                        return new Typing::arrayNode(IdxType, EleType);
                     }
                 case DOTDOT:
                     {
                         auto LowerBound = getType(p->m_Operation.List_Operands[0], Scope::s_RANGE);
                         auto UpperBound = getType(p->m_Operation.List_Operands[1], Scope::s_RANGE);
-                        return new rangeNode(LowerBound, UpperBound);
+                        return new Typing::rangeNode(LowerBound, UpperBound);
                     }
                 default:
                     break;
@@ -276,19 +297,19 @@ void ST::show()
                 << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "type"
                 << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "attribute" << std::endl;
         
-    std::vector<std::pair<std::string, TypeNode*>> functions;
-    std::vector<std::pair<std::string, TypeNode*>> procedures;
+    std::vector<std::pair<std::string, Typing::Node*>> functions;
+    std::vector<std::pair<std::string, Typing::Node*>> procedures;
     for (auto& it : Table)
     {
         int hPos = ALIGN_WIDTH + ALIGN_WIDTH/2;
         std::cout   << std::setfill(' ') << std::setw(ALIGN_WIDTH) << it.first
                     << std::setfill(' ') << std::setw(ALIGN_WIDTH / 2) << LineTable[it.first]
                     << it.second->toString(hPos) << std::endl;
-        if ((it.second)->m_Type == DataType::d_FUNCTION)
+        if ((it.second)->m_Type == Typing::NodeType::t_FUNCTION)
         {   // 函数储存起来，之后要输出函数的参数表
             functions.push_back(it);
         }
-        if ((it.second)->m_Type == DataType::d_PROCEDURE)
+        if ((it.second)->m_Type == Typing::NodeType::t_PROCEDURE)
         {   // 过程储存起来，之后要输出过程的参数表
             procedures.push_back(it);
         }
@@ -297,7 +318,7 @@ void ST::show()
     {
         std::cout << "----------------------------------------" << std::endl;
         std::cout << "function: \"" << it.first << "\"" << std::endl;
-        functNode* function = dynamic_cast<functNode*>(it.second);
+        Typing::functNode* function = dynamic_cast<Typing::functNode*>(it.second);
         if (!function->m_val_table->isEmpty())
         {
             std::cout << "value param:" << std::endl;
@@ -313,7 +334,7 @@ void ST::show()
     {
         std::cout << "----------------------------------------" << std::endl;
         std::cout << "procedure: \"" << it.first << "\"" << std::endl;
-        procNode* procedure = dynamic_cast<procNode*>(it.second);
+        Typing::procNode* procedure = dynamic_cast<Typing::procNode*>(it.second);
         if (!procedure->m_val_table->isEmpty())
         {
             std::cout << "value param:" << std::endl;
@@ -327,7 +348,7 @@ void ST::show()
     }
 }
 
-bool ST::insert(std::string str, TypeNode* node, unsigned int Line)
+bool ST::insert(std::string str, Typing::Node* node, unsigned int Line)
 {
     if (Table.find(str) == Table.end())
     {
@@ -346,7 +367,7 @@ bool ST::insert(std::string str, TypeNode* node, unsigned int Line)
     }
 }
 
-TypeNode* ST::get(std::string str, unsigned int line)
+Typing::Node* ST::get(std::string str, unsigned int line)
 {
     if (Table.find(str) != Table.end())
     {
@@ -359,7 +380,7 @@ TypeNode* ST::get(std::string str, unsigned int line)
     return nullptr;
 }
 
-TypeNode* ST::pop(std::string str)
+Typing::Node* ST::pop(std::string str)
 {
     if (Table.find(str) == Table.end())
     { // 如果不存在，没办法删除
@@ -369,27 +390,51 @@ TypeNode* ST::pop(std::string str)
     }
     else 
     {   // 取出链表尾部
-        TypeNode* res = Table[str];
-        Table[str] = Table[str]->prev;
-        Table[str]->next = nullptr;
+        Typing::Node* res = Table[str];
+        Typing::Node* prev = Table[str]->prev;  // 上一个在这一位置的符号
+        if (prev)
+        {
+            Table[str] = prev;
+            Table[str]->next = nullptr;
+        }
+        else 
+        {
+            Table.erase(str);
+        }
         res->prev = nullptr;
         return res;
     }
 }
 
-TypeNode* ST::check(AST::Node* p)
+Typing::Node* ST::check(AST::Node* p)
 {
     if (!p) return nullptr;
-    switch (p->m_Type)
+    switch (p->m_Attribute)
     {
-        case AST::NodeType::Constant:
+        case AST::Attribute::Constant:
+            // 具体类型是所对应的sys类型
             switch (p->m_Constant.Type)
             {
-                case AST::ConstantType::Integer: return new constNode(new sysNode("integer"), p->m_Constant);
-                case AST::ConstantType::Real: return new constNode(new sysNode("real"), p->m_Constant);
-                case AST::ConstantType::Char: return new constNode(new sysNode("char"), p->m_Constant);
-                case AST::ConstantType::String: return new constNode(new sysNode("string"), p->m_Constant);
-                case AST::ConstantType::Boolean: return new constNode(new sysNode("boolean"), p->m_Constant);
+                case AST::ConstantType::Integer: 
+                    p->m_Type = get("integer", 0);
+                    // p->m_Type = new Typing::constNode(get("integer", 0) , p->m_Constant);
+                    return p->m_Type;
+                case AST::ConstantType::Real: 
+                    p->m_Type = get("real", 0);
+                    // p->m_Type = new Typing::constNode(get("real", 0) , p->m_Constant);
+                    return p->m_Type;
+                case AST::ConstantType::Char:
+                    p->m_Type = get("char", 0);
+                    // p->m_Type = new Typing::constNode(get("char", 0) , p->m_Constant);
+                    return p->m_Type;
+                case AST::ConstantType::String:
+                    p->m_Type = get("string", 0);
+                    // p->m_Type = new Typing::constNode(get("string", 0) , p->m_Constant);
+                    return p->m_Type;
+                case AST::ConstantType::Boolean:
+                    p->m_Type = get("boolean", 0);
+                    // p->m_Type = new Typing::constNode(get("boolean", 0) , p->m_Constant);
+                    return p->m_Type;
                 default:
                 {
                     std::stringstream msg;
@@ -397,36 +442,84 @@ TypeNode* ST::check(AST::Node* p)
                     raiseError(msg.str());
                 }
             }
-        case AST::NodeType::Identifier:
-            return get(p->m_Identifier.Name, p->m_Line);
-        case AST::NodeType::Typename:
-            return get(p->m_Typename.Name, p->m_Line);
-        case AST::NodeType::Operation:
+
+        case AST::Attribute::Identifier:
+            {
+                auto type = get(p->m_Identifier.Name, p->m_Line);
+                // 函数体中，函数名就是返回参数
+                if (type->m_Type == Typing::NodeType::t_FUNCTION)
+                {   // 这时候对应的类型是函数返回类型
+                    type = dynamic_cast<Typing::functNode*>(type)->m_resType;
+                }
+                p->m_Type = type;
+                return p->m_Type;
+            }
+        case AST::Attribute::Typename:
+            p->m_Type = get(p->m_Typename.Name, p->m_Line);
+            return p->m_Type;
+        case AST::Attribute::Operation:
             switch (p->m_Operation.Operator)
             {
-                case GE: case GT: case LE: case LT: case EQUAL: case UNEQUAL:
-                case ASSIGN: 
-                {
-                    TypeNode* left = check(p->m_Operation.List_Operands[0]);
-                    TypeNode* right = check(p->m_Operation.List_Operands[1]);
-                    if (!left->isEqual(left))
+                case ROUTINE_BODY: 
+                    return check(p->m_Operation.List_Operands[0]);
+                case ASSIGN:
+                {   // 返回两边类型
+                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
+                    
+                    if (!Typing::Node::isEqual(left, right))
                     {
-                        std::stringstream msg;
-                        msg << std::endl << "In line " << p->m_Line << ". 该操作两边的类型不一致" << std::endl;
-                        int hPos = 0;
-                        msg << "LHS: " << left->toString(hPos) << std::endl;
-                        msg << "RHS: " << right->toString(hPos) << std::endl;
-                        raiseError(msg.str());
+                        if (Typing::Node::isEqual(left, get("real", 0)) || Typing::Node::isEqual(right, get("real", 0)))
+                        { // 有且仅有一边是real
+                          // 也是没有问题的
+                          // 这时候返回值就是real
+                            p->m_Type = get("real", 0);
+                            return p->m_Type;
+                        }
+                        else 
+                        {
+                            std::stringstream msg;
+                            msg << std::endl << "In line " << p->m_Line << ". 该操作两边的类型不匹配" << std::endl;
+                            int hPos = 0;
+                            msg << "LHS: " << left->toString(hPos) << std::endl;
+                            msg << "RHS: " << right->toString(hPos) << std::endl;
+                            raiseError(msg.str());
+                        }
+                    }
+                    p->m_Type = right;
+                    return p->m_Type;
+                }
+                case GE: case GT: case LE: case LT: case EQUAL: case UNEQUAL:
+                {
+                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
+                    if (!Typing::Node::isEqual(left, right))
+                    {
+                        if (Typing::Node::isEqual(left, get("real", 0)) || Typing::Node::isEqual(right, get("real", 0)))
+                        { // 有且仅有一边是real
+                          // 也是没有问题的
+                        }
+                        else 
+                        {
+                            std::stringstream msg;
+                            msg << std::endl << "In line " << p->m_Line << ". 该操作两边的类型不一致" << std::endl;
+                            int hPos = 0;
+                            msg << "LHS: " << left->toString(hPos) << std::endl;
+                            msg << "RHS: " << right->toString(hPos) << std::endl;
+                            raiseError(msg.str());
+                        }
                     }
                     // 比较的结果是布尔值
-                    return new sysNode("boolean");
+                    p->m_Type = get("boolean", p->m_Line);
+                    return p->m_Type;
                 }
                 case OR: case AND: case NOT:
                 {   // 逻辑运算，两边都应该是布尔值
-                    TypeNode* target = get("boolean", p->m_Line);
-                    TypeNode* left = check(p->m_Operation.List_Operands[0]);
-                    TypeNode* right = check(p->m_Operation.List_Operands[1]);
-                    if (!target->isEqual(left) || !target->isEqual(right))
+                    Typing::Node* target = get("boolean", p->m_Line);
+                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
+                    if (!Typing::Node::isEqual(target, left)
+                        || !Typing::Node::isEqual(target, right))
                     {
                         std::stringstream msg;
                         msg << std::endl << "In line " << p->m_Line << ". 逻辑运算中，两边的操作都应该是布尔值" << std::endl;

@@ -13,9 +13,9 @@ namespace Plot_py
     {   // id: 现在可用的标识符
         if (p == nullptr) return ;
         Out << "\n" << (id ++) << "\n";
-        switch (p->m_Type)
+        switch (p->m_Attribute)
         {
-            case AST::NodeType::Constant:
+            case AST::Attribute::Constant:
                 // 写入(id, 显示内容，node形状)
                 switch (p->m_Constant.Type)
                 {
@@ -31,11 +31,11 @@ namespace Plot_py
                 } // terminal的形状用方形
                 Out << "\nrect";
                 break;
-            case AST::NodeType::Identifier:
+            case AST::Attribute::Identifier:
                 Out << "id(" << p->m_Identifier.Name << ")\noval"; break;
-            case AST::NodeType::Typename:
+            case AST::Attribute::Typename:
                 Out << p->m_Typename.Name << "\noval"; break;
-            case AST::NodeType::Operation:
+            case AST::Attribute::Operation:
                 {
                     switch (p->m_Operation.Operator)
                     {
