@@ -1,4 +1,4 @@
-### 序言
+
 
 ## 1. 引言
 
@@ -15,10 +15,11 @@
       *  lex_yacc：flex和bison源文件路径
       *  Test：用于测试的`.spl`代码路径
       *  Makefile
-      *  Output：程序**运行过程**中产生的输出文件，比如语法树；也存放输出语法树图像的python代码。
+      *  Output：程序**运行过程**中产生的输出文件
          *  AST_txt：文本格式的语法树
          *  AST_raw：描述语法树的文本流，用于python代码进行进一步的处理
          *  AST_py：python代码解析`AST_raw`中文件后，输出的语法树图片
+         *  Logs：输出的类型信息，后缀为`.st`的文件包含符号表，以及语法树中各个节点的类型（与语法树上的id一一对应）
    *  Resource：存放文档所用图片
 
 #### 1.2 工程编译
@@ -121,27 +122,27 @@ $(BUILD_DIR)/%.$(OBJEXT): $(SOURCE_DIR)/%.$(SRC_EXT)
 
 如果执行文件时不带参数，则在控制台直接输入spl代码。
 
-<img src="Resource/不带参数运行.png" alt="不带参数输入代码" style="zoom:80%;" />
+<img src="Resource/Hello程序.png" alt="Hello程序" style="zoom:70%;" />
 
 也可以带一个参数指明`spl`文件名，直接编译整个文件。注意，只需要指明文件名而不用路径，且`spl`文件必须放在目录`./Code/Test`下。
 
 ```bash
-./bin/main test6		# 输入时不需要声明文件后缀，默认都是.spl
+./bin/main Hello		# 输入时不需要声明文件后缀，默认都是.spl
 ```
 
 这一过程会在目录`./Code/Output/AST_txt`产生对应的txt版本的语法树，如下所示
 
-<img src="Resource/AST_txt示例.png" alt="AST_txt示例" style="zoom:50%;" />
+<img src="Resource/Hello_AST_txt.png" alt="Hello_AST_txt" style="zoom:40%;" />
 
 同时在`./Code/Output/AST_raw`产生描述语法树的文件，用于之后使用python进一步处理，产生图像。
 
 配置好python以及所需的依赖包【见1.4】以后，可以运行python代码产生图片格式的语法树，路径为`./Code/Output/AST_py`
 
-```bash
-python ./Output/main.py test6
+```python
+python main.py Hello
 ```
 
-<img src="Resource/AST_py示例.jpg" alt="AST_py示例" style="zoom:100%;" />
+<img src="Resource/Hello_AST_py.png" style="zoom:30%;" />
 
 #### 1.4 配置说明
 
@@ -163,7 +164,162 @@ python ./Output/main.py test6
       pip3 install graphviz
       ```
 
-      
+#### 1.5 实现功能一览
+
+以`./Code/Test/stack.spl`为例。
+
+（1）生成语法树（文字版和图片版）
+
+![一览_AST](Resource/一览_AST.png)
+
+（2）生成符号表以及函数的参数表
+
+```txt
+Symbol Table: *****************
+        name  line        type   attribute
+         set    35   procedure
+         pop    25    function    sys_type        real
+         get    16    function    sys_type        real
+        bool    11    sys_type     boolean
+      string     0    sys_type      string
+        char     0    sys_type        char
+       stack    13      record         idx:     sys_type     integer
+                                      list:        array       range   0 .. 1000
+                                                            sys_type        real
+     boolean     0    sys_type     boolean
+     integer     0    sys_type     integer
+        real     0    sys_type        real
+        push    45    function    sys_type     boolean
+        ZERO     4       const     integer           0
+       Stack     7      record         idx:     sys_type     integer
+                                      list:        array       range   0 .. 1000
+                                                            sys_type        real
+       index    14    sys_type     integer
+        List     6       array       range   0 .. 1000
+                                  sys_type        real
+     MAX_LEN     3       const     integer        1000
+----------------------------------------
+function: "pop"
+        name  line        type   attribute
+       stack    26      record         idx:     sys_type     integer
+                                      list:        array       range   0 .. 1000
+                                                            sys_type        real
+----------------------------------------
+function: "get"
+        name  line        type   attribute
+        list    17       array       range   0 .. 1000
+                                  sys_type        real
+        name  line        type   attribute
+         idx    18    sys_type     integer
+----------------------------------------
+function: "push"
+        name  line        type   attribute
+       stack    46      record         idx:     sys_type     integer
+                                      list:        array       range   0 .. 1000
+                                                            sys_type        real
+        name  line        type   attribute
+     element    47    sys_type        real
+----------------------------------------
+procedure: "set"
+        name  line        type   attribute
+        list    36       array       range   0 .. 1000
+                                  sys_type        real
+        name  line        type   attribute
+     element    38    sys_type        real
+         idx    37    sys_type     integer
+```
+
+（3）语法树节点的类型标注。其中的id与语法树图片上的id一一对应。
+
+```txt
+Type of AST Node: *****************
+type of id: 48
+    sys_type        real
+type of id: 49
+    sys_type        real
+type of id: 50
+    sys_type        real
+type of id: 51
+       array       range   0 .. 1000
+                sys_type        real
+type of id: 52
+    sys_type     integer
+type of id: 63
+    sys_type     boolean
+type of id: 64
+    sys_type     integer
+type of id: 67
+    sys_type     integer
+type of id: 69
+    sys_type     integer
+type of id: 70
+    sys_type     integer
+type of id: 73
+    sys_type     integer
+type of id: 74
+    sys_type     integer
+type of id: 77
+    sys_type     integer
+type of id: 78
+    sys_type        real
+type of id: 79
+    sys_type        real
+type of id: 80
+    sys_type        real
+type of id: 82
+       array       range   0 .. 1000
+                sys_type        real
+type of id: 85
+    sys_type     integer
+type of id: 102
+    sys_type        real
+type of id: 103
+    sys_type        real
+type of id: 104
+       array       range   0 .. 1000
+                sys_type        real
+type of id: 105
+    sys_type     integer
+type of id: 106
+    sys_type        real
+type of id: 120
+    sys_type     boolean
+type of id: 121
+    sys_type     integer
+type of id: 124
+    sys_type     integer
+type of id: 126
+    sys_type     integer
+type of id: 127
+    sys_type     integer
+type of id: 130
+    sys_type     integer
+type of id: 131
+    sys_type     integer
+type of id: 134
+    sys_type     integer
+type of id: 137
+       array       range   0 .. 1000
+                sys_type        real
+type of id: 140
+    sys_type     integer
+type of id: 143
+    sys_type        real
+type of id: 144
+    sys_type     boolean
+type of id: 145
+    sys_type     boolean
+type of id: 146
+    sys_type     boolean
+```
+
+（4）类型错误检查与提示。
+
+<img src="Resource/一览错误1.png" alt="一览错误1" style="zoom:50%;" />
+
+<img src="Resource/一览错误2.png" alt="一览错误2" style="zoom:50%;" />
+
+<img src="Resource/一览错误3.png" alt="一览错误3" style="zoom:40%;" />
 
 ##2.词法分析
 
@@ -190,18 +346,25 @@ flex和yacc文件都可以分为定义区、规则区和C语言代码区
 规则区</br>%% </br>
 代码区</br>
 </center>
-
 在定义区中，声明全局变量表明当前词法分析器所读取的行数。
+
+在`yacc.y`中，定义行数变量。
+
+```C++
+unsigned int line_number = 1;
+```
+
+在`lex.l`中，声明这一外部变量。并且在规则区中，每碰到回车，就会执行修改行数的操作。
 
 ```c++
 extern unsigned int line_number;
-
-该变量在文件`yacc.y`中定义，初始化为1。在规则区中，每碰到回车，就会执行修改行数的操作。
-
-​```yacc
+%%
+...
 "\n" {
     line_number ++;
 }
+%%
+...
 ```
 
 在lex内部，对每一个token会维护一个结构变量yylloc，我们可以在读取到标识符token时，对这一变量进行修改，这样在yacc处理某个token时，行数可以作为成员变量被访问
@@ -234,7 +397,7 @@ const_expr_list
 
 ####2.3 字符串读取
 
-我们字符串以双引号""作为开始和结束，在字符串内部出现的字符串应该作为纯粹的值来处理，而不能用常规的parser进行解析。为了实现这一功能，flex提供了“状态”设定的功能。在不同的状态下可以按照不同的正则表达式来处理。在定义区可以自定义正在读取字符串的状态
+我们字符串以双引号""作为开始和结束，在字符串内部出现的字符串应该作为纯粹的值来处理，而不能用常规的parser进行解析。为了实现这一功能，flex提供了“状态”设定的功能。在不同的状态下可以按照不同的正则表达式来处理。在定义区可以自定义正在读取字符串的状态。默认状态为`INITIAL`.
 
 ```c++
 /* 读取字符串的状态 */
@@ -263,7 +426,7 @@ std::stringstream ss;
 }
 ```
 
-在状态READING_STRING，碰到另一个双引号时，就会结束字符串的读取，恢复正常状态。
+在状态`READING_STRING`，碰到另一个双引号时，就会结束字符串的读取，恢复正常状态。
 
 ```c++
 <READING_STRING>"\"" {
@@ -275,7 +438,7 @@ std::stringstream ss;
 }
 ```
 
-否则，处于状态READING_STRING时，任何字符都会作为字符串的内容被接受。（注：必须写在上一条的后面）
+否则，处于状态`READING_STRING`时，任何字符都会作为字符串的内容被接受。（注：必须写在上一条的后面）
 
 ```c++
 <READING_STRING>. {
@@ -295,10 +458,8 @@ std::stringstream ss;
 解析到双斜线时，改变状态
 
 ```c++
-"//" {
+<INITIAL>"//" {
     // 注释
-    ss.clear();
-    ss.str("");
     BEGIN COMMENT;
 }
 ```
@@ -309,17 +470,13 @@ std::stringstream ss;
 <COMMENT>"\n" {
     // 注释碰到回车结束
     BEGIN INITIAL;
-    std::cout<<"comment: "<<ss.str()<<std::endl;
 }
 ```
 
 为了调试，读取注释内容
 
 ```c++
-<COMMENT>. {
-    // 注释状态忽略一切，为了调试，输出一下注释内容
-    ss<<yytext[0];
-}
+<COMMENT>. ;
 ```
 
 ####2.5 关键词
@@ -607,15 +764,15 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
 
    proc_stmt ： ID【3.1.6区域定义的过程或无参数函数名】
 
-      				 | ID LP args_list RP【3.1.6区域定义的函数名】
+   ​					| ID LP args_list RP【3.1.6区域定义的函数名】
 
    ​    			    | SYS_PROC【系统过程，有`write`打印输入，以及`writeln`打印输入并换行】
 
-      			 	| SYS_PROC LP expression_list RP【系统函数】			
+   ​					| SYS_PROC LP expression_list RP【系统函数】			
 
    ​					| READ LP factor RP【类似于C中的`scanf`】
 
-   其中系统函数有下面几种：
+   其中系统函数有下面几种：【都是一个输入】
 
    *  `abs(x)`：计算绝对值$|x|$
 
@@ -764,9 +921,9 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
 
    args_list ： args_list COMMA expression | expression
 
-#### 3.2 语法树
+#### 3.2 语法树构造【namespace AST】
 
-定义在文件`Utils.hpp`中，在parsing流程中构造语法树，并最后绘制出来。
+对应的文件为`AST.hpp`和`AST.cpp`
 
 #####3.2.1 节点定义
 
@@ -824,27 +981,44 @@ struct ValOperation
 {
     int Operator; // 操作符，都是yacc.y中定义的token
     int NumOperands; // 子节点数目
-    Node** List_Operands; // 子节点
+    Node** List_Operands; // 子节点列表
 };
 ```
 
 （3）节点类`class Node`
 
 ```c++
-class Node
+namespace Typing
+{   // 提前声明Typing类型节点
+    class Node;
+}
+
+namespace AST
 {
-public:
-    NodeType m_Type;
-    unsigned int m_Line; // 所在行数
-    union 
+  ... ...
+	class Node
     {
-        ValConstant m_Constant;
-        ValIdentifier m_Identifier;
-        ValIdentifier m_Typename;
-        ValOperation m_Operation;
+    public:
+        Typing::Node* m_Type;   // 节点真正的数据类型，在语义分析之后获得
+        int m_Id; // 在语法树上的ID，在语义分析之后获得，方便检查
+    public:
+        Attribute m_Attribute;
+        unsigned int m_Line; // 所在行数
+        union 
+        {
+            ValConstant m_Constant;
+            ValIdentifier m_Identifier;
+            ValIdentifier m_Typename;
+            ValOperation m_Operation;
+        };
+        Node(unsigned int Line, ValConstant& Cons);
+        Node(unsigned int Line, const char* Name, Attribute attribute);
+        Node(unsigned int Line, int Operator, std::vector<Node*>* List);
+        Node(unsigned int Line, int Operator, int NumOperands, ...);
+        void add(Node* node);
+        void add(std::vector<Node *>* List);
+        ~Node();
     };
-  	// 类的方法
-  	... ...
 };
 ```
 
@@ -853,9 +1027,9 @@ public:
 （1）常数类型节点构造函数
 
 ```c++
-Node::Node(ValConstant& Cons)
-        : m_Line(0), m_Type(NodeType::Constant)
-    {	// 常值不会出现在符号表，行数没必要
+Node::Node(unsigned int Line, ValConstant& Cons)
+        : m_Line(Line), m_Attribute(Attribute::Constant)
+    {
         m_Constant = Cons;
     }
 ```
@@ -888,8 +1062,8 @@ Node::Node(unsigned int Line, char* Name, NodeType Type)
 （3）给定子节点列表，构造Operation节点
 
 ```c++
-Node(int Operator, std::vector<Node*>* List)
-        : m_Line(0), m_Type(NodeType::Operation)
+Node(unsigned int Line, int Operator, std::vector<Node*>* List)
+        : m_Line(Line), m_Type(NodeType::Operation)
     {
         m_Operation.Operator = Operator;
         m_Operation.NumOperands = List->size();
@@ -904,8 +1078,8 @@ Node(int Operator, std::vector<Node*>* List)
 （4）给定了子节点数目，但是子节点输入不定，构造Operation节点。这里利用了`<stdarg.h>`对不定参数的处理。
 
 ```c++
-Node(int Operator, int NumOperands, ...)
-        : m_Line(0), m_Type(NodeType::Operation)
+Node::Node(unsigned int Line, int Operator, int NumOperands, ...)
+        : m_Line(Line), m_Attribute(Attribute::Operation)
     {
         va_list ap;
         m_Operation.Operator = Operator;
@@ -979,7 +1153,7 @@ inline void add(std::vector<Node *>* List)
     char cValue; // char value
     char* sValue;
     Node* NodePtr; // Node Pointer
-	std::vector<Node*>* NodePtrList; // List
+		std::vector<Node*>* NodePtrList; // List
 };
 ```
 
@@ -1038,9 +1212,35 @@ inline void add(std::vector<Node *>* List)
 // 语法树中自定义的token
 %token ROUTINE ROUTINE_BODY ROUTINE_HEAD CONST_PART VAR_PART BRACKET
 %token CASE_STMT CASE_LIST TYPE_PART VAL_PARAM VAR_PARAM PARA_LIST FUNCTION_HEAD
-%token SUB_ROUTINE PROCEDURE_HEAD PROC LABEL_STMT FUNCT FIELD_DECL 
+%token SUB_ROUTINE PROCEDURE_HEAD CALL_PROC LABEL_STMT CALL_FUNCT FIELD_DECL
 %token ENUM
 ```
+
+其中比较特别的是，`FUNCTION`和`PROCEDURE`对应的是定义函数/过程。而`CALL_FUNCT`和`CALL_PROC`对应的则是调用。以如下的规则为例。
+
+```c++
+function_decl	// 函数定义
+	: function_head SEMI sub_routine SEMI
+	{
+		if ($3)
+			$$ = new AST::Node(@2.first_line, FUNCTION, 2, $1, $3);
+		else
+			$$ = new AST::Node(@2.first_line, FUNCTION, 1, $1);
+	}
+ ... ...
+factor	// 函数调用
+	: ID LP args_list RP
+	{
+		$$ = new AST::Node(@1.first_line, CALL_FUNCT, 1
+					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
+		$$->add($3);
+	}
+	... ...
+```
+
+
+
+
 
 ##### 3.3.2 yacc规则区
 
@@ -1217,4 +1417,194 @@ end
 
 <img src="Resource/case列表.png" alt="case列表" style="zoom:25%;" />
 
-（6）
+##### 3.3.3 各个语法树节点子节点的格式
+
+下面的介绍中
+
+*  `[a, b, c, d]`表示这个节点在语法树中有四个子节点，且从左到右依次是`a, b, c,d`
+*  `[a, a, ...]`表示这个节点可以有任意个同为类`a`的子节点
+*  `[a, <b>]`表示这个节点最左边的子节点为`a`，右边可能有子节点`<b>`，也可能没有
+*  称一个子节点为xx名时，指该节点的类型为`AST::NodeType::Identifier`或`AST::NodeType::Typename`
+*  `const_value`的类型为`AST::NodeType::Constant`
+
+（1）Const-part + Type-part
+
+|  Opeartion节点  |                        子节点                         |
+| :-------------: | :---------------------------------------------------: |
+|   CONST_PART    |             [const_expr, const_expr, ...]             |
+|   const_expr    |                 [ID, =, const_value]                  |
+|    TYPE_PART    | [type_type_definition_1, type_type_definition_2, ...] |
+| type_definition |                  [ID, =, type_decl]                   |
+|    type_decl    |        [simple_type或array_type或record_type]         |
+|   array_type    |                 [元素类型, 下标类型]                  |
+|   record_type   |         [field_decl_1, field_decl_2, ... ...]         |
+|   field_decl    |            [type_decl, name1, name2, ...]             |
+
+例子：
+
+```pascal
+program const_type;
+const
+	ZERO = 0;
+	PI = 3.1415926;
+type
+	Grade = array[(Math, English, Math)] of real;
+	Student = record 
+				  m_Grade : Grade;
+				  age	  : integer;
+			  end;
+begin
+end
+.
+```
+
+![const_type](Resource/const_type.jpg)
+
+（2）Var-part + routine_part：
+
+|     Operation节点     |                  子节点                   |
+| :-------------------: | :---------------------------------------: |
+|       VAR_PART        |       [var_decl_1, var_decl_2, ...]       |
+|          VAR          |        [type, name_1, name2, ...]         |
+|     ROUTINE_PART      | [若干个function_decl/procedure_decl ...]  |
+|       FUNCTION        |          [function_head, 函数体]          |
+|     FUNCTION_HEAD     |      [paralist, 返回类型]  函数名称       |
+|       paralist        | [para_type_list_1, para_type_list_2, ...] |
+| VAR_PARAM【引用参数】 |      [参数类型, name_1, name_2, ...]      |
+|   VAL_PARAM【形参】   |      [参数类型, name_1, name_2, ...]      |
+|   SEMI【语句分隔】    |  [statement_1（前）, statement_2（后）]   |
+
+```pascal
+program add;
+var
+	delta : integer;
+
+function add(
+	input : integer;
+var
+	ok	  : boolean
+) : integer;
+begin
+	add := input + delta;
+	ok := true;
+end
+;
+
+begin
+end.
+```
+
+<img src="Resource/add.jpg" alt="add" style="zoom:40%;" />
+
+（3）函数/过程调用
+
+|     Operation节点     |         子节点         |
+| :-------------------: | :--------------------: |
+| CALL_FUNCT或SYS_FUNCT | [函数名, 输入1, 输入2] |
+|  CALL_PROC或SYS_PROC  | [过程名，输入1，输入2] |
+
+```pascal
+program proc_calling;
+var
+	name : string;
+
+procedure greeting(
+var name : string;
+	id   : integer
+);
+begin
+	writeln("hello! ", name, "\nYour id is ", id);
+end
+;
+
+begin
+	name := "Zephyr";
+	greeting(name, 13);
+end
+.
+```
+
+![proc_calling](Resource/proc_calling.jpg)
+
+（4）数据访问
+
+|        Operation节点        |       子节点       |
+| :-------------------------: | :----------------: |
+| DOT【结构体record成员访问】 | [record名，成员名] |
+|     BRACKET【数组访问】     |   [数组名，索引]   |
+
+（5）statement
+
+|       Operation节点        |              子节点              |
+| :------------------------: | :------------------------------: |
+|             IF             |  [条件，if-stmt，< else-stmt >]  |
+|            GOTO            | [integer（表示目标语句的label）] |
+| LABEL_STMT【带标签的语句】 |       [integer, statement]       |
+| WHILE / REPEAT【循环语句】 |        [条件，statement]         |
+|  DOWNTO / TO 【for循环】   |   [id, 下界，上界，statement]    |
+|         CASE_STMT          |       [表达式，case_list]        |
+|         case_list          |        [case, case , ...]        |
+|            case            |       [表达式，statement]        |
+
+```pascal
+program get_date;
+type
+	Date = record 
+				Year, Month, Day : integer;
+	 	   end;
+
+function get_date(
+	date : Date
+) : string;
+begin
+	case date.Day of
+		1: get_date := "星期一";
+		2: get_date := "星期二";
+		3: get_date := "星期三";
+		4: get_date := "星期四";
+		5: get_date := "星期五";
+		6: get_date := "星期六";
+		7: get_date := "星期七";
+	end;
+end;
+begin
+end
+.
+```
+
+<img src="Resource/get_date.png" alt="get_date" style="zoom:40%;" />
+
+（6）运算
+
+|       Operation运算符       |        子节点        |
+| :-------------------------: | :------------------: |
+|           ASSIGN            |   [被赋值对象，值]   |
+|   二元运算+, -, *, /, %等   | [左操作数，右操作数] |
+| 比较运算>, <, >=, <=, <>, = |       [左，右]       |
+
+```pascal
+program count_avg;
+
+var 
+	total : integer;
+	count : integer;
+	temp  : integer;
+	avg   : real;
+begin
+	repeat
+		read(temp);
+		total := total + temp;
+		count := count + 1;
+	until temp = 0;
+
+	count := count - 1;
+	avg := 1 * total / count;
+	writeln(avg);
+end
+.
+```
+
+<img src="Resource/count_avg.jpg" alt="count_avg" style="zoom:36%;" />
+
+
+

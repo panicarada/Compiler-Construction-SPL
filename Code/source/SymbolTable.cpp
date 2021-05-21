@@ -2,6 +2,7 @@
 #include "AST.hpp"
 #include "yacc.tab.hpp"
 
+#include "Interpreter.hpp"
 
 Typing::Node* ST::getType(AST::Node* p, Scope scope)
 { 
@@ -23,7 +24,6 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                 default:
                     raiseError("Unknown constant Type!");
             }
-            break;
         case AST::Attribute::Typename:
             {
                 return get(p->m_Typename.Name, p->m_Line);
@@ -38,20 +38,42 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
             {
                 case PROCEDURE:
                 {
-                    Typing::procNode* procedure = dynamic_cast<Typing::procNode*>(getType(p->m_Operation.List_Operands[0]));
+                    auto procedure = dynamic_cast<Typing::procNode*>(getType(p->m_Operation.List_Operands[0]));
                     if (p->m_Operation.NumOperands == 2)
-                    { // 具有subroutine 
+                    {   // 具有subroutine
                         AST::Node* subroutine = p->m_Operation.List_Operands[1];
                         procedure->m_body = subroutine->m_Operation.List_Operands[0];
+
+                        // 检查函数体的类型
+                        for (auto& it : procedure->m_val_table->Table)
+                        {   // 先把函数的参数表暂时加入符号表中
+                            insert(it.first, it.second, procedure->m_val_table->LineTable[it.first]);
+                        }
+                        for (auto& it : procedure->m_var_table->Table)
+                        {   // 类型检查时不区分引用类型
+                            insert(it.first, it.second, procedure->m_val_table->LineTable[it.first]);
+                        }
+                        // 检查函数体
+                        check(procedure->m_body);
+
+                        // 把刚才加入的符号弹出
+                        for (auto& it : procedure->m_val_table->Table)
+                        {
+                            pop(it.first);
+                        }
+                        for (auto& it : procedure->m_var_table->Table)
+                        {
+                            pop(it.first);
+                        }
                     }
                     return procedure;
                 }
                 case PROCEDURE_HEAD:
                 {
                     std::string name = p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
-                    Typing::procNode* procedure = new Typing::procNode(nullptr);
+                    auto procedure = new Typing::procNode(name, nullptr);
                     this->insert(name, procedure, // 过程的行数取过程名的函数
-                                 p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Line); 
+                                 p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Line);
                     if (p->m_Operation.NumOperands > 0)
                     { // 具有参数
                         AST::Node* paraList = p->m_Operation.List_Operands[0];
@@ -64,13 +86,13 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                                 auto param = para_group->m_Operation.List_Operands[j];
                                 if (para_group->m_Operation.Operator == VAL_PARAM)
                                 { // 添加形参表
-                                    procedure->m_val_table->insert(param->m_Identifier.Name, type, param->m_Line);
+                                    procedure->addParam(true, param->m_Identifier.Name, type, param->m_Line);
                                 }
                                 else if (para_group->m_Operation.Operator == VAR_PARAM)
                                 { // 添加引用参数表
-                                    procedure->m_var_table->insert(param->m_Identifier.Name, type, param->m_Line);
+                                    procedure->addParam(false, param->m_Identifier.Name, type, param->m_Line);
                                 }
-                                else 
+                                else
                                 {
                                     raiseError("Unknown param type!");
                                 }
@@ -81,7 +103,7 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                 }
                 case FUNCTION:
                 {
-                    Typing::functNode* function = dynamic_cast<Typing::functNode*>(getType(p->m_Operation.List_Operands[0]));
+                    auto function = dynamic_cast<Typing::functNode*>(getType(p->m_Operation.List_Operands[0]));
                     if (p->m_Operation.NumOperands == 2)
                     {   // 具有subroutine 
                         AST::Node* subroutine = p->m_Operation.List_Operands[1];
@@ -116,7 +138,7 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                 case FUNCTION_HEAD:
                 {
                     std::string name = p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
-                    Typing::functNode* function = new Typing::functNode(name, getType(p->m_Operation.List_Operands[p->m_Operation.NumOperands-1]), nullptr);
+                    auto* function = new Typing::functNode(name, getType(p->m_Operation.List_Operands[p->m_Operation.NumOperands-1]), nullptr);
                     this->insert(name, function, // 函数的行数取函数名的函数
                                  p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Line); 
                     if (p->m_Operation.NumOperands > 1)
@@ -183,8 +205,34 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                     }
                     break;
                 case ROUTINE:
-                    getType(p->m_Operation.List_Operands[0]);
-                    break;
+                    // 子节点有四种格式，
+                    // [<routine-head>, <routine-body>]任意组合
+                    for (int i = 0;i < p->m_Operation.NumOperands; ++i)
+                    {
+                        auto temp = p->m_Operation.List_Operands[i];
+                        if (temp->m_Attribute != AST::Attribute::Operation)
+                        {
+                            raiseError("检查一下routine相关代码");
+                        }
+                        if (temp->m_Operation.Operator == ROUTINE_HEAD)
+                        {   // 定义区，填入符号表
+                            getType(temp);
+                        }
+                        else if (temp->m_Operation.Operator == ROUTINE_BODY)
+                        {   // 主函数区域，需要类型检查
+                            check(temp);
+                            extern Interpreter* ipt;    // 设置一下解释器的主函数入口
+                            ipt->main_entry = temp;
+                            std::cout << "Main entry has been set up!" << std::endl;
+                        }
+                        else 
+                        {
+                            std::stringstream msg;
+                            msg << "未知的操作符\"" << temp->m_Operation.Operator << "\"";
+                            raiseError(msg.str())
+                        }
+                    }
+                    return nullptr;
                 case ROUTINE_HEAD:
                     for (int i = 0;i < p->m_Operation.NumOperands; ++i)
                     {
@@ -201,7 +249,6 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                     break;
                 case TYPE: // 左边是类型名字，右边是这个名字对应的类型statement
                     // 见test3.spl以及对应的AST
-                    // std::cout << p->m_Operation.List_Operands[1]->m_Type << std::endl;
                     insert(p->m_Operation.List_Operands[0]->m_Identifier.Name,
                                 getType(p->m_Operation.List_Operands[1]), p->m_Operation.List_Operands[0]->m_Line);
                     
@@ -231,12 +278,12 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                     break;
                 case ENUM:
                     {
-                        auto enunList = new std::vector<std::string>();
+                        auto enumList = new std::vector<std::string>();
                         for (int i = 0;i < p->m_Operation.NumOperands; ++i)
                         {
-                            enunList->push_back(p->m_Operation.List_Operands[i]->m_Identifier.Name);
+                            enumList->push_back(p->m_Operation.List_Operands[i]->m_Identifier.Name);
                         }
-                        auto node = new Typing::enumNode(enunList);
+                        auto node = new Typing::enumNode(enumList);
                         for (int i = 0;i < p->m_Operation.NumOperands; ++i)
                         {
                             insert(p->m_Operation.List_Operands[i]->m_Identifier.Name,
@@ -244,7 +291,6 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                         }
                         return node;
                     }
-                    break;
                 case RECORD:
                     {
                         auto Field = new std::map<std::string, Typing::Node*>();
@@ -308,51 +354,45 @@ void ST::show()
                     << it.second->toString(hPos) << std::endl;
         if ((it.second)->m_Type == Typing::NodeType::t_FUNCTION)
         {   // 函数储存起来，之后要输出函数的参数表
-            functions.push_back(it);
+            functions.emplace_back(it);
         }
         if ((it.second)->m_Type == Typing::NodeType::t_PROCEDURE)
         {   // 过程储存起来，之后要输出过程的参数表
-            procedures.push_back(it);
+            procedures.emplace_back(it);
         }
     }
     for (auto& it : functions)
     {
         std::cout << "----------------------------------------" << std::endl;
         std::cout << "function: \"" << it.first << "\"" << std::endl;
-        Typing::functNode* function = dynamic_cast<Typing::functNode*>(it.second);
+        auto* function = dynamic_cast<Typing::functNode*>(it.second);
         if (!function->m_val_table->isEmpty())
         {
-            std::cout << "value param:" << std::endl;
             function->m_val_table->show();
         }
         if (!function->m_var_table->isEmpty())
         {
-            std::cout << "ref param:" << std::endl;
             function->m_var_table->show();
         }
-        std::cout << "----------------------------------------" << std::endl;
 
     }
     for (auto& it : procedures)
     {
         std::cout << "----------------------------------------" << std::endl;
         std::cout << "procedure: \"" << it.first << "\"" << std::endl;
-        Typing::procNode* procedure = dynamic_cast<Typing::procNode*>(it.second);
+        auto* procedure = dynamic_cast<Typing::procNode*>(it.second);
         if (!procedure->m_val_table->isEmpty())
         {
-            std::cout << "value param:" << std::endl;
             procedure->m_val_table->show();
         }
         if (!procedure->m_var_table->isEmpty())
         {
-            std::cout << "ref param:" << std::endl;
             procedure->m_var_table->show();
         }
-        std::cout << "----------------------------------------" << std::endl;
     }
 }
 
-bool ST::insert(std::string str, Typing::Node* node, unsigned int Line)
+bool ST::insert(const std::string& str, Typing::Node* node, unsigned int Line)
 {
     if (Table.find(str) == Table.end())
     {
@@ -371,7 +411,7 @@ bool ST::insert(std::string str, Typing::Node* node, unsigned int Line)
     }
 }
 
-Typing::Node* ST::get(std::string str, unsigned int line)
+Typing::Node* ST::get(const std::string& str, unsigned int line)
 {
     if (Table.find(str) != Table.end())
     {
@@ -381,10 +421,9 @@ Typing::Node* ST::get(std::string str, unsigned int line)
     std::stringstream msg;
     msg << std::endl << "In line: " << line << ". The type \"" << str << "\" is not available in the symbol table!";
     raiseError(msg.str());
-    return nullptr;
 }
 
-Typing::Node* ST::pop(std::string str)
+Typing::Node* ST::pop(const std::string& str)
 {
     if (Table.find(str) == Table.end())
     { // 如果不存在，没办法删除
@@ -419,7 +458,7 @@ Typing::Node* ST::check(AST::Node* p)
             // 具体类型是所对应的sys类型
             switch (p->m_Constant.Type)
             {
-                case AST::ConstantType::Integer: 
+                case AST::ConstantType::Integer:
                     p->m_Type = get("integer", 0);
                     return p->m_Type;
                 case AST::ConstantType::Real: 
@@ -450,6 +489,10 @@ Typing::Node* ST::check(AST::Node* p)
                 {   // 这时候对应的类型是函数返回类型
                     type = dynamic_cast<Typing::functNode*>(type)->m_resType;
                 }
+                else if (type->m_Type == Typing::NodeType::t_CONSTANT)
+                {   // 常数类型
+                    type = dynamic_cast<Typing::constNode*>(type)->m_Sys;
+                }
                 p->m_Type = type;
                 return p->m_Type;
             }
@@ -459,9 +502,137 @@ Typing::Node* ST::check(AST::Node* p)
         case AST::Attribute::Operation:
             switch (p->m_Operation.Operator)
             {
-                /* 数组访问 */
+                /* goto语句，跳转到对应label */
+                case GOTO:
+                { // 格式为[integer"]
+                    assert(p->m_Operation.List_Operands[0]->m_Attribute == AST::Attribute::Constant);
+                    auto jump_label = check(p->m_Operation.List_Operands[0]);
+                    if (Typing::Node::isEqual(get("integer", 0), jump_label))
+                    {
+                        return nullptr;
+                    }
+                    std::stringstream msg;
+                    msg << std::endl << "In line " << p->m_Line << ". goto statement的label必须为整数" << std::endl;
+                    raiseError(msg.str());
+                }
+                case LABEL_STMT:
+                {   // 带有标签的statement，用于跳转
+                    // 子节点格式为[标签（整数），statement]
+                    assert(p->m_Operation.List_Operands[0]->m_Attribute == AST::Attribute::Constant); // 标签必须是常数
+                    auto label = check(p->m_Operation.List_Operands[0]);
+                    if (Typing::Node::isEqual(get("integer", 0), label))
+                    {
+                        check(p->m_Operation.List_Operands[1]);
+                        // 本身没有类型
+                        return nullptr;
+                    }
+                    std::stringstream msg;
+                    msg << std::endl << "In line " << p->m_Line << ". label statement的label必须为整数" << std::endl;
+                    raiseError(msg.str());
+                }
+                case WHILE:
+                case REPEAT:
+                { // 子节点格式为，[条件，statement]
+                    // while和repeat是一致的
+                    // 例子请见guess.spl
+                    auto condition = check(p->m_Operation.List_Operands[0]);
+                    if (Typing::Node::isEqual(get("boolean", 0), condition))
+                    {   // 条件需要为布尔值
+                        // 检查语句
+                        check(p->m_Operation.List_Operands[1]);
+                        // 本身没有返回值
+                        return nullptr;
+                    }
+                    std::stringstream msg;
+                    msg << std::endl << "In line " << p->m_Line << ". while语句的条件必须为布尔值" << std::endl;
+                    raiseError(msg.str());
+                }
+                    /* for循环 */
+                case DOWNTO:
+                case TO:
+                {   // 四个子节点，格式为[id, 下界，上界，statement]，例子请见bubble_sort.spl
+                    auto index_node = check(p->m_Operation.List_Operands[0]);
+                    std::stringstream msg;
+                    int hPos = 0;
+                    msg << std::endl << "In line " << p->m_Line << ". For循环语句只支持整型的上下标和变量" << std::endl;
+                    msg << "given: " << std::endl;
+
+                    auto target = get("integer", 0);    // id, 上下界都需要为整型
+                    if (Typing::Node::isEqual(target, index_node))
+                    {   // 一定是整数变量类型
+                        auto lower = check(p->m_Operation.List_Operands[1]);
+                        if (Typing::Node::isEqual(target, lower))
+                        {
+                            auto upper = check(p->m_Operation.List_Operands[2]);
+                            if (Typing::Node::isEqual(target, upper))
+                            {   // 前三个子节点没有问题，递归检查语句
+                                check(p->m_Operation.List_Operands[3]);
+                                // 本身没有类型
+                                return nullptr;
+                            }
+                            else
+                            {
+                                hPos = 0;
+                                msg << "upper: " << upper->toString(hPos) << std::endl;
+                            }
+                        }
+                        else
+                        {
+                            hPos = 0;
+                            msg << "lower: " << lower->toString(hPos) << std::endl;
+                        }
+                    }
+                    else
+                    {
+                        msg << "index: " << index_node->toString(hPos) << std::endl;
+                    }
+                    raiseError(msg.str());
+                }
+                case READ:
+                {   // 系统过程，类似于scanf读取用户输入，但是一次只能读取一个
+                    // 子节点结构为["read", 待读取的变量]
+                    auto input_node = p->m_Operation.List_Operands[1];
+                    if (input_node->m_Attribute != AST::Attribute::Identifier)
+                    {
+                        std::stringstream msg;
+                        msg << std::endl << "In line " << p->m_Line << ". read的参数只能是变量" << std::endl;
+                        msg << "given: " << input_node->m_Attribute << std::endl;
+                        raiseError(msg.str());
+                    }
+                    auto input = get(input_node->m_Identifier.Name, p->m_Line);
+                    // 并且只能读取基础类型
+                    if (input->m_Type == Typing::NodeType::t_SYS_TYPE)
+                    {   // 返回结果就是读取的值
+                        return input;
+                    }
+                    std::stringstream msg;
+                    int hPos = 0;
+                    msg << std::endl << "In line " << p->m_Line << ". read只支持基础类型" << std::endl;
+                    msg << "given: " << input->toString(hPos) << std::endl;
+                    raiseError(msg.str());
+                }
+                case SYS_PROC:
+                {   // 系统过程，只有write和writeln两种，
+                    // 支持任意多个参数传入
+                    // 但是只支持基础类型
+                    for (int i = 1; i < p->m_Operation.NumOperands; ++i)
+                    {
+                        auto input = check(p->m_Operation.List_Operands[i]);
+                        if (input->m_Type != Typing::NodeType::t_SYS_TYPE)
+                        {
+                            std::stringstream msg;
+                            int hPos = 0;
+                            msg << std::endl << "In line " << p->m_Line << ". write/writeln只支持基础类型" << std::endl;
+                            msg << "given: " << input->toString(hPos) << std::endl;
+                            raiseError(msg.str());
+                        }
+                    }
+                    return nullptr;
+                }
+                    /* 数组访问 */
                 case BRACKET:
                 { // 关于数组的例子请见swap.spl
+                    // 子节点为[数组名，索引]
                     auto node = check(p->m_Operation.List_Operands[0]);
                     if (node->m_Type != Typing::NodeType::t_ARRAY)
                     {
@@ -471,7 +642,7 @@ Typing::Node* ST::check(AST::Node* p)
                         msg << "given: " << node->toString(hPos) << std::endl;
                         raiseError(msg.str());
                     }
-                    auto array = dynamic_cast<Typing::arrayNode*>(node);
+                    auto array = dynamic_cast<Typing::arrayNode *>(node);
                     auto idxType = check(p->m_Operation.List_Operands[1]);
 
                     // 检查数组访问下标类型是否一致
@@ -490,9 +661,8 @@ Typing::Node* ST::check(AST::Node* p)
                     std::stringstream msg;
                     msg << std::endl << "In line " << p->m_Line << ". 数组访问下标不匹配" << std::endl;
                     int hPos = 0;
-                    msg << "expected: " << target->toString(hPos) << std::endl;
-                    hPos = 0;
-                    msg << "given: " << idxType->toString(hPos) << std::endl;
+                    msg << "expected: " << std::endl << target->toString(hPos) << std::endl;
+                    msg << "given: " << std::endl << idxType->toString(hPos) << std::endl;
                     raiseError(msg.str());
                 }
                 case CASE_STMT:
@@ -501,7 +671,7 @@ Typing::Node* ST::check(AST::Node* p)
                     auto expression = check(p->m_Operation.List_Operands[0]);
                     auto case_list = p->m_Operation.List_Operands[1];
                     // case-list子节点的格式为[case, case, ..., ...]
-                    for (int i = 0;i < case_list->m_Operation.NumOperands; ++i)
+                    for (int i = 0; i < case_list->m_Operation.NumOperands; ++i)
                     {   // 每个case的子节点格式为[表达式，语句]
                         auto case_unit = case_list->m_Operation.List_Operands[i];
                         auto case_exp = check(case_unit->m_Operation.List_Operands[0]);
@@ -514,9 +684,8 @@ Typing::Node* ST::check(AST::Node* p)
                                 std::stringstream msg;
                                 msg << std::endl << "In line " << p->m_Line << ". case条件类型不匹配" << std::endl;
                                 int hPos = 0;
-                                msg << "expected: " << expression->toString(hPos) << std::endl;
-                                hPos = 0;
-                                msg << "given: " << case_exp->toString(hPos) << std::endl;
+                                msg << "expected: " << std::endl << expression->toString(hPos) << std::endl;
+                                msg << "given: " << std::endl << case_exp->toString(hPos) << std::endl;
                                 raiseError(msg.str());
                             }
                         }
@@ -526,10 +695,55 @@ Typing::Node* ST::check(AST::Node* p)
                     // 本身没有类型
                     return nullptr;
                 }
-                /* 函数调用 */
+                    /* 过程调用 */
+                case CALL_PROC:
+                {   // 注意，这里是调用过程，而非定义过程
+                    auto procedure = dynamic_cast<Typing::procNode *>(get(
+                            p->m_Operation.List_Operands[0]->m_Identifier.Name, p->m_Line));
+                    int size = procedure->m_Params.size();
+                    if (size != p->m_Operation.NumOperands - 1)
+                    {
+                        std::stringstream msg;
+                        msg << std::endl << "In line " << p->m_Line << ". 过程参数数目不匹配" << std::endl;
+                        int hPos = 0;
+                        msg << procedure->toString(hPos) << std::endl;
+                        msg << "expected: " << size << std::endl;
+                        msg << "given: " << p->m_Operation.NumOperands - 1 << std::endl;
+                        raiseError(msg.str());
+                    }
+                    int i = 1;
+                    for (auto it = procedure->m_Params.begin(); it != procedure->m_Params.end(); ++it)
+                    {
+                        auto input = check(p->m_Operation.List_Operands[i++]); // 第i个输入的参数
+                        Typing::Node *param;
+                        if (it->second)
+                        {   // is var = true
+                            param = procedure->m_var_table->get(it->first, p->m_Line);
+                        }
+                        else
+                        {
+                            param = procedure->m_val_table->get(it->first, p->m_Line);
+                        }
+
+                        if (!Typing::Node::isEqual(param, input))
+                        {
+                            std::stringstream msg;
+                            msg << std::endl << "In line " << p->m_Line << ". 过程参数类型不匹配" << std::endl;
+                            int hPos = 0;
+                            msg << "expected: " << std::endl << param->toString(hPos) << std::endl;
+                            msg << "input: " << std::endl << input->toString(hPos) << std::endl;
+                            raiseError(msg.str());
+                        }
+                    }
+                    // 不具有返回类型
+                    return nullptr;
+                }
+                    /* 函数调用 */
                 case CALL_FUNCT:
                 {   // 注意，这里是调用函数，而非定义函数
-                    auto function = dynamic_cast<Typing::functNode*>(get(p->m_Operation.List_Operands[0]->m_Identifier.Name, p->m_Line));
+                    // 子节点格式为[函数名, 输入1, 输入2, ...]
+                    auto function = dynamic_cast<Typing::functNode *>(get(
+                            p->m_Operation.List_Operands[0]->m_Identifier.Name, p->m_Line));
 
                     int size = function->m_Params.size();
 
@@ -544,28 +758,26 @@ Typing::Node* ST::check(AST::Node* p)
                         raiseError(msg.str());
                     }
                     int i = 1;
-                    for (auto it = function->m_Params.begin();it != function->m_Params.end(); ++it)
+                    for (auto it = function->m_Params.begin(); it != function->m_Params.end(); ++it)
                     {
                         auto input = check(p->m_Operation.List_Operands[i++]); // 第i个输入的参数
-                        Typing::Node* param;
+                        Typing::Node *param;
 
                         if (it->second)
                         {   // is var = true
                             param = function->m_var_table->get(it->first, p->m_Line);
                         }
-                        else 
+                        else
                         {
                             param = function->m_val_table->get(it->first, p->m_Line);
                         }
-
                         if (!Typing::Node::isEqual(param, input))
                         {
                             std::stringstream msg;
                             msg << std::endl << "In line " << p->m_Line << ". 函数参数类型不匹配" << std::endl;
                             int hPos = 0;
-                            msg << "expected: " << param->toString(hPos) << std::endl;
-                            hPos = 0;
-                            msg << "input: " << input->toString(hPos) << std::endl;
+                            msg << "expected: " << std::endl << param->toString(hPos) << std::endl;
+                            msg << "input: " << std::endl << input->toString(hPos) << std::endl;
                             raiseError(msg.str());
                         }
                     }
@@ -576,7 +788,7 @@ Typing::Node* ST::check(AST::Node* p)
                 case SEMI:
                 {   // 语句分隔符，子节点为[上一语句，下一语句]
                     // 检查所有子节点即可
-                    for (int i = 0;i < p->m_Operation.NumOperands; ++i)
+                    for (int i = 0; i < p->m_Operation.NumOperands; ++i)
                     {
                         check(p->m_Operation.List_Operands[i]);
                     }
@@ -585,7 +797,7 @@ Typing::Node* ST::check(AST::Node* p)
                 case IF:
                 {
                     // 子节点为[条件, if-claus, <else-clause>]
-                    Typing::Node* condition = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node *condition = check(p->m_Operation.List_Operands[0]);
                     if (Typing::Node::isEqual(condition, get("boolean", 0)))
                     {   // 条件一定要是布尔值
                         check(p->m_Operation.List_Operands[1]); // 检查if-clause
@@ -595,26 +807,32 @@ Typing::Node* ST::check(AST::Node* p)
                         }
                         return nullptr; // 本身无类型
                     }
+                    std::stringstream msg;
+                    msg << std::endl << "In line " << p->m_Line << ". if语句条件必须为布尔值" << std::endl;
+                    int hPos = 0;
+                    msg << "given: " << condition->toString(hPos) << std::endl;
+                    raiseError(msg.str());
                 }
-                /* 函数体 */
-                case ROUTINE_BODY: 
+                    /* 函数体 */
+                case ROUTINE_BODY:
                     return check(p->m_Operation.List_Operands[0]);
+                    /* 结构体访问 */
                 case DOT:
                 {   // 结构体成员访问
                     // 子节点为[record名，成员名]
                     auto node = get(p->m_Operation.List_Operands[0]->m_Identifier.Name, p->m_Line);
-                    Typing::recordNode* record;
+                    Typing::recordNode *record;
                     if (node->m_Type == Typing::NodeType::t_RECORD)
                     {
-                        record = dynamic_cast<Typing::recordNode*>(node);
+                        record = dynamic_cast<Typing::recordNode *>(node);
                     }
                     else if (node->m_Type == Typing::NodeType::t_FUNCTION)
                     {   // 在函数内部，函数名就是返回值
-                        auto function = dynamic_cast<Typing::functNode*>(node);
+                        auto function = dynamic_cast<Typing::functNode *>(node);
 
                         if (function->m_resType->m_Type == Typing::NodeType::t_RECORD)
                         {
-                            record = dynamic_cast<Typing::recordNode*>(function->m_resType);
+                            record = dynamic_cast<Typing::recordNode *>(function->m_resType);
                         }
                         else
                         {
@@ -625,7 +843,7 @@ Typing::Node* ST::check(AST::Node* p)
                             raiseError(msg.str());
                         }
                     }
-                    else 
+                    else
                     {
                         std::stringstream msg;
                         msg << std::endl << "In line " << p->m_Line << ". 不是结构类型，无法访问成员！" << std::endl;
@@ -634,38 +852,38 @@ Typing::Node* ST::check(AST::Node* p)
                         raiseError(msg.str());
                     }
                     std::string member = p->m_Operation.List_Operands[1]->m_Identifier.Name;
-                    record->m_Field->find(member);
                     if (record->m_Field->find(member) == record->m_Field->end())
-                    {   
-                            std::stringstream msg;
-                            msg << std::endl << "In line " << p->m_Line << ". 结构体访问的成员不存在!" << std::endl;
-                            int hPos = 0;
-                            msg << "结构体: " << record->toString(hPos) << std::endl;
-                            msg << "访问名: " << member << std::endl;
-                            raiseError(msg.str());
+                    {
+                        std::stringstream msg;
+                        msg << std::endl << "In line " << p->m_Line << ". 结构体访问的成员不存在!" << std::endl;
+                        int hPos = 0;
+                        msg << "结构体: " << record->toString(hPos) << std::endl;
+                        msg << "访问名: " << member << std::endl;
+                        raiseError(msg.str());
                     }
 
                     // 返回成员的类型
                     p->m_Type = (*(record->m_Field))[member];
                     return p->m_Type;
                 }
-                /* 赋值运算 */
+                    /* 赋值运算 */
                 case ASSIGN:
                 {   // 返回两边类型
                     // 子节点为[被赋值id，值]
-                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
-                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
-                    
+                    Typing::Node *left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node *right = check(p->m_Operation.List_Operands[1]);
+
                     if (!Typing::Node::isEqual(left, right))
                     {
-                        if (Typing::Node::isEqual(right, get("integer", 0)) && Typing::Node::isEqual(left, get("real", 0)))
+                        if (Typing::Node::isEqual(right, get("integer", 0)) &&
+                            Typing::Node::isEqual(left, get("real", 0)))
                         { // 有且仅有左边是real也是没有问题的
-                          // 但是不能把real赋值给integer
-                          // 这时候返回值就是real
+                            // 但是不能把real赋值给integer
+                            // 这时候返回值就是real
                             p->m_Type = get("real", 0);
                             return p->m_Type;
                         }
-                        else 
+                        else
                         {
                             std::stringstream msg;
                             msg << std::endl << "In line " << p->m_Line << ". 该操作两边的类型不匹配" << std::endl;
@@ -678,18 +896,23 @@ Typing::Node* ST::check(AST::Node* p)
                     p->m_Type = right;
                     return p->m_Type;
                 }
-                /* 比较运算 */
-                case GE: case GT: case LE: case LT: case EQUAL: case UNEQUAL:
+                    /* 比较运算 */
+                case GE:
+                case GT:
+                case LE:
+                case LT:
+                case EQUAL:
+                case UNEQUAL:
                 {
-                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
-                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
+                    Typing::Node *left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node *right = check(p->m_Operation.List_Operands[1]);
                     if (!Typing::Node::isEqual(left, right))
                     {
                         if (Typing::Node::isEqual(left, get("real", 0)) || Typing::Node::isEqual(right, get("real", 0)))
                         { // 有且仅有一边是real
-                          // 也是没有问题的
+                            // 也是没有问题的
                         }
-                        else 
+                        else
                         {
                             std::stringstream msg;
                             msg << std::endl << "In line " << p->m_Line << ". 该操作两边的类型不一致" << std::endl;
@@ -703,13 +926,17 @@ Typing::Node* ST::check(AST::Node* p)
                     p->m_Type = get("boolean", p->m_Line);
                     return p->m_Type;
                 }
-                /* 算数运算 */
-                case PLUS: case MUL: case DIV: case MINUS:
+                    /* 算数运算 */
+                case PLUS:
+                case MUL:
+                case DIV:
+                case MINUS:
                 {
-                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
-                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
-                    Typing::Node* int_target = get("integer", p->m_Line);
-                    Typing::Node* real_target = get("real", p->m_Line);
+                    Typing::Node *left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node *right = check(p->m_Operation.List_Operands[1]);
+                    Typing::Node *int_target = get("integer", p->m_Line);
+                    Typing::Node *real_target = get("real", p->m_Line);
+
                     if (p->m_Operation.NumOperands == 1 && p->m_Operation.Operator == MINUS)
                     {   // 单元取负
                         if (Typing::Node::isEqual(left, real_target) || Typing::Node::isEqual(left, int_target))
@@ -727,7 +954,7 @@ Typing::Node* ST::check(AST::Node* p)
                     if (Typing::Node::isEqual(left, real_target))
                     {   // 左为浮点
                         if (Typing::Node::isEqual(right, int_target)
-                         || Typing::Node::isEqual(right, real_target))
+                            || Typing::Node::isEqual(right, real_target))
                         {   // 右边是数就行
                             p->m_Type = real_target;
                             return real_target;
@@ -754,12 +981,12 @@ Typing::Node* ST::check(AST::Node* p)
                     msg << "RHS: " << right->toString(hPos) << std::endl;
                     raiseError(msg.str());
                 }
-                /* 整数运算 */
+                    /* 整数运算 */
                 case MOD:
                 {
-                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
-                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
-                    Typing::Node* target = get("integer", p->m_Line);
+                    Typing::Node *left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node *right = check(p->m_Operation.List_Operands[1]);
+                    Typing::Node *target = get("integer", p->m_Line);
                     // 取模运算要求都是整数
                     if (Typing::Node::isEqual(target, left)
                         && Typing::Node::isEqual(target, right))
@@ -774,11 +1001,11 @@ Typing::Node* ST::check(AST::Node* p)
                     msg << "RHS: " << right->toString(hPos) << std::endl;
                     raiseError(msg.str());
                 }
-                /* 逻辑算数，单元 */
+                    /* 逻辑算数，单元 */
                 case NOT:
                 {   // 返回结果还是布尔值
-                    Typing::Node* type = check(p->m_Operation.List_Operands[0]);
-                    Typing::Node* target = get("boolean", p->m_Line);
+                    Typing::Node *type = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node *target = get("boolean", p->m_Line);
                     if (Typing::Node::isEqual(type, target))
                     {
                         p->m_Type = target;
@@ -790,12 +1017,13 @@ Typing::Node* ST::check(AST::Node* p)
                     msg << "Operand: " << type->toString(hPos) << std::endl;
                     raiseError(msg.str());
                 }
-                /* 逻辑算数 */
-                case OR: case AND:
+                    /* 逻辑算数 */
+                case OR:
+                case AND:
                 {   // 逻辑运算，两边都应该是布尔值
-                    Typing::Node* target = get("boolean", p->m_Line);
-                    Typing::Node* left = check(p->m_Operation.List_Operands[0]);
-                    Typing::Node* right = check(p->m_Operation.List_Operands[1]);
+                    Typing::Node *target = get("boolean", p->m_Line);
+                    Typing::Node *left = check(p->m_Operation.List_Operands[0]);
+                    Typing::Node *right = check(p->m_Operation.List_Operands[1]);
                     if (Typing::Node::isEqual(target, left)
                         && Typing::Node::isEqual(target, right))
                     {
@@ -809,14 +1037,73 @@ Typing::Node* ST::check(AST::Node* p)
                     msg << "RHS: " << right->toString(hPos) << std::endl;
                     raiseError(msg.str());
                 }
+                case SYS_FUNCT:
+                { // 系统函数，都是一个输入
+                    // 格式为["name", 输入]
+                    auto function = p->m_Operation.List_Operands[0];
+                    if (function->m_Attribute == AST::Attribute::Identifier)
+                    {
+                        std::string name = function->m_Identifier.Name;
+                        auto int_type = get("integer", 0);
+                        auto real_type = get("real", 0);
+                        auto char_type = get("char", 0);
+                        auto bool_type = get("boolean", 0);
+                        // 输入参数
+                        auto input = check(p->m_Operation.List_Operands[1]);
+                        if (name == "chr")
+                        { // 计算ASCII码，必须是整数
+                            if (Typing::Node::isEqual(input, int_type))
+                            { // 返回字符
+                                p->m_Type = char_type;
+                                return char_type;
+                            }
+                        }
+                        else if (name == "odd")
+                        {   // 判断是否为偶数
+                            if (Typing::Node::isEqual(input, int_type))
+                            { // 返回布尔值
+                                p->m_Type = bool_type;
+                                return bool_type;
+                            }
+                        }
+                        else if (name == "abs" || name == "sqr")
+                        { // 保持类型不变的算子
+                            if (Typing::Node::isEqual(input, int_type) || Typing::Node::isEqual(input, real_type))
+                            {
+                                p->m_Type = input;
+                                return input;
+                            }
+                        }
+                        else if (name == "sqrt")
+                        { // 返回都是real
+                            if (Typing::Node::isEqual(input, int_type) || Typing::Node::isEqual(input, real_type))
+                            {
+                                p->m_Type = real_type;
+                                return real_type;
+                            }
+                        }
+                        else if (name == "ord" || name == "pred" || name == "succ")
+                        { // 只对有序类型有效
+                            if (Typing::Node::isEqual(input, int_type)
+                                || Typing::Node::isEqual(input, char_type)
+                                || input->m_Type == Typing::NodeType::t_ENUM)
+                            {   // 返回本身类型
+                                p->m_Type = input;
+                                return input;
+                            }
+                        }
+                    }
+                    std::stringstream msg;
+                    msg << std::endl << "In line " << p->m_Line << ". 错误的系统函数调用\"";
+                    raiseError(msg.str());
+                }
                 default:
                 {
                     std::stringstream msg;
-                    msg << "In line " << p->m_Line << ". 未知的操作符\"" << p->m_Operation.Operator << "\"";
+                    msg << std::endl << "In line " << p->m_Line << ". 未知的操作符\"" << p->m_Operation.Operator << "\"";
                     raiseError(msg.str());
                 }
             }
-        
         default:
             break;
     }

@@ -33,101 +33,207 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
 <COMMENT>"\n" {
     // 注释碰到回车结束
     BEGIN INITIAL;
-    std::cout<<"comment: "<<ss.str()<<std::endl;
 }
-<COMMENT>. {
-    // 注释状态忽略一切，为了调试，输出一下注释内容
-    ss<<yytext[0];
-}
+<COMMENT>. ;
 
-"(" return LP;
-")" return RP;
-"[" return LB;
-"]" return RB;
+"(" {
+    yylloc.first_line=line_number;
+    return LP;
+}
+")" {
+    yylloc.first_line=line_number;
+    return RP;}
+"[" {
+    yylloc.first_line=line_number;
+    return LB;}
+"]" {
+    yylloc.first_line=line_number;
+    return RB;}
 ".." {
-    // std::cout<<"Hello DOTDOT"<<std::endl;
+    yylloc.first_line=line_number;
     return DOTDOT;
 }
 "." {
-    // std::cout<<"Hello DOT"<<std::endl;
+    yylloc.first_line=line_number;
     return DOT;
 }
-"," return COMMA;
-":=" return ASSIGN;
-":" return COLON;
-"*" return MUL;
-"/" return DIV;
-"<>" return UNEQUAL;
-"NOT" return NOT;
-"+" return PLUS;
-"-" return MINUS;
-">=" return GE;
-">" return GT;
-"<=" return LE;
-"<" return LT;
-"=" return EQUAL;
-"MOD"|"%" return MOD;
+"," {
+    yylloc.first_line=line_number;
+    return COMMA;}
+":=" {
+    yylloc.first_line=line_number;
+    return ASSIGN;}
+":" {
+    yylloc.first_line=line_number;
+    return COLON;}
+"*" {
+    yylloc.first_line=line_number;
+    return MUL;}
+"/" {
+    yylloc.first_line=line_number;
+    return DIV;}
+"<>" {
+    yylloc.first_line=line_number;
+    return UNEQUAL;}
+"NOT" {
+    yylloc.first_line=line_number;
+    return NOT;}
+"+" {
+    yylloc.first_line=line_number;
+    return PLUS;}
+"-" {
+    yylloc.first_line=line_number;
+    return MINUS;}
+">=" {
+    yylloc.first_line=line_number;
+    return GE;}
+">" {
+    yylloc.first_line=line_number;
+    return GT;}
+"<=" {
+    yylloc.first_line=line_number;
+    return LE;}
+"<" {
+    yylloc.first_line=line_number;
+    return LT;}
+"=" {
+    yylloc.first_line=line_number;
+    return EQUAL;}
+"MOD"|"%" {
+    yylloc.first_line=line_number;
+    return MOD;}
 ";" {
-    // std::cout<<"Hello SEMI"<<std::endl;
+    yylloc.first_line=line_number;
     return SEMI;
 }
 
 
 "false"|"maxint"|"true" {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_CON;
 }
 "abs"|"chr"|"odd"|"ord"|"pred"|"sqr"|"sqrt"|"succ" {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_FUNCT;
 }
 "write"|"writeln" {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_PROC;
 }
 "boolean"|"char"|"integer"|"real"|"string" {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_TYPE;
 }
-"read" return READ;
+"read" {
+    yylloc.first_line=line_number;
+    return READ;}
 
  /* Keyword List */
-"and" return AND;
-"array" return ARRAY;
-"begin" return _BEGIN;
-"case" return CASE;
-"const" return CONST;
-"div" return DIV;
-"do" return DO;
-"downto" return DOWNTO;
-"else" return ELSE;
-"end" return END;
-"for" return FOR;
-"function" return FUNCTION;
-"goto" return GOTO;
-"if" return IF;
-"mod" return MOD;
-"not" return NOT;
-"of" return OF;
-"or" return OR;
-"packed" return PACKED;
-"procedure" return PROCEDURE;
+"and" {
+    yylloc.first_line=line_number;
+    return AND;}
+"array" {
+    yylloc.first_line=line_number;
+    return ARRAY;}
+"begin" {
+    yylloc.first_line=line_number;
+    return _BEGIN;}
+"case" {
+    yylloc.first_line=line_number;
+    return CASE;}
+"const" {
+    yylloc.first_line=line_number;
+    return CONST;}
+"div" {
+    yylloc.first_line=line_number;
+    return DIV;}
+"do" {
+    yylloc.first_line=line_number;
+    return DO;}
+"downto" {
+    yylloc.first_line=line_number;
+    return DOWNTO;}
+"else" {
+    yylloc.first_line=line_number;
+    return ELSE;}
+"end" {
+    yylloc.first_line=line_number;
+    return END;}
+"for" {
+    yylloc.first_line=line_number;
+    return FOR;}
+"function" {
+    yylloc.first_line=line_number;
+    return FUNCTION;}
+"goto" {
+    yylloc.first_line=line_number;
+    return GOTO;}
+"if" {
+    yylloc.first_line=line_number;
+    return IF;}
+"mod" {
+    yylloc.first_line=line_number;
+    return MOD;}
+"not" {
+    yylloc.first_line=line_number;
+    return NOT;}
+"of" {
+    yylloc.first_line=line_number;
+    return OF;}
+"or" {
+    yylloc.first_line=line_number;
+    return OR;}
+"packed" {
+    yylloc.first_line=line_number;
+    return PACKED;}
+"procedure" {
+    yylloc.first_line=line_number;
+    return PROCEDURE;
+}
 "program" {
-    // std::cout<<"Hello PROGRAM"<<std::endl;
+    yylloc.first_line=line_number;
     return PROGRAM;
 }
-"record" return RECORD;
-"repeat" return REPEAT;
-"then" return THEN;
-"to" return TO;
-"type" return TYPE;
-"until" return UNTIL;
-"var" return VAR;
-"while" return WHILE;
+"record" {
+    yylloc.first_line=line_number;
+    return RECORD;
+}
+"repeat" {
+    yylloc.first_line=line_number;
+    return REPEAT;
+}
+"then" {
+    yylloc.first_line=line_number;
+    return THEN;
+}
+"to" {
+    yylloc.first_line=line_number;
+    return TO;
+}
+"type" {
+    yylloc.first_line=line_number;
+    return TYPE;
+}
+"until" {
+    yylloc.first_line=line_number;
+    return UNTIL;
+}
+"var" {
+    yylloc.first_line=line_number;
+    return VAR;
+}
+"while" {
+    yylloc.first_line=line_number; 
+    return WHILE;
+}
 
 "\"" {
     //开始读取字符串
@@ -148,18 +254,19 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
 }
 "'"."'" {
     yylval.cValue=yytext[1];
+    yylloc.first_line=line_number;
     return CHAR;
 }
 {Integer}   {
     yylval.iValue=atoi(yytext);
-    // std::cout<<"integer number: "<<yylval.iValue<<std::endl;
+    yylloc.first_line=line_number;
     return INTEGER;
 }
 {Real}  {
     std::stringstream ss;
     ss<<yytext;
     ss>>yylval.dValue;
-    // std::cout<<"real number: "<<yylval.dValue<<std::endl;
+    yylloc.first_line=line_number;
     return REAL;
 }
 {Identifier}    {

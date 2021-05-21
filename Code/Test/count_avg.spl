@@ -1,0 +1,19 @@
+program count_avg;
+
+var 
+	total : integer;
+	count : integer;
+	temp  : integer;
+	avg   : real;
+begin
+	repeat
+		read(temp);
+		total := total + temp;
+		count := count + 1;
+	until temp = 0;
+
+	count := count - 1;
+	avg := 1 * total / count;
+	writeln(avg);
+end
+.

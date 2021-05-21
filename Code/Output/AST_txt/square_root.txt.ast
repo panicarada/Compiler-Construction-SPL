@@ -1,0 +1,24 @@
+
+Graph 0:
+
+                                   0: [Routine]
+                                        |
+          |---------------------------------------|
+          |                                       |
+  1: [Routine Head]                       6: [Routine Body]
+          |                                       |
+          |                                       |
+          |                                       |
+    2: [var part]                                7: ;
+          |                                       |
+          |                    |-----------------------------|
+          |                    |                             |
+      3: [var]        8: [Sys procedure]            11: [Sys procedure]
+          |                    |                             |
+     |---------|          |----------|            |------------------|
+     |         |          |          |            |                  |
+ 4: integer 5: id(x) 9: id(read) 10: id(x) 12: id(writeln)   13: [Sys Function]
+                                                                     |
+                                                                |-----------|
+                                                                |           |
+                                                           14: id(sqrt) 15: id(x)

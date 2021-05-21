@@ -1,0 +1,8 @@
+program test;
+var
+	x : integer;
+begin
+	read(x);
+	writeln(sqrt(x));
+end
+.

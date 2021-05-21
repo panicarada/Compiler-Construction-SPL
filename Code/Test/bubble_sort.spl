@@ -1,0 +1,38 @@
+program bubble_sort;
+const
+	ZERO = 0;
+	MAX_LEN = 100;
+type
+	Array = array[ZERO .. MAX_LEN] of integer;
+	Vector = record
+				arr : Array;
+				size: integer;
+			 end;
+var
+	i, j : integer;
+	temp : integer;
+
+procedure sort(
+var	arr : Array;
+	size : integer
+);
+begin
+	for i := 0 to size-1 do
+	begin
+		for j := i downto 1 do
+		begin
+			if (arr[j] < arr[j-1]) then
+			begin	// 交换，气泡上浮
+				temp := arr[j];
+				arr[j] := arr[j-1];
+				arr[j-1] := temp;
+			end;
+		end;
+	end;
+end;
+
+
+begin
+
+end
+.

@@ -13,7 +13,6 @@ namespace Plot_txt
         int Width, Height; // 节点的宽和高
         std::stringstream sText; // 节点的text
         int real_Col_Start; // real Col_Start【以所有子节点平均的Col为中心】
-        int NumKids;
         int Kids_Col_End, Kids_Col_Mid;
         int Kids_Col_Start;
         if (!p) return;
@@ -76,7 +75,6 @@ namespace Plot_txt
                     case IF:
                         // 根处显示条件，并删去最后一个孩子（条件）
                         sText << "<if>"; break;
-                        break;
                     case BRACKET:
                         sText << "[~]"; break;
                     case DOT:
@@ -117,10 +115,10 @@ namespace Plot_txt
                         sText << "[Function]"; break;
                     case PROCEDURE:
                         sText << "[Procedure]"; break;
-                    case SYS_PROC:
+                    case SYS_PROC: case READ:
                         sText << "[Sys procedure]"; break;
-                    case PROC:
-                        sText << "[Procedure]"; break;
+                    case CALL_PROC:
+                        sText << "[Call Procedure]"; break;
                     case LABEL_STMT:
                         sText << "[Label]"; break;
                     case SYS_FUNCT:
@@ -137,6 +135,14 @@ namespace Plot_txt
                         sText << "[Enum]"; break;
                     case ARRAY:
                         sText << "[Array]"; break;
+                    case ROUTINE:
+                        sText << "[Routine]"; break;
+                    default:
+                    {
+                        std::stringstream msg;
+                        msg << "未知的操作符\"" << p->m_Operation.Operator << "\"" << std::endl;
+                        raiseError(msg.str());
+                    }
                 }
                 break;
             }
@@ -192,18 +198,17 @@ namespace Plot_txt
         if (Line < 0 || Line >= maxLine || Col < 0 || Col >= maxCol) Ok = false;
         if (!Ok)
         {
-            printf("\n+++error: Line = %d, Col = %d, not in drawing rectangle 0, 0 ... %d, %d\n", Line, Col, maxLine, maxCol);
-            exit(1);
+            raiseError("语法树太大，无法绘制成txt版本，请用运行python代码查看图片版的语法树");
         }
     }
 
-    void init(void)
+    void init()
     {
-        for (int i = 0;i < maxLine; ++i)
+        for (auto & i : Graph)
         {
-            for (int j = 0;j < maxCol; ++j)
+            for (char & j : i)
             {
-                Graph[i][j] = ' ';
+                j = ' ';
             }
         }
     }

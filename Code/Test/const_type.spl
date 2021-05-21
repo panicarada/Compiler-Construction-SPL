@@ -1,0 +1,16 @@
+program const_type;
+const
+	ZERO = 0;
+	PI = 3.1415926;
+type
+	Grade = array[(Math, English, Math)] of real;
+	Student = record 
+				  m_Grade : Grade;
+				  age	  : integer;
+			  end;
+
+begin
+
+
+end
+.

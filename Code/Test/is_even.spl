@@ -4,6 +4,13 @@ const
 type
 	int = integer;
 	bool = boolean;
+	Student = record 
+				is_male : bool;
+				age 	: integer;
+				name    : string;
+			  end;
+var	
+	stu : Student;
 
 function is_even(
 	num : int
@@ -13,10 +20,13 @@ begin
 		zero: is_even := true;
 		1: is_even := false;
 	end;
+	writeln("The input ", num, " is even ? ", is_even);
 end
 ;
-
 begin
-
+	read(stu.is_male);
+	read(stu.age);
+	read(stu.name);
+	writeln("The input ", stu.age, " is even ? ", is_even);
 end
 .

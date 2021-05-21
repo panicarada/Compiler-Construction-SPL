@@ -1,0 +1,25 @@
+program get_date;
+type
+	Date = record 
+				Year, Month, Day : integer;
+	 	   end;
+
+function get_date(
+	date : Date
+) : string;
+begin
+	case date.Day of
+		1: get_date := "星期一";
+		2: get_date := "星期二";
+		3: get_date := "星期三";
+		4: get_date := "星期四";
+		5: get_date := "星期五";
+		6: get_date := "星期六";
+		7: get_date := "星期七";
+	end;
+end;
+
+
+begin
+end
+.

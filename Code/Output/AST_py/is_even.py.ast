@@ -25,52 +25,152 @@ digraph {
 	11 [label="[11] bool" shape=oval]
 	10 -> 12
 	12 [label="[12] boolean" shape=oval]
-	1 -> 13
-	13 [label="[13] Function" shape=diamond]
+	6 -> 13
+	13 [label="[13] Type" shape=diamond]
 	13 -> 14
-	14 [label="[14] function:is_even" shape=diamond]
-	14 -> 15
-	15 [label="[15] para-list" shape=diamond]
+	14 [label="[14] Student" shape=oval]
+	13 -> 15
+	15 [label="[15] Record" shape=diamond]
 	15 -> 16
-	16 [label="[16] Value" shape=diamond]
+	16 [label="[16] Field-Decl" shape=diamond]
 	16 -> 17
-	17 [label="[17] int" shape=oval]
+	17 [label="[17] bool" shape=oval]
 	16 -> 18
-	18 [label="[18] id(num)" shape=oval]
-	14 -> 19
-	19 [label="[19] bool" shape=oval]
-	13 -> 20
-	20 [label="[20] subroutine" shape=diamond]
-	20 -> 21
-	21 [label="[21] Routine-Body" shape=diamond]
-	21 -> 22
-	22 [label="[22] case-statement" shape=diamond]
+	18 [label="[18] id(is_male)" shape=oval]
+	15 -> 19
+	19 [label="[19] Field-Decl" shape=diamond]
+	19 -> 20
+	20 [label="[20] integer" shape=oval]
+	19 -> 21
+	21 [label="[21] id(age)" shape=oval]
+	15 -> 22
+	22 [label="[22] Field-Decl" shape=diamond]
 	22 -> 23
-	23 [label="[23] %" shape=diamond]
-	23 -> 24
-	24 [label="[24] id(num)" shape=oval]
-	23 -> 25
-	25 [label="[25] 2" shape=rect]
-	22 -> 26
-	26 [label="[26] case-list" shape=diamond]
+	23 [label="[23] string" shape=oval]
+	22 -> 24
+	24 [label="[24] id(name)" shape=oval]
+	1 -> 25
+	25 [label="[25] var-part" shape=diamond]
+	25 -> 26
+	26 [label="[26] var" shape=diamond]
 	26 -> 27
-	27 [label="[27] case" shape=diamond]
-	27 -> 28
-	28 [label="[28] id(zero)" shape=oval]
-	27 -> 29
-	29 [label="[29] :=" shape=diamond]
+	27 [label="[27] Student" shape=oval]
+	26 -> 28
+	28 [label="[28] id(stu)" shape=oval]
+	1 -> 29
+	29 [label="[29] Function" shape=diamond]
 	29 -> 30
-	30 [label="[30] id(is_even)" shape=oval]
-	29 -> 31
-	31 [label="[31] true" shape=rect]
-	26 -> 32
-	32 [label="[32] case" shape=diamond]
+	30 [label="[30] function:is_even" shape=diamond]
+	30 -> 31
+	31 [label="[31] para-list" shape=diamond]
+	31 -> 32
+	32 [label="[32] Value" shape=diamond]
 	32 -> 33
-	33 [label="[33] 1" shape=rect]
+	33 [label="[33] int" shape=oval]
 	32 -> 34
-	34 [label="[34] :=" shape=diamond]
-	34 -> 35
-	35 [label="[35] id(is_even)" shape=oval]
-	34 -> 36
-	36 [label="[36] true" shape=rect]
+	34 [label="[34] id(num)" shape=oval]
+	30 -> 35
+	35 [label="[35] bool" shape=oval]
+	29 -> 36
+	36 [label="[36] subroutine" shape=diamond]
+	36 -> 37
+	37 [label="[37] Routine-Body" shape=diamond]
+	37 -> 38
+	38 [label="[38] ;" shape=diamond]
+	38 -> 39
+	39 [label="[39] case-statement" shape=diamond]
+	39 -> 40
+	40 [label="[40] %" shape=diamond]
+	40 -> 41
+	41 [label="[41] id(num)" shape=oval]
+	40 -> 42
+	42 [label="[42] 2" shape=rect]
+	39 -> 43
+	43 [label="[43] case-list" shape=diamond]
+	43 -> 44
+	44 [label="[44] case" shape=diamond]
+	44 -> 45
+	45 [label="[45] id(zero)" shape=oval]
+	44 -> 46
+	46 [label="[46] :=" shape=diamond]
+	46 -> 47
+	47 [label="[47] id(is_even)" shape=oval]
+	46 -> 48
+	48 [label="[48] true" shape=rect]
+	43 -> 49
+	49 [label="[49] case" shape=diamond]
+	49 -> 50
+	50 [label="[50] 1" shape=rect]
+	49 -> 51
+	51 [label="[51] :=" shape=diamond]
+	51 -> 52
+	52 [label="[52] id(is_even)" shape=oval]
+	51 -> 53
+	53 [label="[53] true" shape=rect]
+	38 -> 54
+	54 [label="[54] Sys-procedure" shape=diamond]
+	54 -> 55
+	55 [label="[55] id(writeln)" shape=oval]
+	54 -> 56
+	56 [label="[56] The input " shape=rect]
+	54 -> 57
+	57 [label="[57] id(num)" shape=oval]
+	54 -> 58
+	58 [label="[58]  is even ? " shape=rect]
+	54 -> 59
+	59 [label="[59] id(is_even)" shape=oval]
+	0 -> 60
+	60 [label="[60] Routine-Body" shape=diamond]
+	60 -> 61
+	61 [label="[61] ;" shape=diamond]
+	61 -> 62
+	62 [label="[62] ;" shape=diamond]
+	62 -> 63
+	63 [label="[63] ;" shape=diamond]
+	63 -> 64
+	64 [label="[64] Sys-procedure" shape=diamond]
+	64 -> 65
+	65 [label="[65] id(read)" shape=oval]
+	64 -> 66
+	66 [label="[66] ." shape=diamond]
+	66 -> 67
+	67 [label="[67] id(stu)" shape=oval]
+	66 -> 68
+	68 [label="[68] id(is_male)" shape=oval]
+	63 -> 69
+	69 [label="[69] Sys-procedure" shape=diamond]
+	69 -> 70
+	70 [label="[70] id(read)" shape=oval]
+	69 -> 71
+	71 [label="[71] ." shape=diamond]
+	71 -> 72
+	72 [label="[72] id(stu)" shape=oval]
+	71 -> 73
+	73 [label="[73] id(age)" shape=oval]
+	62 -> 74
+	74 [label="[74] Sys-procedure" shape=diamond]
+	74 -> 75
+	75 [label="[75] id(read)" shape=oval]
+	74 -> 76
+	76 [label="[76] ." shape=diamond]
+	76 -> 77
+	77 [label="[77] id(stu)" shape=oval]
+	76 -> 78
+	78 [label="[78] id(name)" shape=oval]
+	61 -> 79
+	79 [label="[79] Sys-procedure" shape=diamond]
+	79 -> 80
+	80 [label="[80] id(writeln)" shape=oval]
+	79 -> 81
+	81 [label="[81] The input " shape=rect]
+	79 -> 82
+	82 [label="[82] ." shape=diamond]
+	82 -> 83
+	83 [label="[83] id(stu)" shape=oval]
+	82 -> 84
+	84 [label="[84] id(age)" shape=oval]
+	79 -> 85
+	85 [label="[85]  is even ? " shape=rect]
+	79 -> 86
+	86 [label="[86] id(is_even)" shape=oval]
 }

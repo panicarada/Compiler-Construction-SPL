@@ -914,329 +914,435 @@ YY_RULE_SETUP
 {
     // 注释碰到回车结束
     BEGIN INITIAL;
-    std::cout<<"comment: "<<ss.str()<<std::endl;
 }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 38 "lex_yacc/lex.l"
-{
-    // 注释状态忽略一切，为了调试，输出一下注释内容
-    ss<<yytext[0];
-}
+#line 37 "lex_yacc/lex.l"
+;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 43 "lex_yacc/lex.l"
-return LP;
+#line 39 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return LP;
+}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 44 "lex_yacc/lex.l"
-return RP;
+#line 43 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return RP;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 45 "lex_yacc/lex.l"
-return LB;
+#line 46 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return LB;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 46 "lex_yacc/lex.l"
-return RB;
+#line 49 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return RB;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 47 "lex_yacc/lex.l"
+#line 52 "lex_yacc/lex.l"
 {
-    // std::cout<<"Hello DOTDOT"<<std::endl;
+    yylloc.first_line=line_number;
     return DOTDOT;
 }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 51 "lex_yacc/lex.l"
+#line 56 "lex_yacc/lex.l"
 {
-    // std::cout<<"Hello DOT"<<std::endl;
+    yylloc.first_line=line_number;
     return DOT;
 }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 55 "lex_yacc/lex.l"
-return COMMA;
+#line 60 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return COMMA;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 56 "lex_yacc/lex.l"
-return ASSIGN;
+#line 63 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return ASSIGN;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 57 "lex_yacc/lex.l"
-return COLON;
+#line 66 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return COLON;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 58 "lex_yacc/lex.l"
-return MUL;
+#line 69 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return MUL;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 59 "lex_yacc/lex.l"
-return DIV;
+#line 72 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return DIV;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 60 "lex_yacc/lex.l"
-return UNEQUAL;
+#line 75 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return UNEQUAL;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 61 "lex_yacc/lex.l"
-return NOT;
+#line 78 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return NOT;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 62 "lex_yacc/lex.l"
-return PLUS;
+#line 81 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return PLUS;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 63 "lex_yacc/lex.l"
-return MINUS;
+#line 84 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return MINUS;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 64 "lex_yacc/lex.l"
-return GE;
+#line 87 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return GE;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 65 "lex_yacc/lex.l"
-return GT;
+#line 90 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return GT;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 66 "lex_yacc/lex.l"
-return LE;
+#line 93 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return LE;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 67 "lex_yacc/lex.l"
-return LT;
+#line 96 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return LT;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 68 "lex_yacc/lex.l"
-return EQUAL;
+#line 99 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return EQUAL;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 69 "lex_yacc/lex.l"
-return MOD;
+#line 102 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return MOD;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 70 "lex_yacc/lex.l"
+#line 105 "lex_yacc/lex.l"
 {
-    // std::cout<<"Hello SEMI"<<std::endl;
+    yylloc.first_line=line_number;
     return SEMI;
 }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 76 "lex_yacc/lex.l"
+#line 111 "lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_CON;
 }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 81 "lex_yacc/lex.l"
+#line 117 "lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_FUNCT;
 }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 86 "lex_yacc/lex.l"
+#line 123 "lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_PROC;
 }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 91 "lex_yacc/lex.l"
+#line 129 "lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
+    yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
     return SYS_TYPE;
 }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 96 "lex_yacc/lex.l"
-return READ;
+#line 135 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return READ;}
 	YY_BREAK
 /* Keyword List */
 case 31:
 YY_RULE_SETUP
-#line 99 "lex_yacc/lex.l"
-return AND;
+#line 140 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return AND;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 100 "lex_yacc/lex.l"
-return ARRAY;
+#line 143 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return ARRAY;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 101 "lex_yacc/lex.l"
-return _BEGIN;
+#line 146 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return _BEGIN;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 102 "lex_yacc/lex.l"
-return CASE;
+#line 149 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return CASE;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 103 "lex_yacc/lex.l"
-return CONST;
+#line 152 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return CONST;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 104 "lex_yacc/lex.l"
-return DIV;
+#line 155 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return DIV;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 105 "lex_yacc/lex.l"
-return DO;
+#line 158 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return DO;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 106 "lex_yacc/lex.l"
-return DOWNTO;
+#line 161 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return DOWNTO;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 107 "lex_yacc/lex.l"
-return ELSE;
+#line 164 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return ELSE;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 108 "lex_yacc/lex.l"
-return END;
+#line 167 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return END;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 109 "lex_yacc/lex.l"
-return FOR;
+#line 170 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return FOR;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 110 "lex_yacc/lex.l"
-return FUNCTION;
+#line 173 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return FUNCTION;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 111 "lex_yacc/lex.l"
-return GOTO;
+#line 176 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return GOTO;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 112 "lex_yacc/lex.l"
-return IF;
+#line 179 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return IF;}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 113 "lex_yacc/lex.l"
-return MOD;
+#line 182 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return MOD;}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 114 "lex_yacc/lex.l"
-return NOT;
+#line 185 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return NOT;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 115 "lex_yacc/lex.l"
-return OF;
+#line 188 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return OF;}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 116 "lex_yacc/lex.l"
-return OR;
+#line 191 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return OR;}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 117 "lex_yacc/lex.l"
-return PACKED;
+#line 194 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return PACKED;}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 118 "lex_yacc/lex.l"
-return PROCEDURE;
+#line 197 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return PROCEDURE;
+}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 119 "lex_yacc/lex.l"
+#line 201 "lex_yacc/lex.l"
 {
-    // std::cout<<"Hello PROGRAM"<<std::endl;
+    yylloc.first_line=line_number;
     return PROGRAM;
 }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 123 "lex_yacc/lex.l"
-return RECORD;
+#line 205 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return RECORD;
+}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 124 "lex_yacc/lex.l"
-return REPEAT;
+#line 209 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return REPEAT;
+}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 125 "lex_yacc/lex.l"
-return THEN;
+#line 213 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return THEN;
+}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 126 "lex_yacc/lex.l"
-return TO;
+#line 217 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return TO;
+}
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 127 "lex_yacc/lex.l"
-return TYPE;
+#line 221 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return TYPE;
+}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 128 "lex_yacc/lex.l"
-return UNTIL;
+#line 225 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return UNTIL;
+}
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 129 "lex_yacc/lex.l"
-return VAR;
+#line 229 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number;
+    return VAR;
+}
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 130 "lex_yacc/lex.l"
-return WHILE;
+#line 233 "lex_yacc/lex.l"
+{
+    yylloc.first_line=line_number; 
+    return WHILE;
+}
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 132 "lex_yacc/lex.l"
+#line 238 "lex_yacc/lex.l"
 {
     //开始读取字符串
     BEGIN READING_STRING;
@@ -1247,7 +1353,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 139 "lex_yacc/lex.l"
+#line 245 "lex_yacc/lex.l"
 {
     //结束字符串读取
     BEGIN INITIAL;
@@ -1258,42 +1364,43 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 146 "lex_yacc/lex.l"
+#line 252 "lex_yacc/lex.l"
 {
     ss<<yytext[0];
 }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 149 "lex_yacc/lex.l"
+#line 255 "lex_yacc/lex.l"
 {
     yylval.cValue=yytext[1];
+    yylloc.first_line=line_number;
     return CHAR;
 }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 153 "lex_yacc/lex.l"
+#line 260 "lex_yacc/lex.l"
 {
     yylval.iValue=atoi(yytext);
-    // std::cout<<"integer number: "<<yylval.iValue<<std::endl;
+    yylloc.first_line=line_number;
     return INTEGER;
 }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 158 "lex_yacc/lex.l"
+#line 265 "lex_yacc/lex.l"
 {
     std::stringstream ss;
     ss<<yytext;
     ss>>yylval.dValue;
-    // std::cout<<"real number: "<<yylval.dValue<<std::endl;
+    yylloc.first_line=line_number;
     return REAL;
 }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 165 "lex_yacc/lex.l"
+#line 272 "lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
@@ -1304,22 +1411,22 @@ YY_RULE_SETUP
 case 67:
 /* rule 67 can match eol */
 YY_RULE_SETUP
-#line 172 "lex_yacc/lex.l"
+#line 279 "lex_yacc/lex.l"
 {
     line_number ++;
 }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 175 "lex_yacc/lex.l"
+#line 282 "lex_yacc/lex.l"
 ;
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 177 "lex_yacc/lex.l"
+#line 284 "lex_yacc/lex.l"
 ECHO;
 	YY_BREAK
-#line 1323 "source/lex.yy.cpp"
+#line 1430 "source/lex.yy.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(READING_STRING):
 case YY_STATE_EOF(COMMENT):
@@ -2330,7 +2437,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 177 "lex_yacc/lex.l"
+#line 284 "lex_yacc/lex.l"
 
 
 

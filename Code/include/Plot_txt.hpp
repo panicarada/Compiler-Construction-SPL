@@ -12,7 +12,7 @@ namespace Plot_txt
     const int ColGap = 1; // distance of graph columns
     const int LineGap = 3; // distance of graph lines
 
-    void init(void);
+    void init();
     void finish(std::ofstream& Out);
     void calBox(std::string& str, int& Width, int& Height);
     void drawBox(std::string& str, int Col, int Line);
@@ -24,6 +24,6 @@ namespace Plot_txt
                 int& Col_End, int& Col_Mid);
 
 
-    const int maxCol = 500;
-    const int maxLine = 500;
+    const int maxCol = 1000;
+    const int maxLine = 1000;
 }

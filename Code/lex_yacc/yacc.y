@@ -8,6 +8,9 @@
     #include "AST.hpp"
     #include "Interpreter.hpp"
 
+	// 构建语法树的解释器
+	Interpreter* ipt;
+
 	#define YYDEBUG 1 // This is new
 
 	extern void yyset_in(FILE * in_str);
@@ -70,14 +73,14 @@
 // 语法树中自定义的token
 %token ROUTINE ROUTINE_BODY ROUTINE_HEAD CONST_PART VAR_PART BRACKET
 %token CASE_STMT CASE_LIST TYPE_PART VAL_PARAM VAR_PARAM PARA_LIST FUNCTION_HEAD
-%token SUB_ROUTINE PROCEDURE_HEAD PROC LABEL_STMT CALL_FUNCT FIELD_DECL 
+%token SUB_ROUTINE PROCEDURE_HEAD CALL_PROC LABEL_STMT CALL_FUNCT FIELD_DECL
 %token ENUM
 %%
 program 
 	:  program_head routine DOT
 	{
 		std::string Program = $1;
-		Interpreter* ipt = new Interpreter();
+		ipt = new Interpreter();
 		ipt->execute($2, inFilename, Program);
 		exit(0);
 	}
@@ -148,7 +151,7 @@ label_part
 const_part
 	: CONST const_expr_list
 	{
-		$$ = new AST::Node(0, CONST_PART, $2);
+		$$ = new AST::Node(@1.first_line, CONST_PART, $2);
 	}
 	| {$$ = NULL;}
 	;
@@ -184,7 +187,6 @@ const_value
     {
         AST::ValConstant temp;
         temp.Type = AST::ConstantType::Char;
-		// std::cout << $1 << std::endl;
         temp.cValue = $1;
         $$ = new AST::Node(@1.first_line, temp);
     }
@@ -566,11 +568,11 @@ assign_stmt
 proc_stmt
 	: ID
 	{
-		$$ = new AST::Node(@1.first_line, PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
+		$$ = new AST::Node(@1.first_line, CALL_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
 	| ID LP args_list RP
 	{
-		$$ = new AST::Node(@1.first_line, PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
+		$$ = new AST::Node(@1.first_line, CALL_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
 	| SYS_PROC
@@ -582,7 +584,10 @@ proc_stmt
 		$$ = new AST::Node(@1.first_line, SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
-	| READ LP factor RP // unknown
+	| READ LP factor RP 
+	{	// 类似于scanf，不过一次读取用户一个输入
+		$$ = new AST::Node(@1.first_line, SYS_PROC, 2, new AST::Node(@1.first_line, "read", AST::Attribute::Identifier), $3);
+	}
 	;
 
 if_stmt
@@ -604,8 +609,8 @@ else_clause
 	;
 repeat_stmt
 	: REPEAT stmt_list UNTIL expression
-	{
-		$$ = new AST::Node(@1.first_line, REPEAT, 2, $2, $4);
+	{	// $4, $2的顺序是为了和while语句保持一致
+		$$ = new AST::Node(@1.first_line, REPEAT, 2, $4, $2);
 	}
 	;
 while_stmt
@@ -618,7 +623,7 @@ while_stmt
 for_stmt
 	: FOR ID ASSIGN expression direction expression DO stmt
 	{
-		$$ = new AST::Node(@1.first_line, $5, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier), 
+		$$ = new AST::Node(@1.first_line, $5, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier),
 						$4, $6, $8);
 	}
 	;
@@ -746,9 +751,9 @@ term
 	;
 factor
 	: ID
-    {
-        $$ = new AST::Node(@1.first_line, $1, AST::Attribute::Identifier);
-    }
+    	{
+       		$$ = new AST::Node(@1.first_line, $1, AST::Attribute::Identifier);
+    	}
 	| ID LP args_list RP
 	{
 		$$ = new AST::Node(@1.first_line, CALL_FUNCT, 1
@@ -760,6 +765,11 @@ factor
 		$$ = new AST::Node(@1.first_line, SYS_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
+	| READ LP ID RP
+	{
+		$$ = new AST::Node(@1.first_line, READ, 2, new AST::Node(@1.first_line, "read", AST::Attribute::Identifier),
+							   new AST::Node(@3.first_line, $3, AST::Attribute::Identifier));
+	}
 	| SYS_FUNCT LP args_list RP
 	{
 		$$ = new AST::Node(@1.first_line, SYS_FUNCT, 1
@@ -767,13 +777,13 @@ factor
 		$$->add($3);
 	}
 	| const_value
-    {
-        $$ = $1;
-    }
+   	 {
+        	$$ = $1;
+    	}
 	| LP expression RP
-    {
-        $$ = $2;
-    }
+	    {
+        	$$ = $2;
+    	}
 	| NOT factor
 	{
 		$$ = new AST::Node(@1.first_line, NOT, 1, $2);

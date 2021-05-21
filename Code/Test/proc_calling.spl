@@ -1,0 +1,18 @@
+program proc_calling;
+var
+	name : string;
+
+procedure greeting(
+var name : string;
+	id   : integer
+);
+begin
+	writeln("hello! ", name, "\nYour id is ", id);
+end
+;
+
+begin
+	name := "Zephyr";
+	greeting(name, 13);
+end
+.

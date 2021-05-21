@@ -1,0 +1,22 @@
+// AST Tree
+digraph {
+	0 [label="[0] Routine" shape=diamond]
+	0 -> 1
+	1 [label="[1] Routine-Head" shape=diamond]
+	1 -> 2
+	2 [label="[2] const-part" shape=diamond]
+	2 -> 3
+	3 [label="[3] =" shape=diamond]
+	3 -> 4
+	4 [label="[4] id(str)" shape=oval]
+	3 -> 5
+	5 [label="[5] Hello World!" shape=rect]
+	0 -> 6
+	6 [label="[6] Routine-Body" shape=diamond]
+	6 -> 7
+	7 [label="[7] Sys-procedure" shape=diamond]
+	7 -> 8
+	8 [label="[8] id(writeln)" shape=oval]
+	7 -> 9
+	9 [label="[9] id(str)" shape=oval]
+}

@@ -1,0 +1,20 @@
+
+Graph 0:
+
+      0: [Routine]
+            |
+            |
+            |
+    1: [Routine Head]
+            |
+            |
+            |
+      2: [var part]
+            |
+            |
+            |
+        3: [var]
+            |
+     |-----------|
+     |           |
+ 4: integer 5: id(delta)

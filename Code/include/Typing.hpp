@@ -28,7 +28,6 @@ namespace Typing
         t_PROCEDURE,    // 过程
         // ...
     };
-
     static std::string NodeType_toString(NodeType type)
     {
         switch (type)
@@ -71,8 +70,8 @@ namespace Typing
     {
     public:
         NodeType m_Type;
-        Node* prev;
-        Node* next;
+        Node* prev = nullptr;
+        Node* next = nullptr;
     public:
         static bool isEqual(Node* node1, Node* node2); // 检查类型是否一致
         virtual std::string toString(int& hPos) const = 0; // 输出类型信息
@@ -81,7 +80,7 @@ namespace Typing
     class enumNode : public Node
     {
     public:
-        std::vector<std::string>* m_List;
+        std::vector<std::string>* m_List = nullptr;
     public:
         enumNode(std::vector<std::string>* List)
         {
@@ -136,7 +135,7 @@ namespace Typing
     class recordNode : public Node
     {
     public:
-        std::map<std::string, Node*>* m_Field; // 成员名字到类型的映射
+        std::map<std::string, Node*>* m_Field = nullptr; // 成员名字到类型的映射
     public:
         Node* getAttribute(std::string str) const
         {
@@ -158,7 +157,7 @@ namespace Typing
     class constNode : public Node
     {
     public:
-        sysNode* m_Sys;
+        sysNode* m_Sys = nullptr;
         AST::ValConstant m_Constant;
         constNode(Node* Sys, AST::ValConstant Constant)
         {
@@ -210,8 +209,8 @@ namespace Typing
     class arrayNode : public Node
     {
     public:
-        Node* m_EleType; // 元素类型
-        Node* m_IdxType; // 索引类型
+        Node* m_EleType = nullptr; // 元素类型
+        Node* m_IdxType = nullptr; // 索引类型
         arrayNode(Node* IdxType, Node* EleType)
             : m_IdxType(IdxType), m_EleType(EleType)
         {
@@ -226,25 +225,26 @@ namespace Typing
     public:
         std::string m_name; // 函数名字
         std::vector<std::pair<std::string, bool>> m_Params;    // 参数字符串表，主要是反应参数顺序
-        Node* m_resType; // 返回类型
-        ST* m_val_table;    // 形参表
-        ST* m_var_table;    // 引用参数表
+        Node* m_resType = nullptr; // 返回类型
+        ST* m_val_table = nullptr;    // 形参表
+        ST* m_var_table = nullptr;    // 引用参数表
         AST::Node* m_body; // 函数体的指针，指向<Routine-Body>
     public:
         functNode(std::string name, Node* resType, AST::Node* body);
-        void addParam(bool isVar, std::string paramName, Node* node, unsigned int line);
+        void addParam(bool isVar, const std::string& paramName, Node* node, unsigned int line);
         virtual std::string toString(int& hPos) const override;
     };
-
     class procNode : public Node 
-    {
+    {   // 只是函数去掉返回类型而已
     public:
-        std::vector<std::string> params;    // 参数字符串表，主要是反应参数顺序
+        std::string m_name; // 过程名字
+        std::vector<std::pair<std::string, bool>> m_Params;    // 参数字符串表，主要是反应参数顺序
         ST* m_val_table;    // 形参表
         ST* m_var_table;    // 引用参数表
         AST::Node* m_body;  // 过程体的指针，指向<Routine-body>
     public:
-        procNode(AST::Node* body);
+        procNode(std::string name, AST::Node* body);
+        void addParam(bool isVar, const std::string& paramName, Node* node, unsigned int line);
         virtual std::string toString(int& hPos) const override;
     };
 };

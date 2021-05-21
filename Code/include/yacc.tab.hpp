@@ -112,7 +112,7 @@
      FUNCTION_HEAD = 328,
      SUB_ROUTINE = 329,
      PROCEDURE_HEAD = 330,
-     PROC = 331,
+     CALL_PROC = 331,
      LABEL_STMT = 332,
      CALL_FUNCT = 333,
      FIELD_DECL = 334,
@@ -193,7 +193,7 @@
 #define FUNCTION_HEAD 328
 #define SUB_ROUTINE 329
 #define PROCEDURE_HEAD 330
-#define PROC 331
+#define CALL_PROC 331
 #define LABEL_STMT 332
 #define CALL_FUNCT 333
 #define FIELD_DECL 334
@@ -204,7 +204,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 25 "lex_yacc/yacc.y"
+#line 28 "lex_yacc/yacc.y"
 {
     int iValue; // integer value
     double dValue; // double value

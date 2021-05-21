@@ -1,0 +1,63 @@
+program Stack;
+const 
+	MAX_LEN = 1000;
+	ZERO = 0;
+type
+	List  = array[ZERO .. MAX_LEN] of real;
+	Stack = record
+				list	: List;
+				idx : integer;
+		   end;
+	bool = boolean;
+var 
+	stack : Stack;
+	index : integer;
+
+function get(
+var	list : List;
+	idx   : integer
+) : real;
+begin
+	get := list[idx];
+end
+;
+
+function pop(
+	var stack : Stack
+) : real;	// 返回结果
+begin
+	if stack.idx > 0 then begin
+		stack.idx := stack.idx - 1;
+		pop := get(stack, stack.idx);
+	end;
+end
+;
+
+procedure set(
+var list : List;
+	idx  : integer;
+element  : real
+);
+begin
+	list[idx] := element;
+end
+;
+
+function push(
+	var stack : Stack;
+	element   : real
+) : bool; // 返回是否成功
+begin
+	if stack.idx < MAX_LEN then begin
+		stack.idx := stack.idx - 1;
+		set(stack.list, stack.idx, element);
+	end
+	else begin 
+		push := false;
+	end;
+end
+;
+begin
+
+end
+.

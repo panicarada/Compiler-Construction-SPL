@@ -1,4 +1,6 @@
 #include "Typing.hpp"
+
+#include <utility>
 #include "SymbolTable.hpp"
 
 
@@ -7,7 +9,9 @@ namespace Typing
     bool Node::isEqual(Node* node1, Node* node2)
     {
         if (!node1 || !node2)
+        {
             raiseError("比较指针有一个为空");
+        }
         if (node1->m_Type != node2->m_Type)
         {
             return false;
@@ -16,21 +20,20 @@ namespace Typing
         {
             case NodeType::t_SYS_TYPE:
             {
-                sysNode* sys1 = dynamic_cast<sysNode*>(node1);
-                sysNode* sys2 = dynamic_cast<sysNode*>(node2);
+                auto* sys1 = dynamic_cast<sysNode*>(node1);
+                auto* sys2 = dynamic_cast<sysNode*>(node2);
                 return (sys1->m_DataType == sys2->m_DataType);
             }
             case NodeType::t_ENUM:
             {
-                enumNode* enum1 = dynamic_cast<enumNode*>(node1);
-                enumNode* enum2 = dynamic_cast<enumNode*>(node2);
+                auto* enum1 = dynamic_cast<enumNode*>(node1);
+                auto* enum2 = dynamic_cast<enumNode*>(node2);
                 // 只需比较他们的列表是否相等（在初始化时按照统一规则排序了）
                 if (enum1->m_List->size() != enum2->m_List->size()) 
                     return false;
                 for (int i = 0;i < enum1->m_List->size(); ++i)
                 {
-                    if (std::strcmp((*(enum1->m_List))[i].c_str(), 
-                                    (*(enum1->m_List))[i].c_str()) != 0)
+                    if ((*(enum1->m_List))[i] !=  (*(enum2->m_List))[i])
                     {
                         return false;
                     }
@@ -39,15 +42,15 @@ namespace Typing
             }
             case NodeType::t_RANGE:
             {
-                rangeNode* range1 = dynamic_cast<rangeNode*>(node1);
-                rangeNode* range2 = dynamic_cast<rangeNode*>(node2);
+                auto* range1 = dynamic_cast<rangeNode*>(node1);
+                auto* range2 = dynamic_cast<rangeNode*>(node2);
                 return (range1->m_LowerBound == range2->m_LowerBound
                      && range1->m_UpperBound == range2->m_UpperBound);
             }
             case NodeType::t_RECORD:
             {   // 注意，使用的结构是map，本身就已经按照key来排序了
-                recordNode* record1 = dynamic_cast<recordNode*>(node1);
-                recordNode* record2 = dynamic_cast<recordNode*>(node2);
+                auto* record1 = dynamic_cast<recordNode*>(node1);
+                auto* record2 = dynamic_cast<recordNode*>(node2);
                 if (record1->m_Field->size() != record2->m_Field->size())
                     return false;
                 auto it1 = record1->m_Field->begin();
@@ -63,8 +66,8 @@ namespace Typing
             }
             case NodeType::t_ARRAY:
             {
-                arrayNode* array1 = dynamic_cast<arrayNode*>(node1);
-                arrayNode* array2 = dynamic_cast<arrayNode*>(node2);
+                auto* array1 = dynamic_cast<arrayNode*>(node1);
+                auto* array2 = dynamic_cast<arrayNode*>(node2);
                 return (isEqual(array1->m_IdxType, array2->m_IdxType) 
                         && isEqual(array1->m_EleType, array2->m_EleType));
             }
@@ -150,15 +153,15 @@ namespace Typing
     }
 
     functNode::functNode(std::string name, Node* resType, AST::Node* body)
-        : m_name(name), m_resType(resType), m_body(body)
+        : m_name(std::move(name)), m_resType(resType), m_body(body)
     {
         m_Type = NodeType::t_FUNCTION;
         m_var_table = new ST(false);
         m_val_table = new ST(false);
     }
-    void functNode::addParam(bool isVar, std::string paramName, Node* node, unsigned int line)
+    void functNode::addParam(bool isVar, const std::string& paramName, Node* node, unsigned int line)
     {
-        m_Params.push_back(std::pair<std::string, bool>(paramName, isVar));
+        m_Params.emplace_back(paramName, isVar);
         if (isVar)
         {
             m_var_table->insert(paramName, node, line);
@@ -178,19 +181,31 @@ namespace Typing
         hPos -= ALIGN_WIDTH;
         return ss.str();
     }
+    std::string procNode::toString(int& hPos) const 
+    { // 只是输出过程名字，后续再完整地显示输入参数，这在Symbol Table::show()中实现
+        std::stringstream ss;
+        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "procedure";
+        return ss.str();
+    }
 
-    procNode::procNode(AST::Node* body)
-        : m_body(body)
+    procNode::procNode(std::string name, AST::Node *body)
+            : m_name(std::move(name)), m_body(body)
     {
         m_Type = NodeType::t_PROCEDURE;
         m_var_table = new ST(false);
         m_val_table = new ST(false);
     }
 
-    std::string procNode::toString(int& hPos) const 
-    { // 只是输出过程名字，后续再完整地显示输入参数，这在Symbol Table::show()中实现
-        std::stringstream ss;
-        ss << std::setfill(' ') << std::setw(ALIGN_WIDTH) << "procedure";
-        return ss.str();
+    void procNode::addParam(bool isVar, const std::string& paramName, Node *node, unsigned int line)
+    {
+        m_Params.emplace_back(paramName, isVar);
+        if (isVar)
+        {
+            m_var_table->insert(paramName, node, line);
+        }
+        else
+        {
+            m_val_table->insert(paramName, node, line);
+        }
     }
 }

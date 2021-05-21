@@ -8,7 +8,7 @@ namespace Plot_py
         if (p == nullptr) return ;
         p->m_Id = id;
         Out << "\n" << (id ++) << "\n";
-        if (p->m_Type)
+        if (p->m_Type != nullptr)
         {   // 如果推算出了节点类型，输出(id, 类型)
             int hPos = 0;
             std::cout << "type of id: " << p->m_Id << std::endl;
@@ -26,9 +26,11 @@ namespace Plot_py
                     case AST::ConstantType::String: Out << p->m_Constant.sValue; break;
                     case AST::ConstantType::Boolean: Out << (p->m_Constant.bValue ? "true" : "false"); break;
                     default:
+                    {
                         std::stringstream msg;
                         msg << "Invalid Constant Type: " << p->m_Constant.Type << "!!";
                         raiseError(msg.str());
+                    }
                 } // terminal的形状用方形
                 Out << "\nrect";
                 break;
@@ -70,7 +72,6 @@ namespace Plot_py
                         case IF:
                             // 根处显示条件，并删去最后一个孩子（条件）
                             Out << "if"; break;
-                            break;
                         case BRACKET:
                             Out << "~"; break;
                         case DOT:
@@ -113,10 +114,10 @@ namespace Plot_py
                             Out << "Routine"; break;
                         case PROCEDURE:
                             Out << "Procedure"; break;
-                        case SYS_PROC:
+                        case SYS_PROC: case READ:
                             Out << "Sys-procedure"; break;
-                        case PROC:
-                            Out << "Procedure"; break;
+                        case CALL_PROC:
+                            Out << "Call Procedure"; break;
                         case LABEL_STMT:
                             Out << "Label"; break;
                         case SYS_FUNCT:
@@ -134,7 +135,11 @@ namespace Plot_py
                         case ARRAY:
                             Out << "Array"; break;
                         default:
-                            break;
+                        {
+                            std::stringstream msg;
+                            msg << "未知的操作符\"" << p->m_Operation.Operator << "\"" << std::endl;
+                            raiseError(msg.str());
+                        }
                     } // 操作符用diamond形状表示
                     Out << "\ndiamond";
                     // 遍历子节点，递归
@@ -145,8 +150,7 @@ namespace Plot_py
                         plotNode(p->m_Operation.List_Operands[i], id, Out);
                     }
                     break;
-                    }
+                }
         }
-
     }
 }

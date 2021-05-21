@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <vector>
-#include <stdarg.h>
+#include <cstdarg>
 #include <map>
 
 #define raiseError(...) {\
@@ -75,20 +75,20 @@ namespace AST
     class Node
     {
     public:
-        Typing::Node* m_Type;   // 节点真正的数据类型，在语义分析之后获得
-        int m_Id; // 在语法树上的ID，在语义分析之后获得，方便检查
+        Typing::Node* m_Type = nullptr;   // 节点真正的数据类型，在语义分析之后获得
+        int m_Id{}; // 在语法树上的ID，在语义分析之后获得，方便检查
     public:
         Attribute m_Attribute;
         unsigned int m_Line; // 所在行数
         union 
         {
-            ValConstant m_Constant;
+            ValConstant m_Constant{};
             ValIdentifier m_Identifier;
             ValIdentifier m_Typename;
             ValOperation m_Operation;
         };
         Node(unsigned int Line, ValConstant& Cons);
-        Node(unsigned int Line, char* Name, Attribute attribute);
+        Node(unsigned int Line, const char* Name, Attribute attribute);
         Node(unsigned int Line, int Operator, std::vector<Node*>* List);
         Node(unsigned int Line, int Operator, int NumOperands, ...);
         void add(Node* node);

@@ -8,7 +8,7 @@ namespace AST
     {
         m_Constant = Cons;
     }
-    Node::Node(unsigned int Line, char* Name, Attribute attribute)
+    Node::Node(unsigned int Line, const char* Name, Attribute attribute)
         : m_Line(Line), m_Attribute(attribute)
     {
         if (attribute == Attribute::Identifier)
@@ -56,7 +56,7 @@ namespace AST
     void Node::add(Node* node)
     {
         m_Operation.NumOperands += 1;
-        m_Operation.List_Operands = (Node **) realloc(m_Operation.List_Operands, 
+        m_Operation.List_Operands = (Node **) realloc(m_Operation.List_Operands,
                                                     m_Operation.NumOperands * sizeof(Node *));
         m_Operation.List_Operands[m_Operation.NumOperands - 1] = node;
     }

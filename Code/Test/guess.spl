@@ -1,0 +1,16 @@
+program guess;
+var
+	number : integer;
+	times : integer;
+	input : integer;
+begin
+	times := 0;
+	number := 20210521;
+	while number <> read(input) do
+	begin
+		times := times + 1;
+		writeln("wrong guess");
+	end;
+	writeln("good guess! You used ", times, " steps");
+end
+.
