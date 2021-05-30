@@ -13,10 +13,10 @@ class ST
 private:
     enum Scope
     {
-        s_GLOBAL,
-        s_CONST_PART,
-        s_VAR_PART,
-        s_RANGE,
+        s_GLOBAL, // 全局
+        s_CONST_PART, // const-part常数定义区
+        s_VAR_PART, // var-part变量定义区
+        s_RANGE, // 定义range
     };
     Typing::Node* getType(AST::Node* p, Scope scope = Scope::s_GLOBAL);
 public:

@@ -87,10 +87,10 @@ namespace Typing
             m_Type = NodeType::t_ENUM;
             m_List = List;
             // 为了便于类型判断，我们对enum类型列表进行排序
-            std::sort(m_List->begin(), m_List->end(), [](std::string& a, std::string& b) -> bool{
-                if (std::strcmp(a.c_str(), b.c_str()) > 0) return true;
-                return false;
-            });
+            // std::sort(m_List->begin(), m_List->end(), [](std::string& a, std::string& b) -> bool{
+            //     if (std::strcmp(a.c_str(), b.c_str()) > 0) return true;
+            //     return false;
+            // });
         }
         virtual std::string toString(int& hPos) const override
         {

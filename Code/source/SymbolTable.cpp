@@ -110,6 +110,7 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                         function->m_body = subroutine->m_Operation.List_Operands[0];
 
                         // 检查函数体的类型
+                        
                         for (auto& it : function->m_val_table->Table)
                         {   // 先把函数的参数表暂时加入符号表中
                             insert(it.first, it.second, function->m_val_table->LineTable[it.first]);

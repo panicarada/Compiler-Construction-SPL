@@ -518,9 +518,7 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
 
 "and",    "array",    "begin",    "case",  "const", "div",   "do",   "downto",  "else",   "end",  "for", "function", "goto", "if", "mod", "not", "of",   "or",   "packed", "procedure", "program", "record",  "repeat",  "then",  "to", "type",  "until", "var",  "while".
 
-
-
-## 3. 语法分析
+##3. 语法分析
 
 ####3.1 Context Free Grammar
 
@@ -1240,8 +1238,6 @@ factor	// 函数调用
 
 
 
-
-
 ##### 3.3.2 yacc规则区
 
 与3.1中的定义完全对应，而且较多重复性的工作。所以这里只详细介绍几种典型。
@@ -1606,5 +1602,981 @@ end
 
 <img src="Resource/count_avg.jpg" alt="count_avg" style="zoom:36%;" />
 
+#### 3.4 语法树的绘制【namespace Plot_py / Plot_txt】
 
+由于实现的方案一样，只是最终数据呈现方式有所区别，所以只介绍`Plot_py`
+
+##### 3.4.1 数据格式
+
+语法树中每一个节点在文件`*.raw.ast`中对应的数据格式为
+$$
+\begin{aligned}
+&id \\
+&\mbox{名称} \\
+&\mbox{形状：有rect【常数】, oval【变量】, diamond【操作符】}
+\end{aligned}
+$$
+每一条边的格式为
+$$
+\begin{aligned}
+&\mbox{*edge*} \\
+&\mbox{父节点id}\\
+&\mbox{子节点id}\\
+&\cdots
+\end{aligned}
+$$
+经下面的python程序处理后，
+
+```python
+import io
+import sys
+
+from graphviz import Digraph
+
+dot = Digraph(comment='AST Tree')
+
+if len(sys.argv) <= 1:
+    raise Exception("No Input file!!")
+
+filename = './AST_raw/' + sys.argv[1] + '.raw.ast'
+
+with io.open(filename, mode="r", encoding="utf-8") as file:
+    words = iter(file.read().splitlines())
+    while True:
+        word = next(words, None)
+        if word is None:
+            break
+        if word != '':  # 非空
+            if word == "*edge*":
+                dot.edge(next(words), next(words))
+            else:
+                dot.node(word, label="[" + word + "] " + next(words), shape=next(words))
+
+dot.render('./AST_py/' + sys.argv[1] + '.py.ast', view=True)
+```
+
+呈现效果如下
+
+<img src="Resource/呈现效果.png" alt="呈现效果" style="zoom:20%;" />
+
+##### 3.4.2 绘制方案
+
+绘制的方法原型为
+
+```c++
+namespace Plot_py
+{
+    void plotNode(AST::Node* p, int& id ,std::ofstream& Out);
+}
+```
+
+含义是，绘制以`p`为根节点的语法树，并将`id`赋予节点`p`，把相应的数据流输出到文件`Out`之中。
+
+采用简单的递归操作，当碰到叶结点时，递归结束，否则遍历每一个子节点进行递归绘制。在每处理一个子节点时，加入一条`*edge*`，因为在处理子节点前就已经知道了子节点将要被赋予的id，所以这点可以做到。实现如下
+
+```c++
+namespace Plot_py 
+{
+    void plotNode(AST::Node* p, int& id ,std::ofstream& Out)
+    {   // id: 现在可用的标识符
+        if (p == nullptr) return ;
+        p->m_Id = id;
+        Out << "\n" << (id ++) << "\n";
+        if (p->m_Type != nullptr)
+        {   // 如果推算出了节点类型，输出(id, 类型)
+            int hPos = 0;
+            std::cout << "type of id: " << p->m_Id << std::endl;
+            std::cout << p->m_Type->toString(hPos) << std::endl;;
+        }
+        switch (p->m_Attribute)
+        {
+            case AST::Attribute::Constant:
+                // 写入(id, 显示内容，node形状)
+                switch (p->m_Constant.Type)
+                {
+                    case AST::ConstantType::Integer: Out << p->m_Constant.iValue; break;
+                    case AST::ConstantType::Real: Out << p->m_Constant.dValue; break;
+                    ... ...
+                } // terminal的形状用方形
+                Out << "\nrect";
+                break;
+            case AST::Attribute::Identifier:
+                Out << "id(" << p->m_Identifier.Name << ")\noval"; break;
+            case AST::Attribute::Typename:
+                Out << p->m_Typename.Name << "\noval"; break;
+            case AST::Attribute::Operation:
+                {
+                    switch (p->m_Operation.Operator)
+                    {
+                        case GE: Out << ">="; break;
+                        case GT: Out << ">"; break;
+                        case LE: Out << "<="; break;
+                        case LT: Out << "<"; break;
+                        ... ...
+                    } // 操作符用diamond形状表示
+                    Out << "\ndiamond";
+                    // 遍历子节点，递归
+                    int operation_id = id-1; // 当前操作节点的id
+                    for (int i = 0;i < p->m_Operation.NumOperands; ++i)
+                    {
+                        Out << "\n*edge*\n" << operation_id << "\n" << id;
+                        plotNode(p->m_Operation.List_Operands[i], id, Out);
+                    }
+                    break;
+                }
+        }
+    }
+}
+```
+
+
+
+## 4. 语义分析
+
+### 4.1 基本流程
+
+<img src="Resource/语义分析流程图.jpg" alt="语义分析流程图" style="zoom:60%;" />
+
+*  经过语法分析，得到了AST语法树。
+
+*  自顶向下【post-order traversal】完成语义分析
+   *  首先经过常数定义区const-part：将常数以及相应的类型和值加入符号表中。这时候只检查常数声明的类型是否为基本数据类型，即`integer, real, char, string, boolean`
+
+   *  然后经过类型定义区type-part：格式为`typename = <类型声明>`。首先递归地解析出等式右边的完整类型，解析过程中会使用符号表进行检查，判断等式右边使用的类型是否为基本类型或者是**已经声明过的自定义类型**。
+
+      如果等式右边类型检查正确，以等式左边`typename`为符号表的索引，右边的类型为值，向符号表插入类型声明。
+
+   *  进入变量定义区var-part：格式为`varname : typename`。首先检查`typename`是否在符号表中定义，如果正确，则以`varname`为索引，`typename`对应的类型为值，向符号表插入变量声明。
+   *  进入`routine-part`：首先处理所有的函数/过程声明。以函数为例
+      *  首先和`var-part`一样，用**主程序中的符号表**检查参数类型，如果正确，把`<参数，类型>`插入**函数本地符号表**
+      *  处理完参数后，检查函数返回类型，并且把返回类型作为函数节点的成员属性。
+      *  最后检查函数体的类型匹配性。处理主程序的部分一样，放在后面介绍。不过这里使用的符号表是**主函数符号表+本地参数表**
+      *  最后把`<函数名，函数节点>`插入符号表。
+
+   *  进入主程序：对每一条语句进行检查。
+      *  访问变量时，在符号表中检查该变量名在符号表中是否存在。如果存在，那么返回对应的类型。
+      *  在涉及需要类型检查的语句【比如赋值语句】时：首先递归地**检查并解析出**每个子节点的类型，然后判断匹配性。
+      *  涉及函数/过程调用时，在符号表中取出函数/过程。首先检查参数类型是否匹配；如果是函数，则设定节点类型为函数返回类型。
+
+
+
+### 4.2 类型节点类型
+
+定义在`namespace Typing`下，用于记录符号表中变量和用于检查的类型。
+
+##### 4.2.1 分类
+
+```c++
+namespace Typing
+{
+  	// 节点类型
+    enum NodeType
+    {
+        t_SYS_TYPE, // integer, real等
+        t_ENUM, // 枚举类型，如(red, green, blue)
+        t_RECORD, // 结构体
+        t_ARRAY, // 数组
+        t_RANGE, // 如1 .. 30, x .. y
+        t_CONSTANT, // const part中定义的常量
+        t_FUNCTION, // 函数
+        t_PROCEDURE,    // 过程
+        // ...
+    };
+  // 节点包含的数据类型
+  enum DataType
+    {
+        d_INTEGER,
+        d_REAL,
+        d_CHAR,
+        d_STRING,
+        d_BOOLEAN,
+    };
+}
+```
+
+##### 4.2.2 节点定义
+
+（1）基类：采用继承的设计方案，所有的类型节点基类定义如下：
+
+```c++
+namespace Typing{
+  class Node
+    {
+    public:
+        NodeType m_Type;
+        Node* prev = nullptr;
+        Node* next = nullptr;
+    public:
+        static bool isEqual(Node* node1, Node* node2); // 检查类型是否一致
+        virtual std::string toString(int& hPos) const = 0; // 输出类型信息
+        // hPos当前光标水平位置
+    };
+}
+```
+
+*  `prev, next`：因为运行同名变量的覆盖，比如函数参数的名字可以和符号表中以后的变量相同，所以符号表中每一个entry实际上是一个链表（或者说是先进先出的栈）
+*  `m_Type`：节点类型
+*  `isEqual`：检查两个Node节点类型是否一致
+*  `toString()`：输出节点信息
+
+（2）结构体：
+
+```c++
+namespace Typing {
+  class recordNode : public Node
+    {
+    public:
+        std::map<std::string, Node*>* m_Field = nullptr; // 成员名字到类型的映射
+    public:
+        Node* getAttribute(std::string str) const;
+        recordNode(std::map<std::string, Node*>* Field);
+        virtual std::string toString(int& hPos) const override;
+    };
+}
+```
+
+*  `m_Field`：元素为<成员名，成员类型>的哈希表
+*  `getAttribute()`：输入结构体成员的名字，返回相应的类型。
+
+（3）系统类型节点：最基本的Node节点之一
+
+```c++
+namespace Typing {
+ 	class sysNode : public Node
+    {
+    public: 
+        std::string m_Keyword; // 为了方便输出，把类型的enum变为字符串
+        DataType m_DataType;
+    public:
+        virtual std::string toString(int& hPos) const override;
+        sysNode(DataType&& datatype);
+    }; 
+}
+```
+
+（4）常数节点：成员有一个系统节点指示类型，一个`AST::ValConstant`记录常数的具体值。
+
+```c++
+namespace Typing {
+	class constNode : public Node
+    {
+    public:
+        sysNode* m_Sys = nullptr;
+        AST::ValConstant m_Constant;
+        constNode(Node* Sys, AST::ValConstant Constant);
+        virtual std::string toString(int& hPos) const override;
+    };
+}
+```
+
+（5）枚举类型：储存枚举类型中每一个字符串，并且这些字符串是有序的（按照声明的顺序），所以用`std::vector`作为集合体。
+
+```c++
+namespace Typing {
+  class enumNode : public Node
+    {
+    public:
+        std::vector<std::string>* m_List = nullptr;
+    public:
+        enumNode(std::vector<std::string>* List);
+        virtual std::string toString(int& hPos) const override;
+    };
+}
+```
+
+（6）range类型：记录上下标的整数值
+
+```c++
+namespace Typing {
+  class rangeNode : public Node
+    {
+    public:
+        int m_LowerBound; 
+        int m_UpperBound;
+        rangeNode(Node* LowerBound, Node* UpperBound);
+        virtual std::string toString(int& hPos) const override;
+    };
+}
+```
+
+（7）数组类型：储存索引类型和其中的元素类型。索引只支持枚举类型和range类型。
+
+```c++
+namespace Typing {
+  class arrayNode : public Node
+    {
+    public:
+        Node* m_EleType = nullptr; // 元素类型
+        Node* m_IdxType = nullptr; // 索引类型
+        arrayNode(Node* IdxType, Node* EleType);
+        virtual std::string toString(int& hPos) const override;
+    };
+}
+```
+
+（8）函数类型
+
+```c++
+namespace Typing {
+  class functNode : public Node
+    {
+    public:
+        std::string m_name; // 函数名字
+        std::vector<std::pair<std::string, bool>> m_Params;    // 参数字符串表，主要是反应参数顺序
+        Node* m_resType = nullptr; // 返回类型
+        ST* m_val_table = nullptr;    // 形参表
+        ST* m_var_table = nullptr;    // 引用参数表
+        AST::Node* m_body; // 函数体的指针，指向<Routine-Body>
+    public:
+        functNode(std::string name, Node* resType, AST::Node* body);
+        void addParam(bool isVar, const std::string& paramName, Node* node, unsigned int line);
+        virtual std::string toString(int& hPos) const override;
+    };
+}
+```
+
+*  `m_name`：函数名
+*  `m_Params`：本地的参数辅助表，元素为`<参数名，该参数是否是引用类型>`，同时它也可以反应参数添加的顺序，这样在调用函数类型检查时可以知道对应位置输入的参数应该有的类型是什么。
+*  `m_resType`：返回类型
+*  `m_val_table`：形参符号表
+*  `m_var_table`：引用参数符号表
+*  `m_body`：函数体在AST语法树中的节点
+*  `addParam()`：添加参数，输入`line`调用这个方法的AST节点所在的行数，用于报错信息的输出
+
+（9）过程类型：和函数相同，只是没有返回类型，不再赘述。
+
+###4.3 符号表
+
+用类`ST`对普通的哈希表进行进一步的封装，实现符号表内容的插入、删除，以及符号表的初始化和类型检查等工作。
+
+##### 4.3.1 类的定义
+
+```c++
+class ST
+{
+    std::unordered_map<std::string, Typing::Node*> Table;
+    std::unordered_map<std::string, unsigned int> LineTable;
+private:
+    enum Scope
+    {
+        s_GLOBAL,
+        s_CONST_PART,
+        s_VAR_PART,
+        s_RANGE,
+    };
+    Typing::Node* getType(AST::Node* p, Scope scope = Scope::s_GLOBAL);
+public:
+    [[nodiscard]] inline bool isEmpty() const
+    {
+        return Table.empty();
+    }
+    explicit ST(bool addSys = true)
+    { // 初始化Table，塞入系统类型
+        if (addSys)
+        {   // 是否要默认添加系统类型
+            /* 系统数据 */
+            insert("integer", new Typing::sysNode(Typing::DataType::d_INTEGER), 0);
+            insert("real", new Typing::sysNode(Typing::DataType::d_REAL), 0);
+            insert("boolean", new Typing::sysNode(Typing::DataType::d_BOOLEAN), 0);
+            insert("char", new Typing::sysNode(Typing::DataType::d_CHAR), 0);
+            insert("string", new Typing::sysNode(Typing::DataType::d_STRING), 0);
+        }
+    }
+    // 给定语法树的根节点，构造符号表
+    void setup(AST::Node* p);
+
+    // 输出符号表
+    void show();
+
+    // 向符号表中加入符号以及对应的属性
+    // 返回是否为首次插入
+    bool insert(const std::string& str, Typing::Node* node, unsigned int Line);
+
+    // 根据符号名获取对应类型
+    // 如果不存在，则返回nullptr
+    Typing::Node* get(const std::string& str, unsigned int line);
+
+    // 按照当前符号表检查节点
+    Typing::Node* check(AST::Node* p);
+
+    // 弹出该名字对应的最近一次加入到符号表的符号
+    // 返回弹出的类型节点
+    Typing::Node* pop(const std::string& str);
+};
+```
+
+*  `explicit ST(bool addSys = true)`：`addSys`表明是否要把基础的系统类型插入符号表中。具体来说，在初始化最外层（用于主程序）的符号表时，需要插入系统类型，便于统一检查的方式。初始化函数所用参数表【见4.2.2.8】时，则不需要插入系统类型【否则输出的符号表会比较累赘，功能性其实不受影响】
+*  `isEmpty()`：符号表是否为空
+*  `Table`：传统意义上的符号哈希表，元素为`<变量名，类型节点>`
+
+*  `LineTable`：记录变量的定义行数，用于输出错误信息，元素为`<变量名，行数>`
+
+*  `setup(p)`：以`p`为AST语法树根节点，构建符号表
+
+*  `show()`：输出符号表
+
+*  `insert()`：符号表中插入元素
+
+*  `get()`：获取str在符号表中类型
+
+*  `check(p)`：检查以`p`为根节点的AST语法树
+
+*  `pop()`：弹出输入名称最近一次插入符号表的记录
+
+*  `Typing::Node* getType(AST::Node* p, Scope scope = Scope::s_GLOBAL)`：获取AST节点`p`的类型，Scope表明考虑的作用域。有如下几种
+
+   ```c++
+   enum Scope
+       {
+           s_GLOBAL, // 全局
+           s_CONST_PART, // const-part常数定义区
+           s_VAR_PART, // var-part变量定义区
+           s_RANGE, // 定义range
+       };
+   ```
+
+##### 4.3.2 函数实现
+
+（1）用`std::unorder_map`标准容器屏蔽哈希表的具体实现后，每一个元素的值是一个类型的链表，具体来说是一个先进先出的栈结构。如下图所示：
+
+<img src="Resource/符号表结构.jpg" alt="符号表结构" style="zoom:67%;" />
+
+比如，当函数参数名与外层符号表某元素相同时，函数内部该变量名的类型取对应的参数类型，当退出函数后，弹出参数类型结点，还原外层的类型。
+
+```c++
+bool ST::insert(const std::string& str, Typing::Node* node, unsigned int Line)
+{
+    if (Table.find(str) == Table.end())
+    {
+        node->prev = node->next = nullptr;
+        Table[str] = node;
+        LineTable[str] = Line;
+        return true;
+    }
+    else
+    { // 原本就存在str这一个key
+        // 用指针连接
+        Table[str]->next = node;
+        node->prev = Table[str];
+        Table[str] = node;
+        return false;
+    }
+}
+
+Typing::Node* ST::get(const std::string& str, unsigned int line)
+{
+    if (Table.find(str) != Table.end())
+    {
+        return Table[str];
+    }
+    // 报错
+    std::stringstream msg;
+    msg << std::endl << "In line: " << line << ". The type \"" << str << "\" is not available in the symbol table!";
+    raiseError(msg.str());
+}
+
+Typing::Node* ST::pop(const std::string& str)
+{
+    if (Table.find(str) == Table.end())
+    { // 如果不存在，没办法删除
+        std::stringstream msg;
+        msg << "当前符号表中不存在名称: \"" << str << "\"" << std::endl;
+        raiseError(msg.str())
+    }
+    else 
+    {   // 取出链表尾部
+        Typing::Node* res = Table[str];
+        Typing::Node* prev = Table[str]->prev;  // 上一个在这一位置的符号
+        if (prev)
+        {
+            Table[str] = prev;
+            Table[str]->next = nullptr;
+        }
+        else 
+        {
+            Table.erase(str);
+        }
+        res->prev = nullptr;
+        return res;
+    }
+}
+```
+
+（2）获取AST结点的类型。
+
+这部分和绘图非常相似，依旧采用了递归的思想。其叶节点情形为
+
+*  常数节点时，类型为对应的系统类型。
+
+   Remark：常数只能是简单的系统类型。
+
+   ```c++
+   Typing::Node* ST::getType(AST::Node* p, Scope scope)
+   { 
+       switch (p->m_Attribute)
+       {
+           case AST::Attribute::Constant:
+               switch (p->m_Constant.Type)
+               {
+                   case AST::ConstantType::Integer:
+                       return new Typing::constNode(get("integer", 0) , p->m_Constant);
+                   case AST::ConstantType::Real:
+                       return new Typing::constNode(get("real", 0) , p->m_Constant);
+                   case AST::ConstantType::Boolean:
+                       return new Typing::constNode(get("boolean", 0) , p->m_Constant);
+                   case AST::ConstantType::Char:
+                       return new Typing::constNode(get("char", 0) , p->m_Constant);
+                   case AST::ConstantType::String:
+                       return new Typing::constNode(get("string", 0) , p->m_Constant);
+                   default:
+                       raiseError("Unknown constant Type!");
+               }
+           ...
+        ...
+       }
+   ...
+   }
+   ```
+
+*  变量名时，返回符号表中记录的类型
+
+   ```c++
+   case AST::Attribute::Identifier:
+               if (scope == Scope::s_RANGE)
+               {
+                   return get(p->m_Identifier.Name, p->m_Line);
+               }
+   ```
+
+*  类型名时，也返回符号表中的记录类型。
+
+   Remark：见4.1，type-part和var-part的信息都放在符号表内。
+
+   ```c++
+   case AST::Attribute::Typename:
+               {
+                   return get(p->m_Typename.Name, p->m_Line);
+               }
+   ```
+
+对于非叶节点，有如下几种情形
+
+*  本身不具备类型，此时只需要让子节点获取类型即可。如
+
+   ```c++
+   case TYPE_PART:           
+       for (int i = 0;i < p->m_Operation.NumOperands; ++i)
+       {
+         getType(p->m_Operation.List_Operands[i]);
+       }
+       break;
+   ```
+
+*  常数定义。比如符号EQUAL作用域出现在const-part时，表明常数定义。节点本身没有类型，但是这时候要插入符号表。
+
+   ```c++
+   case EQUAL:
+       if (scope == Scope::s_CONST_PART)
+       { // const part的常数定义
+         insert(p->m_Operation.List_Operands[0]->m_Identifier.Name,
+                getType(p->m_Operation.List_Operands[1]), p->m_Operation.List_Operands[0]->m_Line);
+       }
+       break;
+   ```
+
+*  类型定义，变量定义。插入符号表
+
+   ```c++
+   case TYPE: // 左边是类型名字，右边是这个名字对应的类型statement
+         // 见test3.spl以及对应的AST
+         insert(p->m_Operation.List_Operands[0]->m_Identifier.Name,
+                getType(p->m_Operation.List_Operands[1]), p->m_Operation.List_Operands[0]->m_Line);
+   
+         break;
+   case VAR: 
+         if (scope == Scope::s_VAR_PART)
+         { // var part部分的var，声明全局变量的类型
+           for (int i = 1; i < p->m_Operation.NumOperands; ++i)
+           {  
+             insert(p->m_Operation.List_Operands[i]->m_Identifier.Name,
+                    getType(p->m_Operation.List_Operands[0]), p->m_Operation.List_Operands[i]->m_Line);
+   
+           }
+         }
+         else
+         { // 函数参数部分的var，声明参数的引用类型
+   
+         }
+         break;
+   ```
+
+*  函数/过程。以函数为例，其子节点的格式为
+
+   *  首先获取函数的参数子节点类型，并插入函数本地符号表。
+   *  处理完参数后，检查函数体的类型。
+      *  将函数本地符号表并入当前类实例的符号表中
+      *  使用函数`check()`检查函数体
+      *  检查成功后，恢复原始的符号表
+
+   ```c++
+   case FUNCTION:
+       {
+         auto function = dynamic_cast<Typing::functNode*>(getType(p->m_Operation.List_Operands[0]));
+         if (p->m_Operation.NumOperands == 2)
+         {   // 具有subroutine 
+           AST::Node* subroutine = p->m_Operation.List_Operands[1];
+           function->m_body = subroutine->m_Operation.List_Operands[0];
+   
+           // 检查函数体的类型
+   
+           for (auto& it : function->m_val_table->Table)
+           {   // 先把函数的参数表暂时加入符号表中
+             insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+           }   
+           for (auto& it : function->m_var_table->Table)
+           {   // 类型检查时不区分引用类型
+             insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+           }
+   
+           // 检查函数体
+           check(function->m_body);
+   
+           // 把刚才加入的符号弹出
+           for (auto& it : function->m_val_table->Table)
+           {
+             pop(it.first);
+           }
+           for (auto& it : function->m_var_table->Table)
+           {
+             pop(it.first);
+           }
+         }
+   
+         return function;
+       }
+   case FUNCTION_HEAD:
+       {
+         std::string name = p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Identifier.Name;
+         auto* function = new Typing::functNode(name, getType(p->m_Operation.List_Operands[p->m_Operation.NumOperands-1]), nullptr);
+         this->insert(name, function, // 函数的行数取函数名的函数
+                      p->m_Operation.List_Operands[p->m_Operation.NumOperands]->m_Line); 
+         if (p->m_Operation.NumOperands > 1)
+         { // 具有参数
+           AST::Node* paraList = p->m_Operation.List_Operands[0];
+           for (int i = 0;i < paraList->m_Operation.NumOperands; ++i)
+           {
+             AST::Node* para_group = paraList->m_Operation.List_Operands[i];
+             Typing::Node* type = getType(para_group->m_Operation.List_Operands[0]);
+             for (int j = 1;j < para_group->m_Operation.NumOperands; ++j)
+             {
+               auto param = para_group->m_Operation.List_Operands[j];
+   
+               if (para_group->m_Operation.Operator == VAL_PARAM)
+               { // 添加形参表
+                 function->addParam(true, param->m_Identifier.Name, type, param->m_Line);
+               }
+               else if (para_group->m_Operation.Operator == VAR_PARAM)
+               { // 添加引用参数表
+                 function->addParam(false, param->m_Identifier.Name, type, param->m_Line);
+               }
+               else 
+               {
+                 raiseError("Unknown param type!");
+               }
+             }
+           }
+         }
+         return function;
+       }
+   ```
+
+（3）检查类型的一致性。
+
+```c++
+Typing::Node* ST::check(AST::Node* p);
+```
+
+*  goto语句：要求子节点为常数整数类型
+
+   ```c++
+   switch (p->m_Operation.Operator)
+       {
+           /* goto语句，跳转到对应label */
+         case GOTO:
+           { // 格式为[integer"]
+             assert(p->m_Operation.List_Operands[0]->m_Attribute == AST::Attribute::Constant);
+             auto jump_label = check(p->m_Operation.List_Operands[0]);
+             if (Typing::Node::isEqual(get("integer", 0), jump_label))
+             {
+               return nullptr;
+             }
+             std::stringstream msg;
+             msg << std::endl << "In line " << p->m_Line << ". goto statement的label必须为整数" << std::endl;
+             raiseError(msg.str());
+           }
+   ```
+
+*  循环语句：要求循环条件为boolean类型，然后检查执行语句的类型。类似的还有其他结构语句，比如If语句，case语句。
+
+   ```c++
+   case WHILE:
+   case REPEAT:
+   { // 子节点格式为，[条件，statement]
+     // while和repeat是一致的
+     // 例子请见guess.spl
+     auto condition = check(p->m_Operation.List_Operands[0]);
+     if (Typing::Node::isEqual(get("boolean", 0), condition))
+     {   // 条件需要为布尔值
+       // 检查语句
+       check(p->m_Operation.List_Operands[1]);
+       // 本身没有返回值
+       return nullptr;
+     }
+     std::stringstream msg;
+     msg << std::endl << "In line " << p->m_Line << ". while语句的条件必须为布尔值" << std::endl;
+     raiseError(msg.str());
+   }
+   ```
+
+*  函数调用：要求
+
+   *  参数数目匹配
+   *  参数数目由左到右的类型匹配
+   *  函数存在返回类型
+
+   ```c++
+   case CALL_FUNCT:
+       {   // 注意，这里是调用函数，而非定义函数
+         // 子节点格式为[函数名, 输入1, 输入2, ...]
+         auto function = dynamic_cast<Typing::functNode *>(get(
+           p->m_Operation.List_Operands[0]->m_Identifier.Name, p->m_Line));
+   
+         int size = function->m_Params.size();
+   
+         if (size != p->m_Operation.NumOperands - 1)
+         {
+           std::stringstream msg;
+           msg << std::endl << "In line " << p->m_Line << ". 函数参数数目不匹配" << std::endl;
+           int hPos = 0;
+           msg << function->toString(hPos) << std::endl;
+           msg << "expected: " << size << std::endl;
+           msg << "given: " << p->m_Operation.NumOperands - 1 << std::endl;
+           raiseError(msg.str());
+         }
+         int i = 1;
+         for (auto it = function->m_Params.begin(); it != function->m_Params.end(); ++it)
+         {
+           auto input = check(p->m_Operation.List_Operands[i++]); // 第i个输入的参数
+           Typing::Node *param;
+   
+           if (it->second)
+           {   // is var = true
+             param = function->m_var_table->get(it->first, p->m_Line);
+           }
+           else
+           {
+             param = function->m_val_table->get(it->first, p->m_Line);
+           }
+           if (!Typing::Node::isEqual(param, input))
+           {
+             std::stringstream msg;
+             msg << std::endl << "In line " << p->m_Line << ". 函数参数类型不匹配" << std::endl;
+             int hPos = 0;
+             msg << "expected: " << std::endl << param->toString(hPos) << std::endl;
+             msg << "input: " << std::endl << input->toString(hPos) << std::endl;
+             raiseError(msg.str());
+           }
+         }
+         // 函数返回类型
+         p->m_Type = function->m_resType;
+         return p->m_Type;
+       }
+   ```
+
+*  结构体成员访问：要求
+
+   *  被访问的变量类型为`record`
+
+   *  结构体访问的成员名有效
+
+   *  特别的，要考虑到被访问的变量名为函数的情形。因为在函数内部，函数的返回变量就是本身，所以这时候就检查函数的
+
+      返回类型是否为`reocrd`
+
+   ```c++
+   case DOT:
+       {   // 结构体成员访问
+         // 子节点为[record名，成员名]
+         auto node = get(p->m_Operation.List_Operands[0]->m_Identifier.Name, p->m_Line);
+         Typing::recordNode *record;
+         if (node->m_Type == Typing::NodeType::t_RECORD)
+         {
+           record = dynamic_cast<Typing::recordNode *>(node);
+         }
+         else if (node->m_Type == Typing::NodeType::t_FUNCTION)
+         {   // 在函数内部，函数名就是返回值
+           auto function = dynamic_cast<Typing::functNode *>(node);
+   
+           if (function->m_resType->m_Type == Typing::NodeType::t_RECORD)
+           {
+             record = dynamic_cast<Typing::recordNode *>(function->m_resType);
+           }
+           else
+           {
+             std::stringstream msg;
+             msg << std::endl << "In line " << p->m_Line << ". 函数类型不是record！" << std::endl;
+             int hPos = 0;
+             msg << "函数: " << function->toString(hPos) << std::endl;
+             raiseError(msg.str());
+           }
+         }
+         else
+         {
+           std::stringstream msg;
+           msg << std::endl << "In line " << p->m_Line << ". 不是结构类型，无法访问成员！" << std::endl;
+           int hPos = 0;
+           msg << "变量: " << node->toString(hPos) << std::endl;
+           raiseError(msg.str());
+         }
+         std::string member = p->m_Operation.List_Operands[1]->m_Identifier.Name;
+         if (record->m_Field->find(member) == record->m_Field->end())
+         {
+           std::stringstream msg;
+           msg << std::endl << "In line " << p->m_Line << ". 结构体访问的成员不存在!" << std::endl;
+           int hPos = 0;
+           msg << "结构体: " << record->toString(hPos) << std::endl;
+           msg << "访问名: " << member << std::endl;
+           raiseError(msg.str());
+         }
+   
+         // 返回成员的类型
+         p->m_Type = (*(record->m_Field))[member];
+         return p->m_Type;
+       }
+   ```
+
+*  赋值语句。
+
+   *  两边的类型必须一致。
+   *  不一致的情形只允许：`real := integer`，但是不允许`integer := real`
+
+   ```c++
+   case ASSIGN:
+       {   // 返回两边类型
+         // 子节点为[被赋值id，值]
+         Typing::Node *left = check(p->m_Operation.List_Operands[0]);
+         Typing::Node *right = check(p->m_Operation.List_Operands[1]);
+   
+         if (!Typing::Node::isEqual(left, right))
+         {
+           if (Typing::Node::isEqual(right, get("integer", 0)) &&
+               Typing::Node::isEqual(left, get("real", 0)))
+           { // 有且仅有左边是real也是没有问题的
+             // 但是不能把real赋值给integer
+             // 这时候返回值就是real
+             p->m_Type = get("real", 0);
+             return p->m_Type;
+           }
+           else
+           {
+             std::stringstream msg;
+             msg << std::endl << "In line " << p->m_Line << ". 该操作两边的类型不匹配" << std::endl;
+             int hPos = 0;
+             msg << "LHS: " << left->toString(hPos) << std::endl;
+             msg << "RHS: " << right->toString(hPos) << std::endl;
+             raiseError(msg.str());
+           }
+         }
+         p->m_Type = right;
+         return p->m_Type;
+       }
+   ```
+
+### 4.4 解释器的封装
+
+把语法分析和语义分析的操作封装为解释器
+
+`interpreter.hpp`
+
+```c++
+class Interpreter
+{
+public:
+    ST* symbol_table = nullptr;
+    AST::Node* main_entry = nullptr;  // 主函数的入口，指向跟节点下面的routine-body
+public:
+    Interpreter()
+    {
+        symbol_table = new ST();
+    }
+    static int plot_txt(AST::Node* p, std::ofstream& Out);
+    static int plot_py(AST::Node* p, std::ofstream& Out);
+    int execute(AST::Node* p, std::string& Filename, std::string& Program) const;
+};
+```
+
+`interpreter.cpp`
+
+*  根据程序名构造输出文件
+*  构造符号表，并在期间设置`main_entry`，即主程序对应的AST语法树根节点
+*  绘制符号表
+*  绘制语法树
+
+只需要调用`interpeter.execute(...)`即可。
+
+```c++
+#include "Interpreter.hpp"
+#include <unordered_map>
+#include "Plot_txt.hpp"
+#include "Plot_py.hpp"
+#include "yacc.tab.hpp"
+
+int Interpreter::plot_txt(AST::Node* p, std::ofstream& Out)
+{
+    int rte, rtm;
+    Plot_txt::init();
+    Plot_txt::plotNode(p, 0, 0, rte, rtm);
+    Plot_txt::finish(Out);
+    return 0;
+}
+int Interpreter::plot_py(AST::Node* p, std::ofstream& Out)
+{
+    int id = 0;
+    Plot_py::plotNode(p, id, Out);
+    return 0;
+}
+
+int Interpreter::execute(AST::Node* p, std::string& Filename, std::string& Program) const
+{
+    /* 把刚std::cout重定向，写入到文件 */
+    std::ofstream st_out("./Output/Logs/" + Filename + ".st");
+    std::streambuf* cout_buffer = std::cout.rdbuf();
+    std::streambuf* st_out_buffer = st_out.rdbuf();
+    // 替换cout缓存区指针
+    std::cout.rdbuf(st_out_buffer);
+
+    std::cout << "Symbol Table: *****************" << std::endl;
+    symbol_table->setup(p);
+    symbol_table->show();
+    std::cout << "Type of AST Node: *****************" << std::endl;
+
+    // 两个绘制顺序不能换，在plot_py过程获得节点id
+    std::ofstream ast_raw("./Output/AST_raw/" + Filename + ".raw.ast");
+    plot_py(p, ast_raw);
+    ast_raw.close();
+
+    std::ofstream ast_txt("./Output/AST_txt/" + Filename + ".txt.ast");
+    plot_txt(p, ast_txt);
+    ast_txt.close();
+
+
+    st_out.flush();
+    st_out.close();
+    // 恢复std::cout为原来的流缓冲区指针
+    std::cout.rdbuf(cout_buffer);
+
+
+    return 0;
+}
+```
 
