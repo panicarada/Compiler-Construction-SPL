@@ -4,3 +4,4 @@
 .vscode
 ./Code/.idea
 ./Code/build
+./Code/build/*
