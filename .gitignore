@@ -2,4 +2,5 @@
 .DS_Store
 .idea
 .vscode
-./Code/idea
+./Code/.idea
+./Code/build
