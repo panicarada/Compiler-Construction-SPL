@@ -1,41 +1,13 @@
 program Hello;
 const 
 	pi = 3.1415926;
+	t = 3;
 	T = true;
-	
-function go(
-	a,b,c : integer;
-	str: string;
-var
-	temp : real
-) : string;
-begin
-	for i := 1 downto -10 do
-	begin
-		x := x * x / (1 + x * 4.124);
-	end
-	;
-end
-;
-
-procedure hello(
-	a,b : real;
-	temp : string
-);
-begin
-	30:
-		print(a, 1, 1.2412, Hello);
-	writeln(not a and not (1.323 or c));
-	40:
-	begin
-		write(not "Hello World!");
-		temp := sqrt(40);
-	end;
-end
-;
 
 	begin
-
+        case t of
+            -1: write("");
+        end;
 	end
 
 .

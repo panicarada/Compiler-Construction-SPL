@@ -204,7 +204,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 28 "lex_yacc/yacc.y"
+#line 28 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
 {
     int iValue; // integer value
     double dValue; // double value
@@ -214,7 +214,7 @@ typedef union YYSTYPE
 	std::vector<AST::Node*>* NodePtrList; // List
 }
 /* Line 1529 of yacc.c.  */
-#line 218 "source/yacc.tab.hpp"
+#line 218 "/Applications/zju/编译原理/final_proj/Code/source/yacc.tab.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

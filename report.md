@@ -24,92 +24,83 @@
 
 #### 1.2 工程编译
 
-采用全自动的`Makefile`文件编译。在路径`./Code`下执行指令
+采用全自动的`CMake`文件编译。在路径`./Code`下执行指令
 
 ```bash
+cd build
+cmake ..
 make
+cd ..
 ```
 
-即可。下面的Makefile对任何工程都适配，只需要简单修改自定义的路径名，以及`flex`和`bison`文件的名字即可
+即可（需要在本地上安装好LLVM，见博客https://blog.csdn.net/l2563898960/article/details/82871826）。下面的CMakeList.txt对任何工程都适配，只需要简单修改自定义的路径名，以及`lex`和`yacc`文件的名字即可
 
 ```makefile
-#The Target Binary Program
-LEX			:= flex
-YACC		:= bison
-TARGET  := main
-CC			:= g++
-#The Directories, Source, Includes, Objects, Binary and Resources
-SOURCE_DIR  := source
-INCLUDE_DIR := include
-LEX_YACC	:= lex_yacc
-BUILD_DIR   := build
-TARGET_DIR  := bin
-SRC_EXT     := cpp
-DEP_EXT     := d
-OBJEXT      := o
+cmake_minimum_required(VERSION 3.19)
+project(SPL_PROJECT)
+set(CMAKE_CXX_STANDARD 17)
 
-#Flags, Libraries and Includes
-CPPFLAGS	:= -std=c++17
-INCLUDE     := -I$(INCLUDE_DIR)
-DEPENDENCY  := -I$(INCLUDE_DIR)
+# 设置文件夹名称
+set(SOURCE_DIR source)
+set(BUILD_DIR build)
+set(INCLUDE_DIR include)
+set(TARGET_DIR bin)
+set(LEX_YACC lex_yacc)
 
-# flex和bison文件名
-FLEX_FILE	:= lex
-BISON_FILE	:= yacc
+# 设置所用的lex / yacc
+set(LEX flex)
+set(YACC bison)
 
-#---------------------------------------------------------------------------------
-#不要修改下面
-#---------------------------------------------------------------------------------
-SOURCES     := $(shell find $(SOURCE_DIR) -type f -name *.$(SRC_EXT))
-OBJECTS     := $(patsubst $(SOURCE_DIR)/%,$(BUILD_DIR)/%,$(SOURCES:.$(SRC_EXT)=.$(OBJEXT)))
+# bison and flex
+find_package(BISON)
+find_package(FLEX)
 
-#Defauilt Make
-all: lex yacc resources $(TARGET)
+include_directories(${LEX_YACC})
 
-lex:
-	$(LEX) -o $(SOURCE_DIR)/$(FLEX_FILE).yy.cpp $(LEX_YACC)/$(FLEX_FILE).l
-
-yacc:
-	$(YACC) -o $(SOURCE_DIR)/$(BISON_FILE).tab.cpp $(LEX_YACC)/$(BISON_FILE).y -d
+# 设置lex和yacc的输出文件名
+set(LEX_FILE lex)
+set(YACC_FILE yacc)
+# lex编译.l文件
+execute_process(COMMAND ${LEX} -o ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_DIR}/${LEX_FILE}.yy.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/${LEX_YACC}/${LEX_FILE}.l)
+# yacc编译.y文件
+execute_process(COMMAND ${YACC} -o ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_DIR}/${YACC_FILE}.tab.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/${LEX_YACC}/${YACC_FILE}.y -d)
 # 把生成的yacc.tab.hpp转移到include路径
-	@mv $(SOURCE_DIR)/$(BISON_FILE).tab.hpp $(INCLUDE_DIR)/
+execute_process(COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_DIR}/${YACC_FILE}.tab.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/${INCLUDE_DIR}/)
 
-#Remake
-remake: cleaner all
+# llvm
+find_package(LLVM REQUIRED CONFIG)
 
-#Make the Directories
-directories:
-	@mkdir -p $(TARGET_DIR)
-	@mkdir -p $(BUILD_DIR)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-#Clean only Objecst
-clean:
-	@$(RM) -rf $(BUILD_DIR)
 
-#Full Clean, Objects and Binaries
-cleaner: clean
-	@$(RM) -rf $(TARGET_DIR)
+# Set your project compile flags.
+# E.g. if using the C++ header files
+# you will need to enable C++11 support
+# for your compiler.
 
-#Pull in dependency info for *existing* .o files
--include $(OBJECTS:.$(OBJEXT)=.$(DEP_EXT))
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(include)
+add_definitions(${LLVM_DEFINITIONS})
 
-#Link
-$(TARGET): $(OBJECTS)
-	$(CC) $^ -o $(TARGET_DIR)/$(TARGET) 
+# Now build our tools
+aux_source_directory(source SRC_LIST)
 
-#Compile
-$(BUILD_DIR)/%.$(OBJEXT): $(SOURCE_DIR)/%.$(SRC_EXT)
-	@mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(INCLUDE) -c -o $@ $<
-	@$(CC) $(CPPFLAGS) $(DEPENDENCY) -MM $(SOURCE_DIR)/$*.$(SRC_EXT) > $(BUILD_DIR)/$*.$(DEP_EXT)
-	@cp -f $(BUILD_DIR)/$*.$(DEP_EXT) $(BUILD_DIR)/$*.$(DEP_EXT).tmp
-	@sed -e 's|.*:|$(BUILD_DIR)/$*.$(OBJEXT):|' < $(BUILD_DIR)/$*.$(DEP_EXT).tmp > $(BUILD_DIR)/$*.$(DEP_EXT)
-	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILD_DIR)/$*.$(DEP_EXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILD_DIR)/$*.$(DEP_EXT)
-	@rm -f $(BUILD_DIR)/$*.$(DEP_EXT).tmp
 
-	
-#Non-File Targets
-.PHONY: all remake clean cleaner resources
+# 可执行文件输出到bin
+set(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${TARGET_DIR}")
+add_executable(main ${SRC_LIST})
+
+# Find the libraries that correspond to the LLVM components
+# that we wish to use
+llvm_map_components_to_libnames(llvm_libs support core irreader)
+
+# Link against LLVM libraries
+# 连接llvm
+target_link_libraries(main ${llvm_libs})
 ```
 
 #### 1.3 运行说明

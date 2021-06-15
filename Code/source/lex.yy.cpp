@@ -1,6 +1,6 @@
-#line 2 "source/lex.yy.cpp"
+#line 2 "/Applications/zju/编译原理/final_proj/Code/source/lex.yy.cpp"
 
-#line 4 "source/lex.yy.cpp"
+#line 4 "/Applications/zju/编译原理/final_proj/Code/source/lex.yy.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -604,8 +604,8 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "lex_yacc/lex.l"
-#line 2 "lex_yacc/lex.l"
+#line 1 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 2 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 #include <iostream>
 #include "AST.hpp"
 #include "yacc.tab.hpp"
@@ -617,7 +617,7 @@ extern unsigned int line_number;
 
 /* 注释状态 */
 
-#line 621 "source/lex.yy.cpp"
+#line 621 "/Applications/zju/编译原理/final_proj/Code/source/lex.yy.cpp"
 
 #define INITIAL 0
 #define READING_STRING 1
@@ -801,10 +801,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 25 "lex_yacc/lex.l"
+#line 25 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 
 
-#line 808 "source/lex.yy.cpp"
+#line 808 "/Applications/zju/编译原理/final_proj/Code/source/lex.yy.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -899,7 +899,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 27 "lex_yacc/lex.l"
+#line 27 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     // 注释
     ss.clear();
@@ -910,7 +910,7 @@ YY_RULE_SETUP
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 33 "lex_yacc/lex.l"
+#line 33 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     // 注释碰到回车结束
     BEGIN INITIAL;
@@ -918,12 +918,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 37 "lex_yacc/lex.l"
+#line 37 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 ;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 39 "lex_yacc/lex.l"
+#line 39 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return LP;
@@ -931,28 +931,28 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 43 "lex_yacc/lex.l"
+#line 43 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return RP;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 46 "lex_yacc/lex.l"
+#line 46 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return LB;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 49 "lex_yacc/lex.l"
+#line 49 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return RB;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 52 "lex_yacc/lex.l"
+#line 52 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return DOTDOT;
@@ -960,7 +960,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 56 "lex_yacc/lex.l"
+#line 56 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return DOT;
@@ -968,112 +968,112 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 60 "lex_yacc/lex.l"
+#line 60 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return COMMA;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 63 "lex_yacc/lex.l"
+#line 63 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return ASSIGN;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 66 "lex_yacc/lex.l"
+#line 66 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return COLON;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 69 "lex_yacc/lex.l"
+#line 69 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return MUL;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 72 "lex_yacc/lex.l"
+#line 72 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return DIV;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 75 "lex_yacc/lex.l"
+#line 75 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return UNEQUAL;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 78 "lex_yacc/lex.l"
+#line 78 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return NOT;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 81 "lex_yacc/lex.l"
+#line 81 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return PLUS;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 84 "lex_yacc/lex.l"
+#line 84 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return MINUS;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 87 "lex_yacc/lex.l"
+#line 87 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return GE;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 90 "lex_yacc/lex.l"
+#line 90 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return GT;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 93 "lex_yacc/lex.l"
+#line 93 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return LE;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 96 "lex_yacc/lex.l"
+#line 96 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return LT;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 99 "lex_yacc/lex.l"
+#line 99 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return EQUAL;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 102 "lex_yacc/lex.l"
+#line 102 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return MOD;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 105 "lex_yacc/lex.l"
+#line 105 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return SEMI;
@@ -1081,7 +1081,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 111 "lex_yacc/lex.l"
+#line 111 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
@@ -1091,7 +1091,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 117 "lex_yacc/lex.l"
+#line 117 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
@@ -1101,7 +1101,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 123 "lex_yacc/lex.l"
+#line 123 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
@@ -1111,7 +1111,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 129 "lex_yacc/lex.l"
+#line 129 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
@@ -1121,7 +1121,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 135 "lex_yacc/lex.l"
+#line 135 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return READ;}
@@ -1129,140 +1129,140 @@ YY_RULE_SETUP
 /* Keyword List */
 case 31:
 YY_RULE_SETUP
-#line 140 "lex_yacc/lex.l"
+#line 140 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return AND;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 143 "lex_yacc/lex.l"
+#line 143 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return ARRAY;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 146 "lex_yacc/lex.l"
+#line 146 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return _BEGIN;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 149 "lex_yacc/lex.l"
+#line 149 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return CASE;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 152 "lex_yacc/lex.l"
+#line 152 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return CONST;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 155 "lex_yacc/lex.l"
+#line 155 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return DIV;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 158 "lex_yacc/lex.l"
+#line 158 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return DO;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 161 "lex_yacc/lex.l"
+#line 161 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return DOWNTO;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 164 "lex_yacc/lex.l"
+#line 164 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return ELSE;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 167 "lex_yacc/lex.l"
+#line 167 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return END;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 170 "lex_yacc/lex.l"
+#line 170 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return FOR;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 173 "lex_yacc/lex.l"
+#line 173 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return FUNCTION;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 176 "lex_yacc/lex.l"
+#line 176 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return GOTO;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 179 "lex_yacc/lex.l"
+#line 179 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return IF;}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 182 "lex_yacc/lex.l"
+#line 182 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return MOD;}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 185 "lex_yacc/lex.l"
+#line 185 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return NOT;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 188 "lex_yacc/lex.l"
+#line 188 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return OF;}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 191 "lex_yacc/lex.l"
+#line 191 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return OR;}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 194 "lex_yacc/lex.l"
+#line 194 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return PACKED;}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 197 "lex_yacc/lex.l"
+#line 197 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return PROCEDURE;
@@ -1270,7 +1270,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 201 "lex_yacc/lex.l"
+#line 201 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return PROGRAM;
@@ -1278,7 +1278,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 205 "lex_yacc/lex.l"
+#line 205 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return RECORD;
@@ -1286,7 +1286,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 209 "lex_yacc/lex.l"
+#line 209 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return REPEAT;
@@ -1294,7 +1294,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 213 "lex_yacc/lex.l"
+#line 213 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return THEN;
@@ -1302,7 +1302,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 217 "lex_yacc/lex.l"
+#line 217 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return TO;
@@ -1310,7 +1310,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 221 "lex_yacc/lex.l"
+#line 221 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return TYPE;
@@ -1318,7 +1318,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 225 "lex_yacc/lex.l"
+#line 225 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return UNTIL;
@@ -1326,7 +1326,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 229 "lex_yacc/lex.l"
+#line 229 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return VAR;
@@ -1334,7 +1334,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 233 "lex_yacc/lex.l"
+#line 233 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number; 
     return WHILE;
@@ -1342,7 +1342,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 238 "lex_yacc/lex.l"
+#line 238 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     //开始读取字符串
     BEGIN READING_STRING;
@@ -1353,7 +1353,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 245 "lex_yacc/lex.l"
+#line 245 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     //结束字符串读取
     BEGIN INITIAL;
@@ -1364,14 +1364,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 252 "lex_yacc/lex.l"
+#line 252 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     ss<<yytext[0];
 }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 255 "lex_yacc/lex.l"
+#line 255 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.cValue=yytext[1];
     yylloc.first_line=line_number;
@@ -1380,7 +1380,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 260 "lex_yacc/lex.l"
+#line 260 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.iValue=atoi(yytext);
     yylloc.first_line=line_number;
@@ -1389,7 +1389,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 265 "lex_yacc/lex.l"
+#line 265 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     std::stringstream ss;
     ss<<yytext;
@@ -1400,7 +1400,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 272 "lex_yacc/lex.l"
+#line 272 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
@@ -1411,22 +1411,22 @@ YY_RULE_SETUP
 case 67:
 /* rule 67 can match eol */
 YY_RULE_SETUP
-#line 279 "lex_yacc/lex.l"
+#line 279 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     line_number ++;
 }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 282 "lex_yacc/lex.l"
+#line 282 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 ;
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 284 "lex_yacc/lex.l"
+#line 284 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 ECHO;
 	YY_BREAK
-#line 1430 "source/lex.yy.cpp"
+#line 1430 "/Applications/zju/编译原理/final_proj/Code/source/lex.yy.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(READING_STRING):
 case YY_STATE_EOF(COMMENT):
@@ -2437,7 +2437,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 284 "lex_yacc/lex.l"
+#line 284 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 
 
 

@@ -26,8 +26,15 @@
 class CodeGenerator
 {
 private:
+    llvm::LLVMContext Context;
+    llvm::IRBuilder<> builder;
     std::stringstream code;
 public:
+    CodeGenerator()
+        : builder(llvm::IRBuilder<>(Context))
+    {
+
+    }
     void genCode(AST::Node* p);
 private:
     inline void emitCode(int Number, ...)
