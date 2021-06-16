@@ -5,7 +5,7 @@
 #include "CodeGenerator.hpp"
 #include "yacc.tab.hpp"
 
-auto CodeGenerator::Builder = llvm::IRBuilder<>(CodeGenerator::Context);
+
 
 void CodeGenerator::genCode(AST::Node* p)
 {
@@ -45,54 +45,5 @@ void CodeGenerator::genCode(AST::Node* p)
             }
         }
 
-    }
-}
-
-llvm::Type *CodeGenerator::toLLVMType(AST::Node *node)
-{
-    Typing::Node* type = node->m_Type;
-    if (!type)
-    {   // 没有推出这个结点的类型/不存在类型
-        std::stringstream msg;
-        msg << "Unknown Type of AST Node (id = " << node->m_Id << ")";
-        raiseError(msg.str());
-    }
-    switch (type->m_Type)
-    {
-        case Typing::NodeType::t_SYS_TYPE: case Typing::NodeType::t_CONSTANT:
-        {
-            Typing::sysNode* sysNode;
-            if (type->m_Type == Typing::NodeType::t_SYS_TYPE)
-            {
-                sysNode = dynamic_cast<Typing::sysNode*>(type);
-            }
-            else if (type->m_Type == Typing::NodeType::t_CONSTANT)
-            {
-                sysNode = dynamic_cast<Typing::constNode*>(type)->m_Sys;
-            }
-            else
-            {
-                raiseError("Something wrong with the case here");
-            }
-
-            if (sysNode->m_DataType == Typing::DataType::d_BOOLEAN) return Builder.getInt1Ty();
-            else if (sysNode->m_DataType == Typing::DataType::d_CHAR) return Builder.getInt8Ty();
-            else if (sysNode->m_DataType == Typing::DataType::d_INTEGER) return Builder.getInt32Ty();
-            else if (sysNode->m_DataType == Typing::DataType::d_REAL) return Builder.getDoubleTy();
-        }
-        case Typing::NodeType::t_ENUM:
-        {
-            return Builder.getInt32Ty();
-        }
-        case Typing::NodeType::t_ARRAY:
-        {
-            auto arrayType = dynamic_cast<Typing::arrayNode*>(type);
-            if (arrayType->m_IdxType->m_Type == Typing::NodeType::t_ENUM)
-            {   //  数组索引为enum
-                arrayType->
-                return llvm::ArrayType::get(toLLVMType(arrayType->m_EleType),
-                                            )
-            }
-        }
     }
 }
