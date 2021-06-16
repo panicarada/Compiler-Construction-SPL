@@ -7,6 +7,7 @@
 
     #include "AST.hpp"
     #include "Interpreter.hpp"
+    #include "CodeGenerator.hpp"
 
 	// 构建语法树的解释器
 	Interpreter* ipt;

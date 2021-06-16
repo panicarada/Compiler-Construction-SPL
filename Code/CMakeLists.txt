@@ -50,7 +50,7 @@ include_directories(include)
 add_definitions(${LLVM_DEFINITIONS})
 
 # Now build our tools
-aux_source_directory(source SRC_LIST)
+aux_source_directory(${SOURCE_DIR} SRC_LIST)
 
 
 # 可执行文件输出到bin
