@@ -22,20 +22,22 @@
 
 
 #include "AST.hpp"
+#include "Typing.hpp"
 
 class CodeGenerator
 {
 private:
-    llvm::LLVMContext Context;
-    llvm::IRBuilder<> builder;
-    std::stringstream code;
+    static llvm::LLVMContext Context;
+    static llvm::IRBuilder<> Builder;
+    std::stringstream Code;
 public:
     CodeGenerator()
-        : builder(llvm::IRBuilder<>(Context))
     {
 
     }
     void genCode(AST::Node* p);
+    // 把AST结点转为llvm类型
+    static llvm::Type* toLLVMType(AST::Node* node);
 private:
     inline void emitCode(int Number, ...)
     {   // 生成一行代码
@@ -43,8 +45,8 @@ private:
         va_start(ap, Number);
         for (int i = 0;i < Number; ++i)
         {
-            code << va_arg(ap, char*) << " ";
+            Code << va_arg(ap, char*) << " ";
         }
-        code << std::endl;
+        Code << std::endl;
     }
 };
