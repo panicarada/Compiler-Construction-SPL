@@ -900,8 +900,8 @@ Typing::Node* ST::check(AST::Node* p)
                     /* 比较运算 */
                 case GE:
                 case GT:
-                case LE:
-                case LT:
+                case _LE_:
+                case _LT_:
                 case EQUAL:
                 case UNEQUAL:
                 {

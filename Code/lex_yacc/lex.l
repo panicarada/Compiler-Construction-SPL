@@ -38,7 +38,7 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
 
 "(" {
     yylloc.first_line=line_number;
-    return LP;
+    return _LP_;
 }
 ")" {
     yylloc.first_line=line_number;
@@ -92,10 +92,10 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
     return GT;}
 "<=" {
     yylloc.first_line=line_number;
-    return LE;}
+    return _LE_;}
 "<" {
     yylloc.first_line=line_number;
-    return LT;}
+    return _LT_;}
 "=" {
     yylloc.first_line=line_number;
     return EQUAL;}
@@ -273,7 +273,7 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
-    return ID;
+    return _ID_;
 }
 
 "\n" {

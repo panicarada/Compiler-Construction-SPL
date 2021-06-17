@@ -44,8 +44,8 @@ namespace Plot_py
                     {
                         case GE: Out << ">="; break;
                         case GT: Out << ">"; break;
-                        case LE: Out << "<="; break;
-                        case LT: Out << "<"; break;
+                        case _LE_: Out << "<="; break;
+                        case _LT_: Out << "<"; break;
                         case OR: Out << "or"; break;
                         case AND: Out << "and"; break;
                         case NOT: Out << "not"; break;

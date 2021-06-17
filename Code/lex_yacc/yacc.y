@@ -39,7 +39,7 @@
 %token <dValue> REAL
 %token <cValue> CHAR
 %token <sValue> STRING SYS_TYPE
-%token <sValue> ID
+%token <sValue> _ID_
 
 // 语法树节点
 %type <NodePtr> expr term factor const_value expression routine
@@ -56,8 +56,8 @@
 %type <iValue> direction
 
 // 运算符、定界符
-%token LP RP LB RB DOT COMMA COLON MUL DIV UNEQUAL NOT
-%token PLUS MINUS GE GT LE LT EQUAL ASSIGN MOD DOTDOT SEMI
+%token _LP_ RP LB RB DOT COMMA COLON MUL DIV UNEQUAL NOT
+%token PLUS MINUS GE GT _LE_ _LT_ EQUAL ASSIGN MOD DOTDOT SEMI
 
 // 系统函数、过程、常数、类型等单词
 %token READ
@@ -87,7 +87,7 @@ program
 	}
 	;
 program_head 
-	: PROGRAM ID SEMI
+	: PROGRAM _ID_ SEMI
 	{
 		$$ = new char[strlen($2)];
 		strcpy($$, $2);
@@ -158,11 +158,11 @@ const_part
 	;
 
 const_expr_list
-	: const_expr_list ID EQUAL const_value SEMI
+	: const_expr_list _ID_ EQUAL const_value SEMI
 	{
 		$$->push_back(new AST::Node(@3.first_line, EQUAL, 2, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier), $4));
 	}
-	| ID EQUAL const_value SEMI
+	| _ID_ EQUAL const_value SEMI
 	{
 		$$ = new std::vector<AST::Node*>();
 		$$->push_back(new AST::Node(@2.first_line, EQUAL, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3));
@@ -229,7 +229,7 @@ type_decl_list
 	;
 
 type_definition
-	: ID EQUAL type_decl SEMI
+	: _ID_ EQUAL type_decl SEMI
 	{
 		$$ = new AST::Node(@2.first_line, TYPE, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Typename)
@@ -257,11 +257,11 @@ simple_type_decl
 	{
 		$$ = new AST::Node(@1.first_line, $1, AST::Attribute::Typename);
 	}
-	| ID
+	| _ID_
 	{
 		$$ = new AST::Node(@1.first_line, $1, AST::Attribute::Typename);
 	}
-	| LP name_list RP
+	| _LP_ name_list RP
 	{
 		$$ = new AST::Node(@1.first_line, ENUM, $2);
 	}
@@ -281,7 +281,7 @@ simple_type_decl
 					  new AST::Node(@1.first_line, MINUS, 1, $2),
 					  new AST::Node(@1.first_line, MINUS, 1, $5));
 	}
-	| ID DOTDOT ID
+	| _ID_ DOTDOT _ID_
 	{
 		$$ = new AST::Node(@2.first_line, DOTDOT, 2,
 					  new AST::Node(@1.first_line, $1, AST::Attribute::Identifier),
@@ -325,11 +325,11 @@ field_decl
 	;
 
 name_list
-	: name_list COMMA ID 
+	: name_list COMMA _ID_
 	{
 		$$->push_back(new AST::Node(@3.first_line, $3, AST::Attribute::Identifier));
 	}
-	| ID
+	| _ID_
 	{
 		// std::cout << "line no: " << @1.first_line << std::endl;
 		$$ = new std::vector<AST::Node*>();
@@ -396,7 +396,7 @@ function_decl
 	}
 	;
 function_head
-	: FUNCTION ID parameters COLON simple_type_decl
+	: FUNCTION _ID_ parameters COLON simple_type_decl
 	{
 		if ($3)
 		{
@@ -425,7 +425,7 @@ procedure_decl
 	;
 
 procedure_head
-	: PROCEDURE ID parameters
+	: PROCEDURE _ID_ parameters
 	{
 		if ($3)
 		{
@@ -447,7 +447,7 @@ procedure_head
 	;
 
 parameters
-	: LP para_decl_list RP
+	: _LP_ para_decl_list RP
 	{ 
 		$$ = $2;
 	}
@@ -547,17 +547,17 @@ non_label_stmt
 	;
 
 assign_stmt
-	: ID ASSIGN expression
+	: _ID_ ASSIGN expression
 	{
 		$$ = new AST::Node(@2.first_line, ASSIGN, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3);
 	}
-	| ID LB expression RB ASSIGN expression
+	| _ID_ LB expression RB ASSIGN expression
 	{
 		$$ = new AST::Node(@5.first_line, ASSIGN, 2, 
 					  new AST::Node(@2.first_line, BRACKET, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier), $3),
 					  $6);
 	}
-	| ID DOT ID ASSIGN expression
+	| _ID_ DOT _ID_ ASSIGN expression
 	{
 		$$ = new AST::Node(@4.first_line, ASSIGN, 2,
 					  new AST::Node(@2.first_line, DOT, 2, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier),
@@ -567,11 +567,11 @@ assign_stmt
 	;
 
 proc_stmt
-	: ID
+	: _ID_
 	{
 		$$ = new AST::Node(@1.first_line, CALL_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
-	| ID LP args_list RP
+	| _ID_ _LP_ args_list RP
 	{
 		$$ = new AST::Node(@1.first_line, CALL_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
@@ -580,12 +580,12 @@ proc_stmt
 	{
 		$$ = new AST::Node(@1.first_line, SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
-	| SYS_PROC LP expression_list RP
+	| SYS_PROC _LP_ expression_list RP
 	{
 		$$ = new AST::Node(@1.first_line, SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
-	| READ LP factor RP 
+	| READ _LP_ factor RP
 	{	// 类似于scanf，不过一次读取用户一个输入
 		$$ = new AST::Node(@1.first_line, SYS_PROC, 2, new AST::Node(@1.first_line, "read", AST::Attribute::Identifier), $3);
 	}
@@ -622,7 +622,7 @@ while_stmt
 	;
 
 for_stmt
-	: FOR ID ASSIGN expression direction expression DO stmt
+	: FOR _ID_ ASSIGN expression direction expression DO stmt
 	{
 		$$ = new AST::Node(@1.first_line, $5, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier),
 						$4, $6, $8);
@@ -653,7 +653,7 @@ case_expr
 	{
 		$$ = new AST::Node(@1.first_line, CASE, 2, $1, $3);
 	}
-	| ID COLON stmt SEMI
+	| _ID_ COLON stmt SEMI
 	{
 		$$ = new AST::Node(@1.first_line, CASE, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier)
@@ -689,13 +689,13 @@ expression
     {
         $$ = new AST::Node(@2.first_line, GT, 2, $1, $3);
     }
-	| expression LE expr
+	| expression _LE_ expr
     {
-        $$ = new AST::Node(@2.first_line, LE, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, _LE_, 2, $1, $3);
     }
-	| expression LT expr
+	| expression _LT_ expr
     {
-        $$ = new AST::Node(@2.first_line, LT, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, _LT_, 2, $1, $3);
     }
 	| expression EQUAL expr
     {
@@ -751,11 +751,11 @@ term
     }
 	;
 factor
-	: ID
+	: _ID_
     	{
        		$$ = new AST::Node(@1.first_line, $1, AST::Attribute::Identifier);
     	}
-	| ID LP args_list RP
+	| _ID_ _LP_ args_list RP
 	{
 		$$ = new AST::Node(@1.first_line, CALL_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
@@ -766,12 +766,12 @@ factor
 		$$ = new AST::Node(@1.first_line, SYS_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 	}
-	| READ LP ID RP
+	| READ _LP_ _ID_ RP
 	{
 		$$ = new AST::Node(@1.first_line, READ, 2, new AST::Node(@1.first_line, "read", AST::Attribute::Identifier),
 							   new AST::Node(@3.first_line, $3, AST::Attribute::Identifier));
 	}
-	| SYS_FUNCT LP args_list RP
+	| SYS_FUNCT _LP_ args_list RP
 	{
 		$$ = new AST::Node(@1.first_line, SYS_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
@@ -781,7 +781,7 @@ factor
    	 {
         	$$ = $1;
     	}
-	| LP expression RP
+	| _LP_ expression RP
 	    {
         	$$ = $2;
     	}
@@ -793,13 +793,13 @@ factor
 	{
 		$$ = new AST::Node(@1.first_line, MINUS, 1, $2);
 	}
-	| ID LB expression RB
+	| _ID_ LB expression RB
 	{
 		$$ = new AST::Node(@1.first_line, BRACKET, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier)
 					  , $3);
 	}
-	| ID DOT ID
+	| _ID_ DOT _ID_
 	{
 		$$ = new AST::Node(@2.first_line, DOT, 2
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier)

@@ -20,11 +20,11 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
-
-#include "AST.hpp"
 #include "Typing.hpp"
-#include "Interpreter.hpp"
 
+
+// 提前声明Interpreter类
+class Interpreter;
 namespace CodeGeneration
 {
     struct BasicType
@@ -85,6 +85,11 @@ namespace CodeGeneration
     };
 }
 
+
+namespace AST
+{   // 提前声明AST类
+    class Node;
+};
 class CodeGenerator
 {
 public:

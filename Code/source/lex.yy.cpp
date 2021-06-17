@@ -926,7 +926,7 @@ YY_RULE_SETUP
 #line 39 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return LP;
+    return _LP_;
 }
 	YY_BREAK
 case 5:
@@ -1048,14 +1048,14 @@ YY_RULE_SETUP
 #line 93 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return LE;}
+    return _LE_;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 96 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return LT;}
+    return _LT_;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
@@ -1405,7 +1405,7 @@ YY_RULE_SETUP
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
-    return ID;
+    return _ID_;
 }
 	YY_BREAK
 case 67:

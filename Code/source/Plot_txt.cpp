@@ -36,7 +36,6 @@ namespace Plot_txt
                 sText << ")";
                 break;
             case AST::Attribute::Identifier:
-                // std::cout << "Name: "<< p->ID.Name << std::endl;
                 sText << "id(" << p->m_Identifier.Name << ")";
                 break;
             case AST::Attribute::Typename:
@@ -47,8 +46,8 @@ namespace Plot_txt
                 {
                     case GE: sText << "[>=]"; break;
                     case GT: sText << "[>]"; break;
-                    case LE: sText << "[<=]"; break;
-                    case LT: sText << "[<]"; break;
+                    case _LE_: sText << "[<=]"; break;
+                    case _LT_: sText << "[<]"; break;
                     case OR: sText << "[or]"; break;
                     case AND: sText << "[and]"; break;
                     case NOT: sText << "[not]"; break;

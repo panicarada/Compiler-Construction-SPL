@@ -71,8 +71,8 @@
      CHAR = 260,
      STRING = 261,
      SYS_TYPE = 262,
-     ID = 263,
-     LP = 264,
+     _ID_ = 263,
+     _LP_ = 264,
      RP = 265,
      LB = 266,
      RB = 267,
@@ -87,8 +87,8 @@
      MINUS = 276,
      GE = 277,
      GT = 278,
-     LE = 279,
-     LT = 280,
+     _LE_ = 279,
+     _LT_ = 280,
      EQUAL = 281,
      ASSIGN = 282,
      MOD = 283,
@@ -152,8 +152,8 @@
 #define CHAR 260
 #define STRING 261
 #define SYS_TYPE 262
-#define ID 263
-#define LP 264
+#define _ID_ 263
+#define _LP_ 264
 #define RP 265
 #define LB 266
 #define RB 267
@@ -168,8 +168,8 @@
 #define MINUS 276
 #define GE 277
 #define GT 278
-#define LE 279
-#define LT 280
+#define _LE_ 279
+#define _LT_ 280
 #define EQUAL 281
 #define ASSIGN 282
 #define MOD 283
@@ -240,6 +240,7 @@
 
     #include "AST.hpp"
     #include "Interpreter.hpp"
+    #include "CodeGenerator.hpp"
 
 	// 构建语法树的解释器
 	Interpreter* ipt;
@@ -276,7 +277,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 28 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 29 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
 {
     int iValue; // integer value
     double dValue; // double value
@@ -286,7 +287,7 @@ typedef union YYSTYPE
 	std::vector<AST::Node*>* NodePtrList; // List
 }
 /* Line 193 of yacc.c.  */
-#line 290 "/Applications/zju/编译原理/final_proj/Code/source/yacc.tab.cpp"
+#line 291 "/Applications/zju/编译原理/final_proj/Code/source/yacc.tab.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -311,7 +312,7 @@ typedef struct YYLTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 315 "/Applications/zju/编译原理/final_proj/Code/source/yacc.tab.cpp"
+#line 316 "/Applications/zju/编译原理/final_proj/Code/source/yacc.tab.cpp"
 
 #ifdef short
 # undef short
@@ -656,19 +657,19 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    80,    80,    89,    97,   110,   126,   147,   152,   156,
-     160,   164,   172,   179,   186,   193,   201,   212,   216,   220,
-     224,   231,   240,   244,   248,   255,   259,   263,   267,   271,
-     277,   283,   292,   300,   307,   311,   319,   327,   331,   340,
-     344,   348,   352,   359,   367,   371,   375,   380,   385,   389,
-     398,   420,   427,   449,   453,   456,   460,   466,   471,   478,
-     484,   491,   504,   510,   521,   524,   531,   537,   538,   539,
-     540,   541,   542,   543,   544,   545,   549,   553,   559,   569,
-     573,   578,   582,   587,   594,   607,   608,   611,   617,   624,
-     631,   632,   635,   641,   645,   651,   655,   663,   672,   676,
-     683,   687,   691,   695,   699,   703,   707,   713,   717,   721,
-     725,   731,   735,   739,   743,   747,   753,   757,   763,   768,
-     773,   779,   783,   787,   791,   795,   801,   809,   813
+       0,    81,    81,    90,    98,   111,   127,   148,   153,   157,
+     161,   165,   173,   180,   187,   194,   202,   213,   217,   221,
+     225,   232,   241,   245,   249,   256,   260,   264,   268,   272,
+     278,   284,   293,   301,   308,   312,   320,   328,   332,   341,
+     345,   349,   353,   360,   368,   372,   376,   381,   386,   390,
+     399,   421,   428,   450,   454,   457,   461,   467,   472,   479,
+     485,   492,   505,   511,   522,   525,   532,   538,   539,   540,
+     541,   542,   543,   544,   545,   546,   550,   554,   560,   570,
+     574,   579,   583,   588,   595,   608,   609,   612,   618,   625,
+     632,   633,   636,   642,   646,   652,   656,   664,   673,   677,
+     684,   688,   692,   696,   700,   704,   708,   714,   718,   722,
+     726,   732,   736,   740,   744,   748,   754,   758,   764,   769,
+     774,   780,   784,   788,   792,   796,   802,   810,   814
 };
 #endif
 
@@ -678,9 +679,9 @@ static const yytype_uint16 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "INTEGER", "REAL", "CHAR", "STRING",
-  "SYS_TYPE", "ID", "LP", "RP", "LB", "RB", "DOT", "COMMA", "COLON", "MUL",
-  "DIV", "UNEQUAL", "NOT", "PLUS", "MINUS", "GE", "GT", "LE", "LT",
-  "EQUAL", "ASSIGN", "MOD", "DOTDOT", "SEMI", "READ", "SYS_PROC",
+  "SYS_TYPE", "_ID_", "_LP_", "RP", "LB", "RB", "DOT", "COMMA", "COLON",
+  "MUL", "DIV", "UNEQUAL", "NOT", "PLUS", "MINUS", "GE", "GT", "_LE_",
+  "_LT_", "EQUAL", "ASSIGN", "MOD", "DOTDOT", "SEMI", "READ", "SYS_PROC",
   "SYS_FUNCT", "SYS_CON", "AND", "ARRAY", "_BEGIN", "CASE", "CONST", "DO",
   "DOWNTO", "ELSE", "END", "FOR", "FUNCTION", "GOTO", "IF", "OF", "OR",
   "PACKED", "PROCEDURE", "PROGRAM", "RECORD", "REPEAT", "THEN", "TO",
@@ -1797,7 +1798,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 81 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 82 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		std::string Program = (yyvsp[(1) - (3)].sValue);
 		ipt = new Interpreter();
@@ -1807,7 +1808,7 @@ yyreduce:
     break;
 
   case 3:
-#line 90 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 91 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.sValue) = new char[strlen((yyvsp[(2) - (3)].sValue))];
 		strcpy((yyval.sValue), (yyvsp[(2) - (3)].sValue));
@@ -1815,7 +1816,7 @@ yyreduce:
     break;
 
   case 4:
-#line 98 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 99 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		// 因为两个都nullable
 		// 所以把所有非空部分拼成一个列表再一次性构造$$，避免了很多的if-else语句
@@ -1828,7 +1829,7 @@ yyreduce:
     break;
 
   case 5:
-#line 111 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 112 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		// 因为两个都nullable
 		// 所以把所有非空部分拼成一个列表再一次性构造$$，避免了很多的if-else语句
@@ -1844,7 +1845,7 @@ yyreduce:
     break;
 
   case 6:
-#line 127 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 128 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		// 因为很多部分有nullable
 		// 所以把所有非空部分拼成一个列表再一次性构造$$，避免了很多的if-else语句
@@ -1866,26 +1867,26 @@ yyreduce:
     break;
 
   case 8:
-#line 153 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 154 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (2)]).first_line, CONST_PART, (yyvsp[(2) - (2)].NodePtrList));
 	;}
     break;
 
   case 9:
-#line 156 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 157 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 10:
-#line 161 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 162 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList)->push_back(new AST::Node((yylsp[(3) - (5)]).first_line, EQUAL, 2, new AST::Node((yylsp[(2) - (5)]).first_line, (yyvsp[(2) - (5)].sValue), AST::Attribute::Identifier), (yyvsp[(4) - (5)].NodePtr)));
 	;}
     break;
 
   case 11:
-#line 165 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 166 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
 		(yyval.NodePtrList)->push_back(new AST::Node((yylsp[(2) - (4)]).first_line, EQUAL, 2, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier), (yyvsp[(3) - (4)].NodePtr)));
@@ -1893,7 +1894,7 @@ yyreduce:
     break;
 
   case 12:
-#line 173 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 174 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         AST::ValConstant temp;
         temp.Type = AST::ConstantType::Integer;
@@ -1903,7 +1904,7 @@ yyreduce:
     break;
 
   case 13:
-#line 180 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 181 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         AST::ValConstant temp;
         temp.Type = AST::ConstantType::Real;
@@ -1913,7 +1914,7 @@ yyreduce:
     break;
 
   case 14:
-#line 187 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 188 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         AST::ValConstant temp;
         temp.Type = AST::ConstantType::Char;
@@ -1923,7 +1924,7 @@ yyreduce:
     break;
 
   case 15:
-#line 194 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 195 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		AST::ValConstant temp;
         temp.Type = AST::ConstantType::String;
@@ -1934,7 +1935,7 @@ yyreduce:
     break;
 
   case 16:
-#line 202 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 203 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		AST::ValConstant temp;
 		temp.Type = AST::ConstantType::Boolean;
@@ -1945,33 +1946,33 @@ yyreduce:
     break;
 
   case 17:
-#line 213 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 214 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(2) - (2)].NodePtr);
 	;}
     break;
 
   case 18:
-#line 216 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 217 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 19:
-#line 221 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 222 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 20:
-#line 225 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 226 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, TYPE_PART, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 21:
-#line 232 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 233 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (4)]).first_line, TYPE, 2
 					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Typename)
@@ -1980,56 +1981,56 @@ yyreduce:
     break;
 
   case 22:
-#line 241 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 242 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 23:
-#line 245 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 246 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 24:
-#line 249 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 250 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 25:
-#line 256 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 257 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Typename);
 	;}
     break;
 
   case 26:
-#line 260 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 261 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Typename);
 	;}
     break;
 
   case 27:
-#line 264 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 265 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (3)]).first_line, ENUM, (yyvsp[(2) - (3)].NodePtrList));
 	;}
     break;
 
   case 28:
-#line 268 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 269 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, DOTDOT, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 29:
-#line 272 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 273 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(3) - (4)]).first_line, DOTDOT, 2,
 					  new AST::Node((yylsp[(1) - (4)]).first_line, MINUS, 1, (yyvsp[(2) - (4)].NodePtr)),
@@ -2038,7 +2039,7 @@ yyreduce:
     break;
 
   case 30:
-#line 278 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 279 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(3) - (5)]).first_line, DOTDOT, 2,
 					  new AST::Node((yylsp[(1) - (5)]).first_line, MINUS, 1, (yyvsp[(2) - (5)].NodePtr)),
@@ -2047,7 +2048,7 @@ yyreduce:
     break;
 
   case 31:
-#line 284 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 285 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, DOTDOT, 2,
 					  new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::Attribute::Identifier),
@@ -2056,7 +2057,7 @@ yyreduce:
     break;
 
   case 32:
-#line 293 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 294 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (6)]).first_line, ARRAY, 1, (yyvsp[(6) - (6)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(3) - (6)].NodePtr));
@@ -2064,21 +2065,21 @@ yyreduce:
     break;
 
   case 33:
-#line 301 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 302 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (3)]).first_line, RECORD, (yyvsp[(2) - (3)].NodePtrList));
 	;}
     break;
 
   case 34:
-#line 308 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 309 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 35:
-#line 312 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 313 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2086,7 +2087,7 @@ yyreduce:
     break;
 
   case 36:
-#line 320 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 321 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, FIELD_DECL, 1, (yyvsp[(3) - (4)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (4)].NodePtrList));
@@ -2094,14 +2095,14 @@ yyreduce:
     break;
 
   case 37:
-#line 328 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 329 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList)->push_back(new AST::Node((yylsp[(3) - (3)]).first_line, (yyvsp[(3) - (3)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
   case 38:
-#line 332 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 333 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		// std::cout << "line no: " << @1.first_line << std::endl;
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
@@ -2110,33 +2111,33 @@ yyreduce:
     break;
 
   case 39:
-#line 341 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 342 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(2) - (2)].NodePtr);
 	;}
     break;
 
   case 40:
-#line 344 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 345 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 41:
-#line 349 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 350 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 42:
-#line 353 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 354 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, VAR_PART, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 43:
-#line 360 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 361 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (4)]).first_line, VAR, 1, (yyvsp[(3) - (4)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (4)].NodePtrList));
@@ -2144,21 +2145,21 @@ yyreduce:
     break;
 
   case 44:
-#line 368 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 369 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 45:
-#line 372 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 373 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 46:
-#line 376 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 377 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2166,7 +2167,7 @@ yyreduce:
     break;
 
   case 47:
-#line 381 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 382 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2174,12 +2175,12 @@ yyreduce:
     break;
 
   case 48:
-#line 385 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 386 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtrList) = NULL;;}
     break;
 
   case 49:
-#line 390 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 391 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		if ((yyvsp[(3) - (4)].NodePtr))
 			(yyval.NodePtr) = new AST::Node((yylsp[(2) - (4)]).first_line, FUNCTION, 2, (yyvsp[(1) - (4)].NodePtr), (yyvsp[(3) - (4)].NodePtr));
@@ -2189,7 +2190,7 @@ yyreduce:
     break;
 
   case 50:
-#line 399 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 400 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		if ((yyvsp[(3) - (5)].NodePtr))
 		{
@@ -2211,14 +2212,14 @@ yyreduce:
     break;
 
   case 51:
-#line 421 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 422 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, PROCEDURE, 2, (yyvsp[(1) - (4)].NodePtr), (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
 
   case 52:
-#line 428 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 429 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		if ((yyvsp[(3) - (3)].NodePtr))
 		{
@@ -2240,33 +2241,33 @@ yyreduce:
     break;
 
   case 53:
-#line 450 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 451 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     { 
 		(yyval.NodePtr) = (yyvsp[(2) - (3)].NodePtr);
 	;}
     break;
 
   case 54:
-#line 453 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 454 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 55:
-#line 457 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 458 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 56:
-#line 461 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 462 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, PARA_LIST, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 57:
-#line 467 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 468 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, VAR_PARAM, 1, (yyvsp[(3) - (3)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (3)].NodePtrList));
@@ -2274,7 +2275,7 @@ yyreduce:
     break;
 
   case 58:
-#line 472 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 473 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, VAL_PARAM, 1, (yyvsp[(3) - (3)].NodePtr));
 		(yyval.NodePtr)->add((yyvsp[(1) - (3)].NodePtrList));
@@ -2282,21 +2283,21 @@ yyreduce:
     break;
 
   case 59:
-#line 479 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 480 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = (yyvsp[(2) - (2)].NodePtrList);
 	;}
     break;
 
   case 60:
-#line 485 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 486 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = (yyvsp[(1) - (1)].NodePtrList);
 	;}
     break;
 
   case 61:
-#line 492 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 493 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		if ((yyvsp[(1) - (1)].NodePtr))
 		{
@@ -2310,14 +2311,14 @@ yyreduce:
     break;
 
   case 62:
-#line 505 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 506 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(2) - (3)].NodePtr);
 	;}
     break;
 
   case 63:
-#line 511 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 512 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		if ((yyvsp[(1) - (3)].NodePtr) == NULL)
 		{
@@ -2331,12 +2332,12 @@ yyreduce:
     break;
 
   case 64:
-#line 521 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 522 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 65:
-#line 525 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 526 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		AST::ValConstant temp;
 		temp.Type = AST::ConstantType::Integer;
@@ -2346,66 +2347,66 @@ yyreduce:
     break;
 
   case 66:
-#line 532 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 533 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
 	;}
     break;
 
   case 67:
-#line 537 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
-    {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
-    break;
-
-  case 68:
 #line 538 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
-  case 69:
+  case 68:
 #line 539 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
-  case 70:
+  case 69:
 #line 540 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
-  case 71:
+  case 70:
 #line 541 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
-  case 72:
+  case 71:
 #line 542 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
-  case 73:
+  case 72:
 #line 543 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
-  case 74:
+  case 73:
 #line 544 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
-  case 75:
+  case 74:
 #line 545 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
     break;
 
+  case 75:
+#line 546 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+    {(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);;}
+    break;
+
   case 76:
-#line 550 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 551 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, ASSIGN, 2, new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::Attribute::Identifier), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 77:
-#line 554 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 555 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(5) - (6)]).first_line, ASSIGN, 2, 
 					  new AST::Node((yylsp[(2) - (6)]).first_line, BRACKET, 2, new AST::Node((yylsp[(1) - (6)]).first_line, (yyvsp[(1) - (6)].sValue), AST::Attribute::Identifier), (yyvsp[(3) - (6)].NodePtr)),
@@ -2414,7 +2415,7 @@ yyreduce:
     break;
 
   case 78:
-#line 560 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 561 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(4) - (5)]).first_line, ASSIGN, 2,
 					  new AST::Node((yylsp[(2) - (5)]).first_line, DOT, 2, new AST::Node((yylsp[(1) - (5)]).first_line, (yyvsp[(1) - (5)].sValue), AST::Attribute::Identifier),
@@ -2424,14 +2425,14 @@ yyreduce:
     break;
 
   case 79:
-#line 570 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 571 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, CALL_PROC, 1, new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
   case 80:
-#line 574 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 575 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, CALL_PROC, 1, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
@@ -2439,14 +2440,14 @@ yyreduce:
     break;
 
   case 81:
-#line 579 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 580 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, SYS_PROC, 1, new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier));
 	;}
     break;
 
   case 82:
-#line 583 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 584 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, SYS_PROC, 1, new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
 		(yyval.NodePtr)->add((yyvsp[(3) - (4)].NodePtrList));
@@ -2454,14 +2455,14 @@ yyreduce:
     break;
 
   case 83:
-#line 588 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 589 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {	// 类似于scanf，不过一次读取用户一个输入
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, SYS_PROC, 2, new AST::Node((yylsp[(1) - (4)]).first_line, "read", AST::Attribute::Identifier), (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
 
   case 84:
-#line 595 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 596 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		if ((yyvsp[(5) - (5)].NodePtr))
 		{
@@ -2475,31 +2476,31 @@ yyreduce:
     break;
 
   case 85:
-#line 607 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 608 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = (yyvsp[(2) - (2)].NodePtr);;}
     break;
 
   case 86:
-#line 608 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 609 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.NodePtr) = NULL;;}
     break;
 
   case 87:
-#line 612 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 613 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {	// $4, $2的顺序是为了和while语句保持一致
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, REPEAT, 2, (yyvsp[(4) - (4)].NodePtr), (yyvsp[(2) - (4)].NodePtr));
 	;}
     break;
 
   case 88:
-#line 618 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 619 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, WHILE, 2, (yyvsp[(2) - (4)].NodePtr), (yyvsp[(4) - (4)].NodePtr));
 	;}
     break;
 
   case 89:
-#line 625 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 626 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (8)]).first_line, (yyvsp[(5) - (8)].iValue), 4, new AST::Node((yylsp[(2) - (8)]).first_line, (yyvsp[(2) - (8)].sValue), AST::Attribute::Identifier),
 						(yyvsp[(4) - (8)].NodePtr), (yyvsp[(6) - (8)].NodePtr), (yyvsp[(8) - (8)].NodePtr));
@@ -2507,45 +2508,45 @@ yyreduce:
     break;
 
   case 90:
-#line 631 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 632 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.iValue) = TO;;}
     break;
 
   case 91:
-#line 632 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 633 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {(yyval.iValue) = DOWNTO;;}
     break;
 
   case 92:
-#line 636 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 637 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (5)]).first_line, CASE_STMT, 2, (yyvsp[(2) - (5)].NodePtr), (yyvsp[(4) - (5)].NodePtr));
 	;}
     break;
 
   case 93:
-#line 642 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 643 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr)->add((yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 94:
-#line 646 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 647 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node(0, CASE_LIST, 1, (yyvsp[(1) - (1)].NodePtr));
 	;}
     break;
 
   case 95:
-#line 652 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 653 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, CASE, 2, (yyvsp[(1) - (4)].NodePtr), (yyvsp[(3) - (4)].NodePtr));
 	;}
     break;
 
   case 96:
-#line 656 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 657 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, CASE, 2
 					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier)
@@ -2554,7 +2555,7 @@ yyreduce:
     break;
 
   case 97:
-#line 664 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 665 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		AST::ValConstant temp;
 		temp.Type = AST::ConstantType::Integer;
@@ -2564,14 +2565,14 @@ yyreduce:
     break;
 
   case 98:
-#line 673 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 674 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 99:
-#line 677 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 678 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2579,126 +2580,126 @@ yyreduce:
     break;
 
   case 100:
-#line 684 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 685 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, GE, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 101:
-#line 688 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 689 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, GT, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 102:
-#line 692 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 693 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
-        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, LE, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
+        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, _LE_, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 103:
-#line 696 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 697 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
-        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, LT, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
+        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, _LT_, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 104:
-#line 700 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 701 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, EQUAL, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 105:
-#line 704 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 705 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, UNEQUAL, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 106:
-#line 708 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 709 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     ;}
     break;
 
   case 107:
-#line 714 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 715 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, PLUS, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 108:
-#line 718 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 719 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, MINUS, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 109:
-#line 722 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 723 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, OR, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 110:
-#line 726 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 727 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     ;}
     break;
 
   case 111:
-#line 732 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 733 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, MUL, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 112:
-#line 736 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 737 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, DIV, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 113:
-#line 740 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 741 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, MOD, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 114:
-#line 744 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 745 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, AND, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 115:
-#line 748 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 749 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     ;}
     break;
 
   case 116:
-#line 754 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 755 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
        		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier);
     	;}
     break;
 
   case 117:
-#line 758 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 759 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, CALL_FUNCT, 1
 					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
@@ -2707,7 +2708,7 @@ yyreduce:
     break;
 
   case 118:
-#line 764 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 765 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (1)]).first_line, SYS_FUNCT, 1
 					  , new AST::Node((yylsp[(1) - (1)]).first_line, (yyvsp[(1) - (1)].sValue), AST::Attribute::Identifier));
@@ -2715,7 +2716,7 @@ yyreduce:
     break;
 
   case 119:
-#line 769 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 770 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, READ, 2, new AST::Node((yylsp[(1) - (4)]).first_line, "read", AST::Attribute::Identifier),
 							   new AST::Node((yylsp[(3) - (4)]).first_line, (yyvsp[(3) - (4)].sValue), AST::Attribute::Identifier));
@@ -2723,7 +2724,7 @@ yyreduce:
     break;
 
   case 120:
-#line 774 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 775 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, SYS_FUNCT, 1
 					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier));
@@ -2732,35 +2733,35 @@ yyreduce:
     break;
 
   case 121:
-#line 780 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 781 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         	(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
     	;}
     break;
 
   case 122:
-#line 784 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 785 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
         	(yyval.NodePtr) = (yyvsp[(2) - (3)].NodePtr);
     	;}
     break;
 
   case 123:
-#line 788 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 789 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (2)]).first_line, NOT, 1, (yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 124:
-#line 792 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 793 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (2)]).first_line, MINUS, 1, (yyvsp[(2) - (2)].NodePtr));
 	;}
     break;
 
   case 125:
-#line 796 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 797 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(1) - (4)]).first_line, BRACKET, 2
 					  , new AST::Node((yylsp[(1) - (4)]).first_line, (yyvsp[(1) - (4)].sValue), AST::Attribute::Identifier)
@@ -2769,7 +2770,7 @@ yyreduce:
     break;
 
   case 126:
-#line 802 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 803 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, DOT, 2
 					  , new AST::Node((yylsp[(1) - (3)]).first_line, (yyvsp[(1) - (3)].sValue), AST::Attribute::Identifier)
@@ -2778,14 +2779,14 @@ yyreduce:
     break;
 
   case 127:
-#line 810 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 811 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList)->push_back((yyvsp[(3) - (3)].NodePtr));
 	;}
     break;
 
   case 128:
-#line 814 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 815 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
 		(yyval.NodePtrList) = new std::vector<AST::Node*>();
 		(yyval.NodePtrList)->push_back((yyvsp[(1) - (1)].NodePtr));
@@ -2794,7 +2795,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 2798 "/Applications/zju/编译原理/final_proj/Code/source/yacc.tab.cpp"
+#line 2799 "/Applications/zju/编译原理/final_proj/Code/source/yacc.tab.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3014,7 +3015,7 @@ yyreturn:
 }
 
 
-#line 819 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 820 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
 
 void yyerror(const char* s)
 {

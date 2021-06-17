@@ -2,7 +2,10 @@
 // Created by 邱泽鸿 on 2021/6/15.
 //
 
+
 #include "CodeGenerator.hpp"
+#include "AST.hpp"
+#include "Interpreter.hpp"
 #include "yacc.tab.hpp"
 
 
@@ -144,25 +147,36 @@ llvm::Value* CodeGenerator::genCode(AST::Node* node)
                     Builder.SetInsertPoint(LabelBlock);
                     return genCode(node->m_Operation.List_Operands[1]);
                 }
-                case PLUS: return Builder.CreateFAdd(genCode(node->m_Operation.List_Operands[0]), genCode(node->m_Operation.List_Operands[1]), "addtmp");
-                case MINUS:
+                // 二元算数运算符
+                case PLUS: case MINUS: case MUL:
                 {
-                    if (node->m_Operation.NumOperands == 1)
-                    {   // 负号
-                        return Builder.CreateFNeg(genCode(node->m_Operation.List_Operands[0]), "negtmp");
+                    if (node->m_Operation.Operator == MINUS && node->m_Operation.NumOperands)
+                    {   // 单元，取负号
+                        return Builder.CreateNeg(
+                        /* value = */genCode(node->m_Operation.List_Operands[0])
+                        );
+                    }
+                    llvm::Value* Left = genCode(node->m_Operation.List_Operands[0]);
+                    llvm::Value* Right= genCode(node->m_Operation.List_Operands[1]);
+                    if (Left->getType()->isDoubleTy() || Right->getType()->isDoubleTy())
+                    {   // 只要有一个为double，结果就是double
+                        switch (node->m_Operation.Operator)
+                        {
+                            case PLUS: return Builder.CreateFAdd(Left, Right);
+                            case MINUS: return Builder.CreateFSub(Left, Right);
+                            case MUL: return Builder.CreateFMul(Left, Right);
+                        }
                     }
                     else
-                    {   // 减法
-                        return Builder.CreateFSub(genCode(node->m_Operation.List_Operands[0]), genCode(node->m_Operation.List_Operands[1]), "subtmp");
+                    {
+                        switch (node->m_Operation.Operator)
+                        {
+                            case PLUS: return Builder.CreateAdd(Left, Right);
+                            case MINUS: return Builder.CreateSub(Left, Right);
+                            case MUL:  return Builder.CreateMul(Left, Right);
+                        }
                     }
                 }
-                case MUL: return Builder.CreateFMul(genCode(node->m_Operation.List_Operands[0]), genCode(node->m_Operation.List_Operands[1]), "multmp");
-                case LT:
-                {
-                    auto compare = Builder.CreateFCmpULT(genCode(node->m_Operation.List_Operands[0]), genCode(node->m_Operation.List_Operands[1]), "cmptmp");
-                    return Builder.CreateUIToFP(compare, llvm::Type::getDoubleTy(Context), "booltmp");
-                }
-
             }
         }
 

@@ -44,8 +44,8 @@
      CHAR = 260,
      STRING = 261,
      SYS_TYPE = 262,
-     ID = 263,
-     LP = 264,
+     _ID_ = 263,
+     _LP_ = 264,
      RP = 265,
      LB = 266,
      RB = 267,
@@ -60,8 +60,8 @@
      MINUS = 276,
      GE = 277,
      GT = 278,
-     LE = 279,
-     LT = 280,
+     _LE_ = 279,
+     _LT_ = 280,
      EQUAL = 281,
      ASSIGN = 282,
      MOD = 283,
@@ -125,8 +125,8 @@
 #define CHAR 260
 #define STRING 261
 #define SYS_TYPE 262
-#define ID 263
-#define LP 264
+#define _ID_ 263
+#define _LP_ 264
 #define RP 265
 #define LB 266
 #define RB 267
@@ -141,8 +141,8 @@
 #define MINUS 276
 #define GE 277
 #define GT 278
-#define LE 279
-#define LT 280
+#define _LE_ 279
+#define _LT_ 280
 #define EQUAL 281
 #define ASSIGN 282
 #define MOD 283
@@ -204,7 +204,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 28 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
+#line 29 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
 {
     int iValue; // integer value
     double dValue; // double value
