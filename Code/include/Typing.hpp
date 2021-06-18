@@ -69,7 +69,7 @@ namespace Typing
     class Node
     {
     public:
-        NodeType m_Type;
+        NodeType nType;
         Node* prev = nullptr;
         Node* next = nullptr;
     public:
@@ -84,7 +84,7 @@ namespace Typing
     public:
         enumNode(std::vector<std::string>* List)
         {
-            m_Type = NodeType::t_ENUM;
+            nType = NodeType::t_ENUM;
             m_List = List;
             // 为了便于类型判断，我们对enum类型列表进行排序
             // std::sort(m_List->begin(), m_List->end(), [](std::string& a, std::string& b) -> bool{
@@ -110,7 +110,7 @@ namespace Typing
     {
     public: 
         std::string m_Keyword; // 为了方便输出，把类型的enum变为字符串
-        DataType m_DataType;
+        DataType dType;
     public:
         virtual std::string toString(int& hPos) const override
         {
@@ -121,13 +121,13 @@ namespace Typing
         }
         sysNode(DataType&& datatype)
         {
-            m_DataType = datatype;
-            m_Type = NodeType::t_SYS_TYPE;
-            m_Keyword =   (m_DataType == DataType::d_INTEGER)   ? "integer"
-                        : (m_DataType == DataType::d_REAL)    ? "real"
-                        : (m_DataType == DataType::d_CHAR)    ? "char"
-                        : (m_DataType == DataType::d_STRING)  ? "string"
-                        : (m_DataType == DataType::d_BOOLEAN) ? "boolean"
+            dType = datatype;
+            nType = NodeType::t_SYS_TYPE;
+            m_Keyword =   (dType == DataType::d_INTEGER)   ? "integer"
+                        : (dType == DataType::d_REAL)    ? "real"
+                        : (dType == DataType::d_CHAR)    ? "char"
+                        : (dType == DataType::d_STRING)  ? "string"
+                        : (dType == DataType::d_BOOLEAN) ? "boolean"
                         : "N/A";
         }
     };
@@ -147,7 +147,7 @@ namespace Typing
         }
         recordNode(std::map<std::string, Node*>* Field)
         {
-            m_Type = NodeType::t_RECORD;
+            nType = NodeType::t_RECORD;
             m_Field = Field;
         }
         virtual std::string toString(int& hPos) const override;
@@ -161,11 +161,11 @@ namespace Typing
         AST::ValConstant m_Constant;
         constNode(Node* Sys, AST::ValConstant Constant)
         {
-            if (Sys->m_Type != NodeType::t_SYS_TYPE)
+            if (Sys->nType != NodeType::t_SYS_TYPE)
             {   
                 raiseError("错误的构造函数输入，只能接受sys类型");
             }
-            m_Type = NodeType::t_CONSTANT;
+            nType = NodeType::t_CONSTANT;
             m_Sys = dynamic_cast<sysNode*>(Sys);
             m_Constant = Constant;
             // switch (Constant.Type)
@@ -188,11 +188,11 @@ namespace Typing
         int m_UpperBound;
         rangeNode(Node* LowerBound, Node* UpperBound)
         {
-            if (LowerBound->m_Type != NodeType::t_CONSTANT)
+            if (LowerBound->nType != NodeType::t_CONSTANT)
             {
                 raiseError("Invalid range!")
             }
-            m_Type = NodeType::t_RANGE;
+            nType = NodeType::t_RANGE;
             AST::ValConstant temp_lower = dynamic_cast<constNode*>(LowerBound)->m_Constant;
             AST::ValConstant temp_upper = dynamic_cast<constNode*>(UpperBound)->m_Constant;
             
@@ -214,7 +214,7 @@ namespace Typing
         arrayNode(Node* IdxType, Node* EleType)
             : m_IdxType(IdxType), m_EleType(EleType)
         {
-            m_Type = NodeType::t_ARRAY;
+            nType = NodeType::t_ARRAY;
         }
         virtual std::string toString(int& hPos) const override;
     };

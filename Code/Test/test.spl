@@ -1,0 +1,14 @@
+program Hello;
+const 
+	pi = 3.1415926;
+	t = 3;
+	T = true;
+var
+	index : integer;
+begin
+	write("Input your x: ");
+	read("%d", index);
+
+	writeln("Hello World: %d, %.5f", index, pi);
+end
+.

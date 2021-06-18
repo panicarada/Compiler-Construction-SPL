@@ -353,11 +353,11 @@ void ST::show()
         std::cout   << std::setfill(' ') << std::setw(ALIGN_WIDTH) << it.first
                     << std::setfill(' ') << std::setw(ALIGN_WIDTH / 2) << LineTable[it.first]
                     << it.second->toString(hPos) << std::endl;
-        if ((it.second)->m_Type == Typing::NodeType::t_FUNCTION)
+        if ((it.second)->nType == Typing::NodeType::t_FUNCTION)
         {   // 函数储存起来，之后要输出函数的参数表
             functions.emplace_back(it);
         }
-        if ((it.second)->m_Type == Typing::NodeType::t_PROCEDURE)
+        if ((it.second)->nType == Typing::NodeType::t_PROCEDURE)
         {   // 过程储存起来，之后要输出过程的参数表
             procedures.emplace_back(it);
         }
@@ -486,11 +486,11 @@ Typing::Node* ST::check(AST::Node* p)
             {
                 auto type = get(p->m_Identifier.Name, p->m_Line);
                 // 函数体中，函数名就是返回参数
-                if (type->m_Type == Typing::NodeType::t_FUNCTION)
+                if (type->nType == Typing::NodeType::t_FUNCTION)
                 {   // 这时候对应的类型是函数返回类型
                     type = dynamic_cast<Typing::functNode*>(type)->m_resType;
                 }
-                else if (type->m_Type == Typing::NodeType::t_CONSTANT)
+                else if (type->nType == Typing::NodeType::t_CONSTANT)
                 {   // 常数类型
                     type = dynamic_cast<Typing::constNode*>(type)->m_Sys;
                 }
@@ -602,7 +602,7 @@ Typing::Node* ST::check(AST::Node* p)
                     }
                     auto input = get(input_node->m_Identifier.Name, p->m_Line);
                     // 并且只能读取基础类型
-                    if (input->m_Type == Typing::NodeType::t_SYS_TYPE)
+                    if (input->nType == Typing::NodeType::t_SYS_TYPE)
                     {   // 返回结果就是读取的值
                         return input;
                     }
@@ -619,7 +619,7 @@ Typing::Node* ST::check(AST::Node* p)
                     for (int i = 1; i < p->m_Operation.NumOperands; ++i)
                     {
                         auto input = check(p->m_Operation.List_Operands[i]);
-                        if (input->m_Type != Typing::NodeType::t_SYS_TYPE)
+                        if (input->nType != Typing::NodeType::t_SYS_TYPE)
                         {
                             std::stringstream msg;
                             int hPos = 0;
@@ -635,7 +635,7 @@ Typing::Node* ST::check(AST::Node* p)
                 { // 关于数组的例子请见swap.spl
                     // 子节点为[数组名，索引]
                     auto node = check(p->m_Operation.List_Operands[0]);
-                    if (node->m_Type != Typing::NodeType::t_ARRAY)
+                    if (node->nType != Typing::NodeType::t_ARRAY)
                     {
                         std::stringstream msg;
                         msg << std::endl << "In line " << p->m_Line << ". 无法对下面的类型进行数组访问" << std::endl;
@@ -649,7 +649,7 @@ Typing::Node* ST::check(AST::Node* p)
                     // 检查数组访问下标类型是否一致
                     // 不检查越界！
                     auto target = array->m_IdxType;
-                    if (target->m_Type == Typing::NodeType::t_RANGE)
+                    if (target->nType == Typing::NodeType::t_RANGE)
                     {   // range本质上的类型就是integer
                         target = get("integer", 0);
                     }
@@ -823,15 +823,15 @@ Typing::Node* ST::check(AST::Node* p)
                     // 子节点为[record名，成员名]
                     auto node = get(p->m_Operation.List_Operands[0]->m_Identifier.Name, p->m_Line);
                     Typing::recordNode *record;
-                    if (node->m_Type == Typing::NodeType::t_RECORD)
+                    if (node->nType == Typing::NodeType::t_RECORD)
                     {
                         record = dynamic_cast<Typing::recordNode *>(node);
                     }
-                    else if (node->m_Type == Typing::NodeType::t_FUNCTION)
+                    else if (node->nType == Typing::NodeType::t_FUNCTION)
                     {   // 在函数内部，函数名就是返回值
                         auto function = dynamic_cast<Typing::functNode *>(node);
 
-                        if (function->m_resType->m_Type == Typing::NodeType::t_RECORD)
+                        if (function->m_resType->nType == Typing::NodeType::t_RECORD)
                         {
                             record = dynamic_cast<Typing::recordNode *>(function->m_resType);
                         }
@@ -1087,7 +1087,7 @@ Typing::Node* ST::check(AST::Node* p)
                         { // 只对有序类型有效
                             if (Typing::Node::isEqual(input, int_type)
                                 || Typing::Node::isEqual(input, char_type)
-                                || input->m_Type == Typing::NodeType::t_ENUM)
+                                || input->nType == Typing::NodeType::t_ENUM)
                             {   // 返回本身类型
                                 p->m_Type = input;
                                 return input;

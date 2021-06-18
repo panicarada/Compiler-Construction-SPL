@@ -12,17 +12,17 @@ namespace Typing
         {
             raiseError("比较指针有一个为空");
         }
-        if (node1->m_Type != node2->m_Type)
+        if (node1->nType != node2->nType)
         {
             return false;
         }
-        switch (node1->m_Type)
+        switch (node1->nType)
         {
             case NodeType::t_SYS_TYPE:
             {
                 auto* sys1 = dynamic_cast<sysNode*>(node1);
                 auto* sys2 = dynamic_cast<sysNode*>(node2);
-                return (sys1->m_DataType == sys2->m_DataType);
+                return (sys1->dType == sys2->dType);
             }
             case NodeType::t_ENUM:
             {
@@ -155,7 +155,7 @@ namespace Typing
     functNode::functNode(std::string name, Node* resType, AST::Node* body)
         : m_name(std::move(name)), m_resType(resType), m_body(body)
     {
-        m_Type = NodeType::t_FUNCTION;
+        nType = NodeType::t_FUNCTION;
         m_var_table = new ST(false);
         m_val_table = new ST(false);
     }
@@ -191,7 +191,7 @@ namespace Typing
     procNode::procNode(std::string name, AST::Node *body)
             : m_name(std::move(name)), m_body(body)
     {
-        m_Type = NodeType::t_PROCEDURE;
+        nType = NodeType::t_PROCEDURE;
         m_var_table = new ST(false);
         m_val_table = new ST(false);
     }

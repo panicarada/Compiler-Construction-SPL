@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include "Plot_txt.hpp"
 #include "Plot_py.hpp"
-
+#include "CodeGenerator.hpp"
 #include "yacc.tab.hpp"
 
 
@@ -34,6 +34,12 @@ int Interpreter::execute(AST::Node* p, std::string& Filename, std::string& Progr
 
     std::cout << "Symbol Table: *****************" << std::endl;
     symbol_table->setup(p);
+    // 弹出用来辅助的基础类型
+    symbol_table->pop("integer");
+    symbol_table->pop("real");
+    symbol_table->pop("boolean");
+    symbol_table->pop("char");
+    symbol_table->pop("string");
     symbol_table->show();
     std::cout << "Type of AST Node: *****************" << std::endl;
 
@@ -46,12 +52,14 @@ int Interpreter::execute(AST::Node* p, std::string& Filename, std::string& Progr
     plot_txt(p, ast_txt);
     ast_txt.close();
 
-
     st_out.flush();
     st_out.close();
     // 恢复std::cout为原来的流缓冲区指针
     std::cout.rdbuf(cout_buffer);
 
-
+    // 生成代码
+    std::ofstream IROut("./Output/IR_Code/" + Filename + ".ll");
+    CodeGenerator codeGenerator;
+    codeGenerator.execute(this, IROut);
     return 0;
 }

@@ -6,8 +6,8 @@
 
 #include <iostream>
 #include <sstream>
+#include <stack>
 #include <stdarg.h>
-
 
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/CallingConv.h>
@@ -20,124 +20,118 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
-#include "Typing.hpp"
 
 
-// 提前声明Interpreter类
-class Interpreter;
-namespace CodeGeneration
-{
-    struct BasicType
-    {
-        int Id = 0;
-        llvm::Type* Type;
-        llvm::Constant* InitConstant;
-        BasicType(llvm::Type* Type, llvm::Constant* InitConstant, int Id)
-            : Type(Type), InitConstant(InitConstant), Id(Id){}
-    };
-    struct VarType
-    {
-        std::string Name;   // 变量名
-        llvm::Value* Addr;  // 指针地址
-        BasicType* refType;    // 指针指向的类型
-        VarType(const std::string& Name, llvm::Value* Addr, BasicType* Type)
-            : Name(Name), Addr(Addr), refType(Type){}
-    };
-    struct ArrayType : public BasicType
-    {
-        llvm::ConstantInt* LowerBound;
-        llvm::ConstantInt* UpperBound;
-        ArrayType(llvm::ArrayType* Type, llvm::ConstantInt* LowerBound, llvm::ConstantInt* UpperBound, llvm::Constant* Init)
-            : BasicType(Type, Init, 1), LowerBound(LowerBound), UpperBound(UpperBound){}
-    };
-    struct StructType : public BasicType
-    {
-        std::vector<VarType*> Members; // 指针指向成员
-        StructType(llvm::StructType* Type, std::vector<VarType*>& Members, llvm::Constant* Init)
-            : BasicType(Type, Init, 2), Members(Members){}
-        int getIndex(const std::string& Name)
-        {
-            auto it = std::find_if(Members.begin(), Members.end(), [&](VarType* Member) -> bool{
-                return Member->Name == Name;
-            });
-            return (it == Members.end()) ? -1 : it - Members.begin();
-        }
-    };
-
-    class CodeBlock
-    {
-    public:
-        std::map<std::string, llvm::Constant*> Constants;
-        std::map<std::string, BasicType*> Types;
-        std::map<std::string, VarType*> Vars;
-
-        std::map<int, llvm::BasicBlock*> Labels;
-    public:
-        inline VarType* getVar(const std::string& Name) const
-        {
-            auto it = Vars.find(Name);
-            return (it == Vars.end()) ? nullptr : it->second;
-        }
-        ~CodeBlock()
-        {
-
-        }
-    };
-}
-
-
-namespace AST
-{   // 提前声明AST类
+namespace Typing
+{   // 提前声明Typing::Node类
     class Node;
 };
+namespace AST
+{   // 提前声明AST::Node类
+    class Node;
+}
+
+class Interpreter; // 提前声明Interpreter类
+class ST; // 提前声明符号表类
+
 class CodeGenerator
 {
 public:
     // llvm 初始化
     static llvm::LLVMContext Context;
     static llvm::IRBuilder<> Builder;
-
-
     llvm::Module* Module;
 
-    llvm::Function* mainFunction;   // 主函数
-    llvm::Function* writeFunction;  // write函数
-    llvm::Function* readFunction;   // read函数
-    bool isGlobal = false; // 是否是全局的定义
-    bool isVar    = false; // 是否是引用（指针）
+    // 全局变量
+    // <名字，对应地址>
+    std::map<std::string, llvm::Value*> GlobalVariables;
+    // 常量
+    std::map<std::string, llvm::Value*> GlobalConst;
+    // 函数参数列表
+    // 一个函数内部能够访问的变量只有GlobalVariable以及栈顶的Arguments
+    std::stack<std::map<std::string, llvm::Value*>> ArgumentsStack;
 
-    std::vector<CodeGeneration::CodeBlock*> CodeBlockList;
-
-private:
-    std::stringstream Code;
+    // I/O的输入参数
+    std::vector<llvm::Value*> IOArguments;
 public:
     CodeGenerator()
     {
         Module = new llvm::Module("main", Context);
+        setupIO();
     }
-    void genCode_init(Interpreter* ipt);
-    llvm::Value* genCode(AST::Node* node);
-    void setupIO();
-    inline CodeGeneration::VarType* getVar(const std::string& Name)
+    void setupGlobal(ST* SymbolTable);
+    inline void setupIO() // 设置printf和scanf函数
     {
-        for (auto CodeBlock = CodeBlockList.rbegin(); CodeBlock != CodeBlockList.rend(); ++CodeBlock)
-        {
-            auto var = (*CodeBlock)->getVar(Name);
-            if (var)
-                return var;
-        }
-        raiseError("没有找到对应var类型");
-        return nullptr;
+        auto ArgumentsType = std::vector<llvm::Type*>{llvm::Type::getInt8PtrTy(Context)};
+        // 向Module中插入printf函数
+        llvm::Function::Create(
+                llvm::FunctionType::get(Builder.getInt32Ty(), ArgumentsType, true),
+                llvm::Function::ExternalLinkage,
+                "printf", // Rmk: 名字不能改
+                Module
+        );
+        // 向Module中插入scanf函数
+        llvm::Function::Create(
+                llvm::FunctionType::get(Builder.getInt32Ty(), ArgumentsType, true),
+                llvm::Function::ExternalLinkage,
+                "scanf",
+                Module
+        );
     }
-private:
-    inline void emitCode(int Number, ...)
-    {   // 生成一行代码
+    inline void callWrite(bool newLine, const std::string& Format, const std::vector<llvm::Value*>& Params)
+    {
+        IOArguments.clear();
+        IOArguments.emplace_back(Builder.CreateGlobalStringPtr((newLine) ? Format + std::string("\n") : Format));
+        IOArguments.insert(IOArguments.end(), Params.begin(), Params.end());
+        Builder.CreateCall(
+                Module->getFunction("printf"),
+                IOArguments
+        );
+    }
+    inline void callRead(const std::string& Format, const std::vector<llvm::Value*>& Params)
+    {
+        IOArguments.clear();
+        IOArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
+        IOArguments.insert(IOArguments.end(), Params.begin(), Params.end());
+        Builder.CreateCall(
+                Module->getFunction("scanf"),
+                IOArguments
+        );
+    }
+    inline void callWrite(bool newLine, const std::string& Format, int Number, ...)
+    {
+        IOArguments.clear();
+        IOArguments.emplace_back(Builder.CreateGlobalStringPtr(newLine ? (Format + std::string ("\n")) : Format));
         va_list ap;
         va_start(ap, Number);
         for (int i = 0;i < Number; ++i)
         {
-            Code << va_arg(ap, char*) << " ";
+            IOArguments.emplace_back(va_arg(ap, llvm::Value*));
         }
-        Code << std::endl;
+        va_end(ap);
+        Builder.CreateCall(
+            Module->getFunction("printf"),
+            IOArguments
+        );
     }
+    inline void callRead(const std::string& Format, int Number, ...)
+    {
+        IOArguments.clear();
+        IOArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
+        va_list ap;
+        va_start(ap, Number);
+        for (int i = 0;i < Number; ++i)
+        {
+            IOArguments.emplace_back(va_arg(ap, llvm::Value*));
+        }
+        va_end(ap);
+        Builder.CreateCall(
+                Module->getFunction("scanf"),
+                IOArguments
+        );
+    }
+    // 把Typing::Node类转为llvm::Type类
+    static llvm::Type* toLLVM(Typing::Node* tNode);
+    void execute(const Interpreter* ipt, std::ofstream& Out);
+    llvm::Value* genCode(AST::Node* ASTNode, bool getVarByAddr);
 };

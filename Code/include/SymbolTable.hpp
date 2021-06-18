@@ -8,6 +8,7 @@
 
 class ST
 {
+public:
     std::unordered_map<std::string, Typing::Node*> Table;
     std::unordered_map<std::string, unsigned int> LineTable;
 private:
