@@ -3,12 +3,20 @@ const
 	pi = 3.1415926;
 	t = 3;
 	T = true;
+type
+	bool = boolean;
 var
 	index : integer;
+	value : real;
+	testBool : bool;
 begin
-	write("Input your x: ");
+	write("Input your index: ");
 	read("%d", index);
+	index := index + t;
+	value := pi * (pi + index) / (t + 11.4);
 
-	writeln("Hello World: %d, %.5f", index, pi);
+	testBool := not (true and (false or T));
+
+	writeln("Index:%d	Value:%.5f	testBool:%d", index, value, testBool);
 end
 .

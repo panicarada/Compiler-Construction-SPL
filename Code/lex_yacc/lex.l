@@ -120,7 +120,7 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
     strcpy(yylval.sValue,yytext);
     return SYS_FUNCT;
 }
-"write"|"writeln" {
+"write"|"writeln"|"read" {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
     strcpy(yylval.sValue,yytext);
@@ -132,9 +132,6 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
     strcpy(yylval.sValue,yytext);
     return SYS_TYPE;
 }
-"read" {
-    yylloc.first_line=line_number;
-    return READ;}
 
  /* Keyword List */
 "and" {

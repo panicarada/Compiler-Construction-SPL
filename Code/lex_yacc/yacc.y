@@ -585,10 +585,6 @@ proc_stmt
 		$$ = new AST::Node(@1.first_line, SYS_PROC, 1, new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
 		$$->add($3);
 	}
-	| READ _LP_ factor RP
-	{	// 类似于scanf，不过一次读取用户一个输入
-		$$ = new AST::Node(@1.first_line, SYS_PROC, 2, new AST::Node(@1.first_line, "read", AST::Attribute::Identifier), $3);
-	}
 	;
 
 if_stmt
@@ -765,11 +761,6 @@ factor
 	{
 		$$ = new AST::Node(@1.first_line, SYS_FUNCT, 1
 					  , new AST::Node(@1.first_line, $1, AST::Attribute::Identifier));
-	}
-	| READ _LP_ _ID_ RP
-	{
-		$$ = new AST::Node(@1.first_line, READ, 2, new AST::Node(@1.first_line, "read", AST::Attribute::Identifier),
-							   new AST::Node(@3.first_line, $3, AST::Attribute::Identifier));
 	}
 	| SYS_FUNCT _LP_ args_list RP
 	{

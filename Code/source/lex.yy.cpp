@@ -374,8 +374,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 69
-#define YY_END_OF_BUFFER 70
+#define YY_NUM_RULES 68
+#define YY_END_OF_BUFFER 69
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -383,31 +383,31 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static yyconst flex_int16_t yy_accept[208] =
+static yyconst flex_int16_t yy_accept[207] =
     {   0,
-        0,    0,    0,    0,    0,    0,   70,   68,   67,   60,
-       24,   68,    4,    5,   13,   17,   10,   18,    9,   14,
-       64,   64,   12,   25,   22,   23,   20,   66,   66,   66,
-        6,    7,   66,   66,   66,   66,   66,   66,   66,   66,
-       66,   66,   66,   66,   66,   66,   66,   66,   66,   66,
-       62,   69,   61,    3,    2,    0,    8,    1,    0,   64,
-       11,   21,   15,   19,   66,   66,   66,   66,   66,   66,
-       66,   66,   66,   66,   66,   66,   37,   66,   66,   66,
-       66,   66,   66,   44,   66,   66,   66,   66,   66,   47,
-       48,   66,   66,   66,   66,   66,   66,   66,   55,   66,
+        0,    0,    0,    0,    0,    0,   69,   67,   66,   59,
+       24,   67,    4,    5,   13,   17,   10,   18,    9,   14,
+       63,   63,   12,   25,   22,   23,   20,   65,   65,   65,
+        6,    7,   65,   65,   65,   65,   65,   65,   65,   65,
+       65,   65,   65,   65,   65,   65,   65,   65,   65,   65,
+       61,   68,   60,    3,    2,    0,    8,    1,    0,   63,
+       11,   21,   15,   19,   65,   65,   65,   65,   65,   65,
+       65,   65,   65,   65,   65,   65,   36,   65,   65,   65,
+       65,   65,   65,   43,   65,   65,   65,   65,   65,   46,
+       47,   65,   65,   65,   65,   65,   65,   65,   54,   65,
 
-       66,   66,   66,   66,   66,   63,   65,   64,   24,   16,
-       27,   31,   66,   66,   66,   66,   66,   66,   36,   66,
-       66,   40,   66,   41,   66,   66,   66,   66,   45,   46,
-       66,   66,   66,   66,   66,   66,   27,   66,   66,   66,
-       66,   66,   66,   58,   66,   66,   66,   66,   66,   34,
-       29,   66,   66,   39,   66,   66,   43,   66,   66,   66,
-       66,   66,   30,   66,   66,   66,   54,   26,   56,   66,
-       66,   66,   32,   33,   66,   35,   66,   66,   66,   66,
-       66,   66,   66,   66,   66,   66,   57,   59,   28,   66,
-       38,   66,   66,   49,   66,   66,   52,   53,   66,   66,
+       65,   65,   65,   65,   65,   62,   64,   63,   24,   16,
+       27,   30,   65,   65,   65,   65,   65,   65,   35,   65,
+       65,   39,   65,   40,   65,   65,   65,   65,   44,   45,
+       65,   65,   65,   65,   65,   65,   27,   65,   65,   65,
+       65,   65,   65,   57,   65,   65,   65,   65,   65,   33,
+       29,   65,   65,   38,   65,   65,   42,   65,   65,   65,
+       65,   65,   28,   65,   65,   65,   53,   26,   55,   65,
+       65,   65,   31,   32,   65,   34,   65,   65,   65,   65,
+       65,   65,   65,   65,   65,   65,   56,   58,   28,   65,
+       37,   65,   65,   48,   65,   65,   51,   52,   65,   65,
 
-       66,   51,   28,   42,   66,   50,    0
+       65,   50,   41,   65,   49,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -452,7 +452,7 @@ static yyconst flex_int32_t yy_meta[54] =
         3,    3,    3
     } ;
 
-static yyconst flex_int16_t yy_base[213] =
+static yyconst flex_int16_t yy_base[212] =
     {   0,
         0,    0,   52,   54,  236,  235,  236,  239,  239,  239,
       239,    0,  239,  239,  239,  239,  239,  239,  223,  221,
@@ -476,36 +476,36 @@ static yyconst flex_int16_t yy_base[213] =
       107,  106,  108,  104,   88,   99,    0,    0,   94,   91,
         0,   88,   82,    0,   70,   77,    0,    0,   75,   74,
 
-       68,    0,    0,    0,   68,    0,  239,  120,  123,  126,
-      129,   73
+       68,    0,    0,   68,    0,  239,  120,  123,  126,  129,
+       73
     } ;
 
-static yyconst flex_int16_t yy_def[213] =
+static yyconst flex_int16_t yy_def[212] =
     {   0,
-      207,    1,  208,  208,  209,  209,  207,  207,  207,  207,
-      207,  210,  207,  207,  207,  207,  207,  207,  207,  207,
-      211,  211,  207,  207,  207,  207,  207,  212,  212,  212,
-      207,  207,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  211,
-      207,  207,  207,  207,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
+      206,    1,  207,  207,  208,  208,  206,  206,  206,  206,
+      206,  209,  206,  206,  206,  206,  206,  206,  206,  206,
+      210,  210,  206,  206,  206,  206,  206,  211,  211,  211,
+      206,  206,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  210,
+      206,  206,  206,  206,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
 
-      212,  212,  212,  212,  212,  207,  207,  211,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
-      212,  212,  212,  212,  212,  212,  212,  212,  212,  212,
+      211,  211,  211,  211,  211,  206,  206,  210,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
+      211,  211,  211,  211,  211,  211,  211,  211,  211,  211,
 
-      212,  212,  212,  212,  212,  212,    0,  207,  207,  207,
-      207,  207
+      211,  211,  211,  211,  211,    0,  206,  206,  206,  206,
+      206
     } ;
 
 static yyconst flex_int16_t yy_nxt[293] =
@@ -521,8 +521,8 @@ static yyconst flex_int16_t yy_nxt[293] =
        90,   85,   87,   82,   95,  104,   93,   96,   97,   98,
       117,   91,  107,  107,  105,   99,  108,  108,  100,  132,
 
-      134,  206,  135,  107,  107,  101,  111,  161,  133,  108,
-      108,  162,  163,  205,  136,  204,  203,  202,  201,  151,
+      134,  205,  135,  107,  107,  101,  111,  161,  133,  108,
+      108,  162,  163,  204,  136,  203,  163,  202,  201,  151,
        51,   51,   51,   54,   54,   54,   56,  151,   56,   59,
       200,   59,  151,  199,  151,  198,  197,  196,  195,  194,
       168,  193,  192,  191,  190,  189,  188,  187,  186,  185,
@@ -535,13 +535,13 @@ static yyconst flex_int16_t yy_nxt[293] =
       111,  111,  130,  129,  128,  127,  126,  125,  124,  123,
       122,  121,  120,  119,  118,  116,  115,  114,  113,  112,
       111,  110,  109,  106,  103,  102,   94,   88,   83,   67,
-       66,   64,   61,   58,   57,  207,   55,   55,    7,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207
+       66,   64,   61,   58,   57,  206,   55,   55,    7,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206
 
     } ;
 
@@ -554,14 +554,14 @@ static yyconst flex_int16_t yy_chk[293] =
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    3,    3,    4,    4,   22,   22,   25,
        25,   33,   34,   36,   38,   37,   35,   37,   36,   41,
-       44,   34,   33,   35,   40,  212,   33,   38,   43,   35,
+       44,   34,   33,   35,   40,  211,   33,   38,   43,   35,
        43,   40,   41,   38,   46,   50,   44,   46,   46,   47,
        74,   43,   59,   59,   50,   47,   60,   60,   47,   93,
 
-       94,  205,   94,  107,  107,   47,   74,  133,   93,  108,
+       94,  204,   94,  107,  107,   47,   74,  133,   93,  108,
       108,  133,  134,  201,   94,  200,  199,  196,  195,  134,
-      208,  208,  208,  209,  209,  209,  210,  193,  210,  211,
-      192,  211,  190,  189,  186,  185,  184,  183,  182,  181,
+      207,  207,  207,  208,  208,  208,  209,  193,  209,  210,
+      192,  210,  190,  189,  186,  185,  184,  183,  182,  181,
       180,  179,  178,  177,  175,  172,  171,  170,  166,  165,
       164,  162,  161,  160,  159,  158,  156,  155,  153,  152,
       149,  148,  147,  146,  145,  143,  142,  141,  140,  139,
@@ -572,23 +572,23 @@ static yyconst flex_int16_t yy_chk[293] =
        91,   89,   88,   87,   86,   85,   83,   82,   81,   80,
        79,   78,   77,   76,   75,   73,   72,   71,   70,   69,
        68,   67,   66,   56,   49,   48,   45,   42,   39,   30,
-       29,   27,   23,   20,   19,    7,    6,    5,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207,  207,  207,  207,  207,  207,  207,  207,  207,
-      207,  207
+       29,   27,   23,   20,   19,    7,    6,    5,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
+      206,  206
 
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static yyconst flex_int32_t yy_rule_can_match_eol[70] =
+static yyconst flex_int32_t yy_rule_can_match_eol[69] =
     {   0,
 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 1, 0, 0,     };
+    0, 0, 0, 0, 0, 0, 1, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -857,7 +857,7 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 208 )
+				if ( yy_current_state >= 207 )
 					yy_c = yy_meta[(unsigned int) yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
@@ -1119,230 +1119,223 @@ YY_RULE_SETUP
     return SYS_TYPE;
 }
 	YY_BREAK
+/* Keyword List */
 case 30:
 YY_RULE_SETUP
-#line 135 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 137 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return READ;}
+    return AND;}
 	YY_BREAK
-/* Keyword List */
 case 31:
 YY_RULE_SETUP
 #line 140 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return AND;}
+    return ARRAY;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 143 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return ARRAY;}
+    return _BEGIN;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 146 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return _BEGIN;}
+    return CASE;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 149 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return CASE;}
+    return CONST;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 152 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return CONST;}
+    return DIV;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 155 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return DIV;}
+    return DO;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
 #line 158 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return DO;}
+    return DOWNTO;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
 #line 161 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return DOWNTO;}
+    return ELSE;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
 #line 164 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return ELSE;}
+    return END;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
 #line 167 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return END;}
+    return FOR;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
 #line 170 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return FOR;}
+    return FUNCTION;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
 #line 173 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return FUNCTION;}
+    return GOTO;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
 #line 176 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return GOTO;}
+    return IF;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
 #line 179 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return IF;}
+    return MOD;}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 182 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return MOD;}
+    return NOT;}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
 #line 185 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return NOT;}
+    return OF;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
 #line 188 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return OF;}
+    return OR;}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
 #line 191 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return OR;}
+    return PACKED;}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
 #line 194 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return PACKED;}
-	YY_BREAK
-case 50:
-YY_RULE_SETUP
-#line 197 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
-{
-    yylloc.first_line=line_number;
     return PROCEDURE;
 }
 	YY_BREAK
-case 51:
+case 50:
 YY_RULE_SETUP
-#line 201 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 198 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return PROGRAM;
 }
 	YY_BREAK
-case 52:
+case 51:
 YY_RULE_SETUP
-#line 205 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 202 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return RECORD;
 }
 	YY_BREAK
-case 53:
+case 52:
 YY_RULE_SETUP
-#line 209 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 206 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return REPEAT;
 }
 	YY_BREAK
-case 54:
+case 53:
 YY_RULE_SETUP
-#line 213 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 210 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return THEN;
 }
 	YY_BREAK
-case 55:
+case 54:
 YY_RULE_SETUP
-#line 217 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 214 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return TO;
 }
 	YY_BREAK
-case 56:
+case 55:
 YY_RULE_SETUP
-#line 221 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 218 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return TYPE;
 }
 	YY_BREAK
-case 57:
+case 56:
 YY_RULE_SETUP
-#line 225 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 222 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return UNTIL;
 }
 	YY_BREAK
-case 58:
+case 57:
 YY_RULE_SETUP
-#line 229 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 226 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
     return VAR;
 }
 	YY_BREAK
-case 59:
+case 58:
 YY_RULE_SETUP
-#line 233 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 230 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number; 
     return WHILE;
 }
 	YY_BREAK
-case 60:
+case 59:
 YY_RULE_SETUP
-#line 238 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 235 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     //开始读取字符串
     BEGIN READING_STRING;
@@ -1351,9 +1344,9 @@ YY_RULE_SETUP
     ss.str("");
 }
 	YY_BREAK
-case 61:
+case 60:
 YY_RULE_SETUP
-#line 245 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 242 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     //结束字符串读取
     BEGIN INITIAL;
@@ -1362,34 +1355,34 @@ YY_RULE_SETUP
     return STRING;
 }
 	YY_BREAK
-case 62:
+case 61:
 YY_RULE_SETUP
-#line 252 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 249 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     ss<<yytext[0];
 }
 	YY_BREAK
-case 63:
+case 62:
 YY_RULE_SETUP
-#line 255 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 252 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.cValue=yytext[1];
     yylloc.first_line=line_number;
     return CHAR;
 }
 	YY_BREAK
-case 64:
+case 63:
 YY_RULE_SETUP
-#line 260 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 257 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.iValue=atoi(yytext);
     yylloc.first_line=line_number;
     return INTEGER;
 }
 	YY_BREAK
-case 65:
+case 64:
 YY_RULE_SETUP
-#line 265 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 262 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     std::stringstream ss;
     ss<<yytext;
@@ -1398,9 +1391,9 @@ YY_RULE_SETUP
     return REAL;
 }
 	YY_BREAK
-case 66:
+case 65:
 YY_RULE_SETUP
-#line 272 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 269 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylval.sValue=new char[strlen(yytext)];
     yylloc.first_line=line_number;
@@ -1408,25 +1401,25 @@ YY_RULE_SETUP
     return _ID_;
 }
 	YY_BREAK
-case 67:
-/* rule 67 can match eol */
+case 66:
+/* rule 66 can match eol */
 YY_RULE_SETUP
-#line 279 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 276 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     line_number ++;
 }
 	YY_BREAK
-case 68:
+case 67:
 YY_RULE_SETUP
-#line 282 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 279 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 ;
 	YY_BREAK
-case 69:
+case 68:
 YY_RULE_SETUP
-#line 284 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 281 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 ECHO;
 	YY_BREAK
-#line 1430 "/Applications/zju/编译原理/final_proj/Code/source/lex.yy.cpp"
+#line 1423 "/Applications/zju/编译原理/final_proj/Code/source/lex.yy.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(READING_STRING):
 case YY_STATE_EOF(COMMENT):
@@ -1720,7 +1713,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 208 )
+			if ( yy_current_state >= 207 )
 				yy_c = yy_meta[(unsigned int) yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
@@ -1748,11 +1741,11 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 208 )
+		if ( yy_current_state >= 207 )
 			yy_c = yy_meta[(unsigned int) yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
-	yy_is_jam = (yy_current_state == 207);
+	yy_is_jam = (yy_current_state == 206);
 
 	return yy_is_jam ? 0 : yy_current_state;
 }
@@ -2437,7 +2430,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 284 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
+#line 281 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 
 
 
