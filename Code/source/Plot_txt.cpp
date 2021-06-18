@@ -44,8 +44,8 @@ namespace Plot_txt
             case AST::Attribute::Operation:
                 switch (p->m_Operation.Operator)
                 {
-                    case GE: sText << "[>=]"; break;
-                    case GT: sText << "[>]"; break;
+                    case _GE_: sText << "[>=]"; break;
+                    case _GT_: sText << "[>]"; break;
                     case _LE_: sText << "[<=]"; break;
                     case _LT_: sText << "[<]"; break;
                     case OR: sText << "[or]"; break;

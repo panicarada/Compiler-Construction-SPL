@@ -1,0 +1,18 @@
+program pi_compare;
+const 
+	pi = 3.1415926;
+var
+	value : real;
+begin
+	write("Input your value: ");
+	read("%lf", value);
+
+	if value >= pi then begin
+		writeln("%lf >= %lf", value, pi);
+	end
+	else begin
+		writeln("%lf < %lf", value, pi);
+	end;
+	writeln("ending!");
+end
+.

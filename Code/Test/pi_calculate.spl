@@ -1,0 +1,24 @@
+program pi_calculate;
+var
+	pi 	  : real;
+	temp  : real;
+	factor: real;
+	index : integer;
+	steps : integer;
+begin
+	write("please enter your steps: ");
+	read("%d", steps);
+	index := 0;
+	pi    := 0;
+	factor:= 1;
+	
+	for index := 0 to steps-1 do
+	begin
+		temp := 8 * index;
+		pi := pi + factor * (4.0/(temp + 1) - 2.0/(temp+4) - 1.0/(temp+5)-1.0/(temp+6));
+		// index := index + 1;
+		factor := factor / 16;
+		writeln("pi: %.20f	steps:%d/%d", pi, index+1, steps);
+	end;
+end
+.

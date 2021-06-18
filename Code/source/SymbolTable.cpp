@@ -898,8 +898,8 @@ Typing::Node* ST::check(AST::Node* p)
                     return p->m_Type;
                 }
                     /* 比较运算 */
-                case GE:
-                case GT:
+                case _GE_:
+                case _GT_:
                 case _LE_:
                 case _LT_:
                 case EQUAL:

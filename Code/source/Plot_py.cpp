@@ -42,8 +42,8 @@ namespace Plot_py
                 {
                     switch (p->m_Operation.Operator)
                     {
-                        case GE: Out << ">="; break;
-                        case GT: Out << ">"; break;
+                        case _GE_: Out << ">="; break;
+                        case _GT_: Out << ">"; break;
                         case _LE_: Out << "<="; break;
                         case _LT_: Out << "<"; break;
                         case OR: Out << "or"; break;

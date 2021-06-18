@@ -57,7 +57,7 @@
 
 // 运算符、定界符
 %token _LP_ RP LB RB DOT COMMA COLON MUL DIV UNEQUAL NOT
-%token PLUS MINUS GE GT _LE_ _LT_ EQUAL ASSIGN MOD DOTDOT SEMI
+%token PLUS MINUS _GE_ _GT_ _LE_ _LT_ EQUAL ASSIGN MOD DOTDOT SEMI
 
 // 系统函数、过程、常数、类型等单词
 %token READ
@@ -618,15 +618,16 @@ while_stmt
 	;
 
 for_stmt
-	: FOR _ID_ ASSIGN expression direction expression DO stmt
+	: FOR _ID_ ASSIGN expression TO expression DO stmt
 	{
-		$$ = new AST::Node(@1.first_line, $5, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier),
+		$$ = new AST::Node(@1.first_line, TO, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier),
 						$4, $6, $8);
 	}
-	;
-direction // 这条是没问题的，返回token
-	: TO {$$ = TO;}
-	| DOWNTO {$$ = DOWNTO;}
+	| FOR _ID_ ASSIGN expression DOWNTO expression DO stmt
+	{
+		$$ = new AST::Node(@1.first_line, DOWNTO, 4, new AST::Node(@2.first_line, $2, AST::Attribute::Identifier),
+						$4, $6, $8);
+	}
 	;
 case_stmt
 	: CASE expression OF case_expr_list END
@@ -677,13 +678,13 @@ expression_list
 	}
 	;
 expression
-	: expression GE expr 
+	: expression _GE_ expr
     {
-        $$ = new AST::Node(@2.first_line, GE, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, _GE_, 2, $1, $3);
     }
-	| expression GT expr
+	| expression _GT_ expr
     {
-        $$ = new AST::Node(@2.first_line, GT, 2, $1, $3);
+        $$ = new AST::Node(@2.first_line, _GT_, 2, $1, $3);
     }
 	| expression _LE_ expr
     {
@@ -742,9 +743,9 @@ term
 		$$ = new AST::Node(@2.first_line, AND, 2, $1, $3);
 	}
 	| factor
-    {
-        $$ = $1;
-    }
+    	{
+		$$ = $1;
+    	}
 	;
 factor
 	: _ID_
@@ -769,9 +770,9 @@ factor
 		$$->add($3);
 	}
 	| const_value
-   	 {
-        	$$ = $1;
-    	}
+	{
+		$$ = $1;
+	}
 	| _LP_ expression RP
 	    {
         	$$ = $2;

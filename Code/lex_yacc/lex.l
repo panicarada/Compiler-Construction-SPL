@@ -86,10 +86,10 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
     return MINUS;}
 ">=" {
     yylloc.first_line=line_number;
-    return GE;}
+    return _GE_;}
 ">" {
     yylloc.first_line=line_number;
-    return GT;}
+    return _GT_;}
 "<=" {
     yylloc.first_line=line_number;
     return _LE_;}

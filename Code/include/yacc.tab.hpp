@@ -58,8 +58,8 @@
      NOT = 274,
      PLUS = 275,
      MINUS = 276,
-     GE = 277,
-     GT = 278,
+     _GE_ = 277,
+     _GT_ = 278,
      _LE_ = 279,
      _LT_ = 280,
      EQUAL = 281,
@@ -139,8 +139,8 @@
 #define NOT 274
 #define PLUS 275
 #define MINUS 276
-#define GE 277
-#define GT 278
+#define _GE_ 277
+#define _GT_ 278
 #define _LE_ 279
 #define _LT_ 280
 #define EQUAL 281

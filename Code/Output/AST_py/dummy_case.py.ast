@@ -1,0 +1,146 @@
+// AST Tree
+digraph {
+	0 [label="[0] Routine" shape=diamond]
+	0 -> 1
+	1 [label="[1] Routine-Head" shape=diamond]
+	1 -> 2
+	2 [label="[2] var-part" shape=diamond]
+	2 -> 3
+	3 [label="[3] var" shape=diamond]
+	3 -> 4
+	4 [label="[4] integer" shape=oval]
+	3 -> 5
+	5 [label="[5] id(value)" shape=oval]
+	0 -> 6
+	6 [label="[6] Routine-Body" shape=diamond]
+	6 -> 7
+	7 [label="[7] ;" shape=diamond]
+	7 -> 8
+	8 [label="[8] ;" shape=diamond]
+	8 -> 9
+	9 [label="[9] ;" shape=diamond]
+	9 -> 10
+	10 [label="[10] ;" shape=diamond]
+	10 -> 11
+	11 [label="[11] ;" shape=diamond]
+	11 -> 12
+	12 [label="[12] ;" shape=diamond]
+	12 -> 13
+	13 [label="[13] ;" shape=diamond]
+	13 -> 14
+	14 [label="[14] ;" shape=diamond]
+	14 -> 15
+	15 [label="[15] ;" shape=diamond]
+	15 -> 16
+	16 [label="[16] ;" shape=diamond]
+	16 -> 17
+	17 [label="[17] ;" shape=diamond]
+	17 -> 18
+	18 [label="[18] Sys-procedure" shape=diamond]
+	18 -> 19
+	19 [label="[19] id(write)" shape=oval]
+	18 -> 20
+	20 [label="[20] please enter your value: " shape=rect]
+	17 -> 21
+	21 [label="[21] Sys-procedure" shape=diamond]
+	21 -> 22
+	22 [label="[22] id(read)" shape=oval]
+	21 -> 23
+	23 [label="[23] %d" shape=rect]
+	21 -> 24
+	24 [label="[24] id(value)" shape=oval]
+	16 -> 25
+	25 [label="[25] if" shape=diamond]
+	25 -> 26
+	26 [label="[26] >" shape=diamond]
+	26 -> 27
+	27 [label="[27] id(value)" shape=oval]
+	26 -> 28
+	28 [label="[28] 0" shape=rect]
+	25 -> 29
+	29 [label="[29] goto" shape=diamond]
+	29 -> 30
+	30 [label="[30] 0" shape=rect]
+	15 -> 31
+	31 [label="[31] if" shape=diamond]
+	31 -> 32
+	32 [label="[32] =" shape=diamond]
+	32 -> 33
+	33 [label="[33] id(value)" shape=oval]
+	32 -> 34
+	34 [label="[34] 0" shape=rect]
+	31 -> 35
+	35 [label="[35] goto" shape=diamond]
+	35 -> 36
+	36 [label="[36] 1" shape=rect]
+	14 -> 37
+	37 [label="[37] if" shape=diamond]
+	37 -> 38
+	38 [label="[38] <" shape=diamond]
+	38 -> 39
+	39 [label="[39] id(value)" shape=oval]
+	38 -> 40
+	40 [label="[40] 0" shape=rect]
+	37 -> 41
+	41 [label="[41] goto" shape=diamond]
+	41 -> 42
+	42 [label="[42] 2" shape=rect]
+	13 -> 43
+	43 [label="[43] Label" shape=diamond]
+	43 -> 44
+	44 [label="[44] 0" shape=rect]
+	43 -> 45
+	45 [label="[45] Sys-procedure" shape=diamond]
+	45 -> 46
+	46 [label="[46] id(writeln)" shape=oval]
+	45 -> 47
+	47 [label="[47] %d > 0" shape=rect]
+	45 -> 48
+	48 [label="[48] id(value)" shape=oval]
+	12 -> 49
+	49 [label="[49] goto" shape=diamond]
+	49 -> 50
+	50 [label="[50] 3" shape=rect]
+	11 -> 51
+	51 [label="[51] Label" shape=diamond]
+	51 -> 52
+	52 [label="[52] 1" shape=rect]
+	51 -> 53
+	53 [label="[53] Sys-procedure" shape=diamond]
+	53 -> 54
+	54 [label="[54] id(writeln)" shape=oval]
+	53 -> 55
+	55 [label="[55] %d = 0" shape=rect]
+	53 -> 56
+	56 [label="[56] id(value)" shape=oval]
+	10 -> 57
+	57 [label="[57] goto" shape=diamond]
+	57 -> 58
+	58 [label="[58] 3" shape=rect]
+	9 -> 59
+	59 [label="[59] Label" shape=diamond]
+	59 -> 60
+	60 [label="[60] 2" shape=rect]
+	59 -> 61
+	61 [label="[61] Sys-procedure" shape=diamond]
+	61 -> 62
+	62 [label="[62] id(writeln)" shape=oval]
+	61 -> 63
+	63 [label="[63] %d < 0" shape=rect]
+	61 -> 64
+	64 [label="[64] id(value)" shape=oval]
+	8 -> 65
+	65 [label="[65] goto" shape=diamond]
+	65 -> 66
+	66 [label="[66] 3" shape=rect]
+	7 -> 67
+	67 [label="[67] Label" shape=diamond]
+	67 -> 68
+	68 [label="[68] 3" shape=rect]
+	67 -> 69
+	69 [label="[69] Sys-procedure" shape=diamond]
+	69 -> 70
+	70 [label="[70] id(writeln)" shape=oval]
+	69 -> 71
+	71 [label="[71] end dummy_case" shape=rect]
+}

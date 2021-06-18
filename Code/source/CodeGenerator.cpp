@@ -156,6 +156,169 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
         {
             switch (ASTNode->m_Operation.Operator)
             {
+                case WHILE:
+                {
+                    auto* LOOP_Condition_Block = llvm::BasicBlock::Create(Context, "loop_condition", Builder.GetInsertBlock()->getParent());
+                    auto* LOOP_Body_Block = llvm::BasicBlock::Create(Context, "loop_body", Builder.GetInsertBlock()->getParent());
+                    auto* After_Block = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+
+                    // 进入条件判断
+                    Builder.CreateBr(LOOP_Condition_Block);
+                    Builder.SetInsertPoint(LOOP_Condition_Block);
+                    // 判断条件
+                    Builder.CreateCondBr(
+                            genCode(ASTNode->m_Operation.List_Operands[0], false),
+                            LOOP_Body_Block, After_Block
+                    );
+                    // 循环体
+                    Builder.SetInsertPoint(LOOP_Body_Block);
+                    genCode(ASTNode->m_Operation.List_Operands[1], getVarByAddr);
+                    // 无条件跳转到条件判断
+                    Builder.CreateBr(LOOP_Condition_Block);
+                    // 结束while语句
+                    Builder.SetInsertPoint(After_Block);
+                    break;
+                }
+                case TO: case DOWNTO:
+                { // for循环
+                    int Operator = ASTNode->m_Operation.Operator;
+                    // 初始化
+                    llvm::Value* IndexVariable = genCode(ASTNode->m_Operation.List_Operands[0], true);
+                    llvm::Value* BoundaryValue = genCode(ASTNode->m_Operation.List_Operands[2], false); // 边界值
+                    llvm::Value* IndexValue = genCode(ASTNode->m_Operation.List_Operands[1], false); // 其实值
+                    Builder.CreateStore(
+                    /* Value = */ IndexValue,
+                    /* Ptr   = */ IndexVariable
+                    );
+                    // loop区域
+                    auto* LOOP_Condition_Block = llvm::BasicBlock::Create(Context, "loop_condition", Builder.GetInsertBlock()->getParent());
+                    auto* LOOP_Body_Block = llvm::BasicBlock::Create(Context, "loop_body", Builder.GetInsertBlock()->getParent());
+                    auto* After_Block = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+                    // 进入loop区域
+                    Builder.CreateBr(LOOP_Condition_Block);
+                    Builder.SetInsertPoint(LOOP_Condition_Block);
+                    llvm::Value* Condition; // loop条件
+                    IndexValue = Builder.CreateLoad(IndexVariable, IndexVariable->getName());
+                    if (Operator == TO)
+                    {
+                        Condition = Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, IndexValue, BoundaryValue, "ile_tmp_");
+                    }
+                    else if (Operator == DOWNTO)
+                    {
+                        Condition = Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, IndexValue, BoundaryValue, "ige_tmp_");
+                    }
+                    // 如果满足loop条件，则进入循环体，否则跳出
+                    Builder.CreateCondBr(Condition, LOOP_Body_Block, After_Block);
+                    // 循环体代码
+                    Builder.SetInsertPoint(LOOP_Body_Block);
+
+                    genCode(ASTNode->m_Operation.List_Operands[3], getVarByAddr);
+
+                    // index variable自增或自减
+                    if (Operator == TO)
+                    {
+                        IndexValue = Builder.CreateAdd(IndexValue, llvm::ConstantInt::get(Builder.getInt32Ty(), 1, true), "iadd_tmp_");
+                        Builder.CreateStore(
+                                IndexValue,
+                                IndexVariable
+                        );
+                    }
+                    else if (Operator == DOWNTO)
+                    {
+                        IndexValue = Builder.CreateSub(IndexValue, llvm::ConstantInt::get(Builder.getInt32Ty(), 1, true), "isub_tmp_");
+                        Builder.CreateStore(
+                                IndexValue,
+                                IndexVariable
+                        );
+                    }
+                    // 无条件跳到loop条件判断
+                    Builder.CreateBr(LOOP_Condition_Block);
+                    // 循环语句结束
+                    Builder.SetInsertPoint(After_Block);
+                    break;
+                }
+                case REPEAT:
+                {
+                    llvm::BasicBlock* LOOP_Block = llvm::BasicBlock::Create(Context, "loop", Builder.GetInsertBlock()->getParent());
+                    llvm::BasicBlock* After_Block = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+                    // 先进入loop区域
+                    Builder.CreateBr(LOOP_Block);
+                    Builder.SetInsertPoint(LOOP_Block);
+                    // loop区域代码块
+                    genCode(ASTNode->m_Operation.List_Operands[1], getVarByAddr);
+
+                    // 判断until条件
+                    auto* Condition = genCode(ASTNode->m_Operation.List_Operands[0], false);
+                    Builder.CreateCondBr(Condition, After_Block, LOOP_Block); // 如果条件满足，就跳出循环，否则回到开头
+
+                    // 结束unti语句的代码
+                    // 后面的代码写到after block
+                    Builder.SetInsertPoint(After_Block);
+                    break;
+                }
+                // 数值比较
+                case _GE_: case _GT_: case _LE_: case _LT_: case EQUAL: case UNEQUAL:
+                {
+                    int Operator = ASTNode->m_Operation.Operator;
+                    llvm::Value* LeftValue = genCode(ASTNode->m_Operation.List_Operands[0], false);
+                    llvm::Value* RightValue = genCode(ASTNode->m_Operation.List_Operands[1], false);
+                    if (LeftValue->getType() == Builder.getDoubleTy() || RightValue->getType() == Builder.getDoubleTy())
+                    { // 二者之一为浮点数，则结果就为浮点数
+                        // SIToFP: Signed Integer to Float Point
+                        // 如果本身为浮点数，那么相当于没有操作
+                        LeftValue = Builder.CreateSIToFP(LeftValue, Builder.getDoubleTy(), "si2double_tmp_");
+                        RightValue = Builder.CreateSIToFP(RightValue, Builder.getDoubleTy(), "si2double_tmp_");
+
+                        if (Operator == _GE_) return Builder.CreateFCmp(
+                                llvm::CmpInst::Predicate::FCMP_OGE,
+                                LeftValue, RightValue,
+                                "fge_tmp_");
+                        if (Operator == _GT_) return Builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, LeftValue, RightValue,"fgt_tmp_");
+                        if (Operator == _LE_) return Builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, LeftValue, RightValue,"fle_tmp_");
+                        if (Operator == _LT_) return Builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, LeftValue, RightValue,"flt_tmp_");
+                        if (Operator == EQUAL) return Builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ,LeftValue, RightValue,"feq_tmp_");
+                        if (Operator == UNEQUAL) return Builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, LeftValue, RightValue,"fne_tmp_");
+                    }
+                    else
+                    {
+                        if (Operator == _GE_) return Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, LeftValue, RightValue,"ige_tmp_");
+                        if (Operator == _GT_) return Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, LeftValue, RightValue,"igt_tmp_");
+                        if (Operator == _LE_) return Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, LeftValue, RightValue,"ile_tmp_");
+                        if (Operator == _LT_) return Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, LeftValue, RightValue,"ilt_tmp_");
+                        if (Operator == EQUAL) return Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ,LeftValue, RightValue,"ieq_tmp_");
+                        if (Operator == UNEQUAL) return Builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, LeftValue, RightValue,"ine_tmp_");
+                    }
+                    break;
+                }
+                case IF:
+                {
+                    auto* Condition = genCode(ASTNode->m_Operation.List_Operands[0], false);
+                    auto* IF_Block  = llvm::BasicBlock::Create(Context, "if", Builder.GetInsertBlock()->getParent());
+                    auto* ELSE_Block = llvm::BasicBlock::Create(Context, "else", Builder.GetInsertBlock()->getParent());
+                    auto* After_Block = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+
+                    Builder.CreateCondBr(Condition, IF_Block, ELSE_Block); // 条件跳转语句
+
+                    // 生成IF语句部分的代码
+                    Builder.SetInsertPoint(IF_Block);
+                    genCode(ASTNode->m_Operation.List_Operands[1], getVarByAddr);
+                    // jump to After_Block
+                    Builder.CreateBr(After_Block);
+
+                    // 生成ELSE语句部分的代码
+                    Builder.SetInsertPoint(ELSE_Block);
+                    // 如果有Else部分
+                    if (ASTNode->m_Operation.NumOperands == 3)
+                    {
+                        genCode(ASTNode->m_Operation.List_Operands[2], getVarByAddr);
+                    }
+                    // jump to After_Block
+                    Builder.CreateBr(After_Block);
+
+                    // 后面代码的内容全在After Block中
+                    Builder.SetInsertPoint(After_Block);
+                    break;
+                }
                 // 一元布尔运算
                 case NOT:
                 {
@@ -208,9 +371,17 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                 }
                 case ASSIGN:
                 {
+                    auto* Left = dynamic_cast<Typing::sysNode*>(ASTNode->m_Operation.List_Operands[0]->m_Type);
+                    auto* LeftValue = genCode(ASTNode->m_Operation.List_Operands[0], true);
+                    auto* RightValue = genCode(ASTNode->m_Operation.List_Operands[1], false);
+                    if (Left->dType == Typing::DataType::d_REAL)
+                    { // 左边为浮点数时，右边也要变成浮点数
+                        RightValue = Builder.CreateSIToFP(RightValue, Builder.getDoubleTy(), "si2double_tmp_");
+                    }
+
                     Builder.CreateStore(
-                    /* Value =  */ genCode(ASTNode->m_Operation.List_Operands[1], false),
-                    /* Variable= */genCode(ASTNode->m_Operation.List_Operands[0], true)
+                    /* Value =  */ RightValue,
+                    /* Variable= */LeftValue
                     );
                     break;
                 }

@@ -1034,14 +1034,14 @@ YY_RULE_SETUP
 #line 87 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return GE;}
+    return _GE_;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 90 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/lex.l"
 {
     yylloc.first_line=line_number;
-    return GT;}
+    return _GT_;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP

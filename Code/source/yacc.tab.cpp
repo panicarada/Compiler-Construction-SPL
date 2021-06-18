@@ -85,8 +85,8 @@
      NOT = 274,
      PLUS = 275,
      MINUS = 276,
-     GE = 277,
-     GT = 278,
+     _GE_ = 277,
+     _GT_ = 278,
      _LE_ = 279,
      _LT_ = 280,
      EQUAL = 281,
@@ -166,8 +166,8 @@
 #define NOT 274
 #define PLUS 275
 #define MINUS 276
-#define GE 277
-#define GT 278
+#define _GE_ 277
+#define _GT_ 278
 #define _LE_ 279
 #define _LT_ 280
 #define EQUAL 281
@@ -679,7 +679,7 @@ static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "INTEGER", "REAL", "CHAR", "STRING",
   "SYS_TYPE", "_ID_", "_LP_", "RP", "LB", "RB", "DOT", "COMMA", "COLON",
-  "MUL", "DIV", "UNEQUAL", "NOT", "PLUS", "MINUS", "GE", "GT", "_LE_",
+  "MUL", "DIV", "UNEQUAL", "NOT", "PLUS", "MINUS", "_GE_", "_GT_", "_LE_",
   "_LT_", "EQUAL", "ASSIGN", "MOD", "DOTDOT", "SEMI", "READ", "SYS_PROC",
   "SYS_FUNCT", "SYS_CON", "AND", "ARRAY", "_BEGIN", "CASE", "CONST", "DO",
   "DOWNTO", "ELSE", "END", "FOR", "FUNCTION", "GOTO", "IF", "OF", "OR",
@@ -2569,14 +2569,14 @@ yyreduce:
   case 99:
 #line 681 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
-        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, GE, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
+        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, _GE_, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
   case 100:
 #line 685 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
-        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, GT, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
+        (yyval.NodePtr) = new AST::Node((yylsp[(2) - (3)]).first_line, _GT_, 2, (yyvsp[(1) - (3)].NodePtr), (yyvsp[(3) - (3)].NodePtr));
     ;}
     break;
 
@@ -2674,8 +2674,8 @@ yyreduce:
   case 114:
 #line 745 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
-        (yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
-    ;}
+		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
+    	;}
     break;
 
   case 115:
@@ -2714,8 +2714,8 @@ yyreduce:
   case 119:
 #line 772 "/Applications/zju/编译原理/final_proj/Code/lex_yacc/yacc.y"
     {
-        	(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
-    	;}
+		(yyval.NodePtr) = (yyvsp[(1) - (1)].NodePtr);
+	;}
     break;
 
   case 120:
