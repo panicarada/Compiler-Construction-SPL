@@ -14,7 +14,10 @@ declare i32 @printf(i8*, ...)
 declare i32 @scanf(i8*, ...)
 
 define internal void @main() {
-main_entry:
+set_label:
+  br label %main_entry
+
+main_entry:                                       ; preds = %set_label
   %tmp = alloca i32, align 4
   %0 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format, i32 0, i32 0), i8* getelementptr inbounds ([26 x i8], [26 x i8]* @string_tmp_.1, i32 0, i32 0))
   %1 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format.2, i32 0, i32 0), i32* %tmp)

@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <set>
+#include <stack>
 
 #include "Typing.hpp"
 
@@ -9,8 +11,9 @@
 class ST
 {
 public:
-    std::unordered_map<std::string, Typing::Node*> Table;
+    std::unordered_map<std::string, std::stack<Typing::Node*>> Table;
     std::unordered_map<std::string, unsigned int> LineTable;
+    std::set<std::string> TypeTable; // type part中自定义的类型名
 private:
     enum Scope
     {

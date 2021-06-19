@@ -45,23 +45,23 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                         procedure->m_body = subroutine->m_Operation.List_Operands[0];
 
                         // 检查函数体的类型
-                        for (auto& it : procedure->m_val_table->Table)
+                        for (const auto& it : procedure->m_val_table->Table)
                         {   // 先把函数的参数表暂时加入符号表中
-                            insert(it.first, it.second, procedure->m_val_table->LineTable[it.first]);
+                            insert(it.first, it.second.top(), procedure->m_val_table->LineTable[it.first]);
                         }
-                        for (auto& it : procedure->m_var_table->Table)
+                        for (const auto& it : procedure->m_var_table->Table)
                         {   // 类型检查时不区分引用类型
-                            insert(it.first, it.second, procedure->m_val_table->LineTable[it.first]);
+                            insert(it.first, it.second.top(), procedure->m_var_table->LineTable[it.first]);
                         }
                         // 检查函数体
                         check(procedure->m_body);
 
                         // 把刚才加入的符号弹出
-                        for (auto& it : procedure->m_val_table->Table)
+                        for (const auto& it : procedure->m_val_table->Table)
                         {
                             pop(it.first);
                         }
-                        for (auto& it : procedure->m_var_table->Table)
+                        for (const auto& it : procedure->m_var_table->Table)
                         {
                             pop(it.first);
                         }
@@ -110,18 +110,18 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                         function->m_body = subroutine->m_Operation.List_Operands[0];
 
                         // 检查函数体的类型
-                        
                         for (auto& it : function->m_val_table->Table)
                         {   // 先把函数的参数表暂时加入符号表中
-                            insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+                            insert(it.first, it.second.top(), function->m_val_table->LineTable[it.first]);
                         }   
                         for (auto& it : function->m_var_table->Table)
                         {   // 类型检查时不区分引用类型
-                            insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+                            insert(it.first, it.second.top(), function->m_var_table->LineTable[it.first]);
                         }
 
                         // 检查函数体
                         check(function->m_body);
+
 
                         // 把刚才加入的符号弹出
                         for (auto& it : function->m_val_table->Table)
@@ -133,7 +133,6 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                             pop(it.first);
                         }
                     }
-                    
                     return function;
                 }
                 case FUNCTION_HEAD:
@@ -224,7 +223,7 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                             check(temp);
                             extern Interpreter* ipt;    // 设置一下解释器的主函数入口
                             ipt->main_entry = temp;
-                            std::cout << "Main entry has been set up!" << std::endl;
+                            printf("Main entry has been set up!\n");
                         }
                         else 
                         {
@@ -249,11 +248,14 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                     }
                     break;
                 case TYPE: // 左边是类型名字，右边是这个名字对应的类型statement
+                {
                     // 见test3.spl以及对应的AST
-                    insert(p->m_Operation.List_Operands[0]->m_Identifier.Name,
-                                getType(p->m_Operation.List_Operands[1]), p->m_Operation.List_Operands[0]->m_Line);
-                    
+                    std::string TypeName = p->m_Operation.List_Operands[0]->m_Identifier.Name;
+                    insert(TypeName,
+                           getType(p->m_Operation.List_Operands[1]), p->m_Operation.List_Operands[0]->m_Line);
+                    TypeTable.insert(TypeName);
                     break;
+                }
             
                 // 加入(变量名， 类型指针)
                 case VAR_PART: 
@@ -352,14 +354,14 @@ void ST::show()
         int hPos = ALIGN_WIDTH + ALIGN_WIDTH/2;
         std::cout   << std::setfill(' ') << std::setw(ALIGN_WIDTH) << it.first
                     << std::setfill(' ') << std::setw(ALIGN_WIDTH / 2) << LineTable[it.first]
-                    << it.second->toString(hPos) << std::endl;
-        if ((it.second)->nType == Typing::NodeType::t_FUNCTION)
+                    << it.second.top()->toString(hPos) << std::endl;
+        if ((it.second).top()->nType == Typing::NodeType::t_FUNCTION)
         {   // 函数储存起来，之后要输出函数的参数表
-            functions.emplace_back(it);
+            functions.emplace_back(std::make_pair(it.first, it.second.top()));
         }
-        if ((it.second)->nType == Typing::NodeType::t_PROCEDURE)
+        if ((it.second).top()->nType == Typing::NodeType::t_PROCEDURE)
         {   // 过程储存起来，之后要输出过程的参数表
-            procedures.emplace_back(it);
+            procedures.emplace_back(std::make_pair(it.first, it.second.top()));
         }
     }
     for (auto& it : functions)
@@ -395,28 +397,26 @@ void ST::show()
 
 bool ST::insert(const std::string& str, Typing::Node* node, unsigned int Line)
 {
-    if (Table.find(str) == Table.end())
+    auto res = Table.find(str);
+    if (res == Table.end())
     {
-        node->prev = node->next = nullptr;
-        Table[str] = node;
-        LineTable[str] = Line;
+        Table[str] = std::stack<Typing::Node*>();
+        Table[str].push(node);
         return true;
     }
     else
-    { // 原本就存在str这一个key
-        // 用指针连接
-        Table[str]->next = node;
-        node->prev = Table[str];
-        Table[str] = node;
+    {
+        Table[str].push(node);
         return false;
     }
 }
 
 Typing::Node* ST::get(const std::string& str, unsigned int line)
 {
-    if (Table.find(str) != Table.end())
+    auto res = Table.find(str);
+    if (res != Table.end())
     {
-        return Table[str];
+        return res->second.top();
     }
     // 报错
     std::stringstream msg;
@@ -426,27 +426,23 @@ Typing::Node* ST::get(const std::string& str, unsigned int line)
 
 Typing::Node* ST::pop(const std::string& str)
 {
-    if (Table.find(str) == Table.end())
+    auto res = Table.find(str);
+
+    if (res == Table.end())
     { // 如果不存在，没办法删除
         std::stringstream msg;
         msg << "当前符号表中不存在名称: \"" << str << "\"" << std::endl;
         raiseError(msg.str())
     }
     else 
-    {   // 取出链表尾部
-        Typing::Node* res = Table[str];
-        Typing::Node* prev = Table[str]->prev;  // 上一个在这一位置的符号
-        if (prev)
-        {
-            Table[str] = prev;
-            Table[str]->next = nullptr;
-        }
-        else 
+    {
+        auto* ret = Table[str].top();
+        Table[str].pop();
+        if (Table[str].empty())
         {
             Table.erase(str);
         }
-        res->prev = nullptr;
-        return res;
+        return ret;
     }
 }
 
@@ -484,7 +480,8 @@ Typing::Node* ST::check(AST::Node* p)
 
         case AST::Attribute::Identifier:
             {
-                auto type = get(p->m_Identifier.Name, p->m_Line);
+                auto* type = get(p->m_Identifier.Name, p->m_Line);
+
                 // 函数体中，函数名就是返回参数
                 if (type->nType == Typing::NodeType::t_FUNCTION)
                 {   // 这时候对应的类型是函数返回类型

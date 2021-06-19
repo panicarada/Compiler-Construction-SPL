@@ -1,35 +1,35 @@
 program Fibo;
 
-type 
-	int = integer;
-	ans = record 	
-			 n_steps : int;		// 计算用了多少步
-			 fibo_n  : int; 	// fibo(n)，最终计算结果
-		  end;
+type
+	Info = record
+				n_steps : integer;
+				fibo_n  : integer;
+			end;
 var
-	temp : ans;
+	n : integer;
+	info : Info;
 function fibo(
-	n : integer
-) : ans;
+	n : integer;
+var
+	info    : Info
+) : integer;
 begin
-	if n = 1 then begin
-		temp.n_steps := 1;
-		fibo.fibo_n  := 1;
+	info.n_steps := info.n_steps + 1;
+	if n <= 1 then begin
+		fibo := n;
+		info.fibo_n := fibo;
 	end
 	else begin
-		fibo.n_steps := 1;
-		temp := fibo(n-1);
-		fibo.n_steps := temp.n_steps + 1;
-		fibo.fibo_n  := temp.fibo_n;
-		temp := fibo(n-2);
-		fibo.n_steps := fibo.n_steps + temp.n_steps;
-		fibo.fibo_n  := fibo.fibo_n  + temp.fibo_n;
-	end
-	;
+		fibo := fibo(n-1, info) + fibo(n-2, info);
+		info.fibo_n := fibo;
+	end;
 end
 ;
 
 begin
-	
+	info.n_steps := 0;
+	read("Please enter your n: ", n);
+	writeln("fibo(", n, ") = ", fibo(n, info));
+	writeln("using ", info.n_steps, " steps");
 end
 .

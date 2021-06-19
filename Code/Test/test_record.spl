@@ -1,0 +1,30 @@
+program test_record;
+
+
+type 
+	int = integer;
+	Info = record 	
+			 Age 	: int;		
+			 Name   : string; 	
+			 GPA    : real;
+		  end;
+var
+	temp : int;
+
+function wrap(
+	Age : int;
+	Name : string;
+	GPA  : real
+) : integer;
+begin
+	info.Age := Age;
+	info.Name := Name;
+	info.GPA := GPA;
+end
+;
+
+begin
+	temp := wrap(8, "QZH", 5.555);
+	writeln("Name: ", info.Name, "	age: ", info.Age, "	GPA: ", info.GPA);
+end
+.

@@ -1,28 +1,18 @@
 Symbol Table: *****************
         name  line        type   attribute
-        sort    16   procedure
-     integer     0    sys_type     integer
-        real     0    sys_type        real
-      Vector     8      record         arr:        array       range    0 .. 100
-                                                            sys_type     integer
-                                      size:     sys_type     integer
-           j    13    sys_type     integer
-        ZERO     4       const     integer           0
-           i    13    sys_type     integer
-       Array     7       array       range    0 .. 100
-                                  sys_type     integer
-        temp    14    sys_type     integer
-      string     0    sys_type      string
-        char     0    sys_type        char
-     boolean     0    sys_type     boolean
-     MAX_LEN     5       const     integer         100
+        sort    15   procedure
+           j    12    sys_type     integer
+        ZERO     3       const     integer           0
+           i    12    sys_type     integer
+        temp    13    sys_type     integer
+     MAX_LEN     4       const     integer         100
 ----------------------------------------
 procedure: "sort"
         name  line        type   attribute
-         arr    17       array       range    0 .. 100
-                                  sys_type     integer
+        size    17    sys_type     integer
         name  line        type   attribute
-        size    18    sys_type     integer
+         arr    16       array       range    0 .. 100
+                                  sys_type     integer
 Type of AST Node: *****************
 type of id: 46
     sys_type     integer

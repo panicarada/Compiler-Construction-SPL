@@ -13,7 +13,7 @@ llvm::LLVMContext CodeGenerator::Context;
 llvm::IRBuilder<> CodeGenerator::Builder(Context);
 
 
-llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode)
+llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode, const char* RecordName = nullptr)
 {
     switch (tNode->nType)
     {
@@ -45,12 +45,28 @@ llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode)
                 return Builder.getInt8PtrTy();
             }
         }
+        case Typing::NodeType::t_RECORD:
+        {
+            auto* RecordNode = dynamic_cast<Typing::recordNode*>(tNode);
+//            auto* Record = llvm::StructType::create(Context, RecordName ? RecordName : "record_tmp_");
+            std::vector<llvm::Type*> Members;
+            for (auto Member_it = RecordNode->MemberIndex.begin(); Member_it != RecordNode->MemberIndex.end(); ++Member_it)
+            { // 按顺序遍历每个成员，添加到Members中
+                Members.emplace_back(toLLVM((*(RecordNode->m_Field))[*Member_it]));
+            }
+//            Record->setBody(Members);
+            auto* Record = llvm::StructType::get(Context, Members);
+
+
+            return Record;
+        }
     }
     return nullptr;
 }
 
 void CodeGenerator::execute(const Interpreter* ipt, std::ofstream &Out)
 {
+
     // 主函数
     auto* mainFunction = llvm::Function::Create(
             llvm::FunctionType::get(Builder.getVoidTy(), false),
@@ -58,12 +74,16 @@ void CodeGenerator::execute(const Interpreter* ipt, std::ofstream &Out)
             "main",
             Module
     );
-    auto* mainBlock = llvm::BasicBlock::Create(
+    auto* mainBlock = llvm::BasicBlock::Create( // 主函数函数体
             Context,
             "main_entry",
             mainFunction
     );
+
+    // 跳转到main block
     Builder.SetInsertPoint(mainBlock);
+
+    RecordsStack.push(std::map<std::string, Typing::recordNode*>());
 
     // 根据符号表内容构造全局变量和常量，以及函数
     SymbolTable = ipt->symbol_table;
@@ -91,7 +111,7 @@ void CodeGenerator::setupGlobal()
     for (const auto& it : SymbolTable->Table)
     { // 遍历符号表中每个定义
         std::string Name = it.first;
-        Typing::Node* tNode = it.second;
+        Typing::Node* tNode = it.second.top();
 
         if (tNode->nType == Typing::NodeType::t_FUNCTION)
         { // 直接定义函数
@@ -116,6 +136,7 @@ void CodeGenerator::setupGlobal()
                     FunctNode->m_name,
                     Module
             );
+
 
             // 将函数声明保存起来，之后再插入代码【否则会打断main block】
             FunctionSet.insert(std::make_pair(FunctionProto, FunctNode));
@@ -146,9 +167,26 @@ void CodeGenerator::setupGlobal()
                     break;
             }
         }
+//        else if (tNode->nType == Typing::NodeType::t_RECORD)
+//        { // 结构类型
+//            auto* RecordNode = dynamic_cast<Typing::recordNode*>(tNode);
+//            auto* Record = llvm::StructType::create(Context, Name);
+//
+//            std::vector<llvm::Type*> Members;
+//            for (auto Member_it = RecordNode->MemberIndex.begin(); Member_it != RecordNode->MemberIndex.end(); ++Member_it)
+//            { // 按顺序遍历每个成员，添加到Members中
+//                Members.emplace_back(toLLVM((*(RecordNode->m_Field))[*Member_it]));
+//            }
+//            Record->setBody(Members);
+//            GlobalVariables[Name] = Builder.CreateAlloca(Record, nullptr, "alloc_record_tmp_");
+//        }
         else
         { // 添加全局变量
-            llvm::Type* Type = toLLVM(tNode);
+            llvm::Type* Type = toLLVM(tNode, Name.c_str());
+            if (tNode->nType == Typing::NodeType::t_RECORD)
+            {
+                RecordsStack.top()[Name] = dynamic_cast<Typing::recordNode*>(tNode);
+            }
             if (Type)
             {
                 GlobalVariables[Name] = Builder.CreateAlloca(Type, nullptr, Name);
@@ -182,7 +220,6 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
             { // 如果不是常数，并且不属于函数参数
                 ret = GlobalVariables[Name];
             }
-
             if (ret != nullptr)
             { // 判断是要返回变量地址还是要返回变量指向的值
                 if (getVarByAddr) return ret;
@@ -213,10 +250,35 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
         {
             switch (ASTNode->m_Operation.Operator)
             {
+                case DOT:
+                { // 访问数组
+                    auto* Record = genCode(ASTNode->m_Operation.List_Operands[0], true);
+                    std::string RecordName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
+                    // 获取成员名字
+                    std::string Member = ASTNode->m_Operation.List_Operands[1]->m_Identifier.Name;
+
+                    auto* RecordNode = RecordsStack.top()[RecordName]; // 本地找不到
+                    if (!RecordNode) // 就到全局找
+                    {
+                        RecordNode = dynamic_cast<Typing::recordNode*>(SymbolTable->get(RecordName, 0));
+                    }
+
+                    int MemberIndex = RecordNode->getIndex(Member);
+                    Record->getType()->print(llvm::errs());
+                    auto* ret = Builder.CreateStructGEP(Record, MemberIndex, "member_tmp_");
+                    if (!getVarByAddr)
+                    {
+                        ret = Builder.CreateLoad(ret);
+                    }
+
+
+                    return ret;
+                }
                 case CALL_FUNCT:
                 { // 调用函数
                     // 获取函数
                     std::string FunctionName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
+
                     auto* FunctionNode = dynamic_cast<Typing::functNode*>(SymbolTable->get(FunctionName, 0));
 
                     // 设置参数
@@ -457,7 +519,6 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                     { // 左边为浮点数时，右边也要变成浮点数
                         RightValue = Builder.CreateSIToFP(RightValue, Builder.getDoubleTy(), "si2double_tmp_");
                     }
-
                     Builder.CreateStore(
                     /* Value =  */ RightValue,
                     /* Variable= */LeftValue
@@ -523,19 +584,24 @@ void CodeGenerator::defineFunctions()
         // 进入函数体代码区
         Builder.SetInsertPoint(FunctionBlock);
         std::map<std::string, llvm::Value*> ArgumentMap; // 当前函数的参数映射表
+
+        RecordsStack.push(std::map<std::string, Typing::recordNode*>());
         // 加载参数
         int ArgumentIndex = 0;
         for (auto Argument_it = Function->arg_begin(); Argument_it != Function->arg_end(); Argument_it++)
         {
             auto Argument = dynamic_cast<llvm::Value*>(Argument_it);
             std::string Name = FunctNode->m_Params[ArgumentIndex].first;
+            Typing::Node* Type;
             bool isVar = FunctNode->m_Params[ArgumentIndex].second;
             if (isVar)
             { // 这个参数是引用类型的话
                 ArgumentMap[Name] = Argument; // 直接传递地址
+                Type = FunctNode->m_var_table->get(Name, 0);
             }
             else
             { // 如果不是引用类型，
+                Type = FunctNode->m_val_table->get(Name, 0);
                 // 为本地参数分配空间
                 ArgumentMap[Name] = Builder.CreateAlloca(Argument->getType(), nullptr, Name);
                 // 再直接load值
@@ -544,10 +610,21 @@ void CodeGenerator::defineFunctions()
                         ArgumentMap[Name]
                 );
             }
+            if (Type->nType == Typing::NodeType::t_RECORD)
+            {
+                RecordsStack.top()[Name] = dynamic_cast<Typing::recordNode*>(Type);
+            }
             ArgumentIndex ++;
         }
         // 最后，函数的名字也作为一个参数
-        ArgumentMap[std::string(Function->getName())] = Builder.CreateAlloca(toLLVM(FunctNode->m_resType), nullptr, Function->getName());
+        std::string FunctionName(Function->getName());
+        ArgumentMap[FunctionName] = Builder.CreateAlloca(toLLVM(FunctNode->m_resType, FunctionName.c_str()), nullptr, FunctionName);
+
+        if (FunctNode->m_resType->nType == Typing::NodeType::t_RECORD)
+        {
+            RecordsStack.top()[FunctionName] = dynamic_cast<Typing::recordNode*>(FunctNode->m_resType);
+        }
+
         ArgumentsStack.push(ArgumentMap);
         // 参数建立完成
         // 生成函数体代码
@@ -555,6 +632,10 @@ void CodeGenerator::defineFunctions()
 
         // 弹出参数
         ArgumentsStack.pop();
+        // 弹出结构体
+        RecordsStack.pop();
+
+
         // 返回值
         auto* RetPtr = ArgumentMap[std::string(Function->getName())];
         Builder.CreateRet(Builder.CreateLoad(RetPtr));

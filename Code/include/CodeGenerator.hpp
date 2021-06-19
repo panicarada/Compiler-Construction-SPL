@@ -27,6 +27,7 @@ namespace Typing
 {   // 提前声明Typing::Node类
     class Node;
     class functNode;
+    class recordNode;
 };
 namespace AST
 {   // 提前声明AST::Node类
@@ -55,6 +56,9 @@ public:
     // 函数参数列表
     // 一个函数内部能够访问的变量只有GlobalVariable以及栈顶的Arguments
     std::stack<std::map<std::string, llvm::Value*>> ArgumentsStack;
+
+    // 结构体列表
+    std::stack<std::map<std::string, Typing::recordNode*>> RecordsStack;
 
     // 函数集合，用于保存函数声明，最后再实现
     std::set<std::pair<llvm::Function*, Typing::functNode*>> FunctionSet;
@@ -157,7 +161,7 @@ public:
         );
     }
     // 把Typing::Node类转为llvm::Type类
-    static llvm::Type* toLLVM(Typing::Node* tNode);
+    static llvm::Type* toLLVM(Typing::Node* tNode, const char*);
     void execute(const Interpreter* ipt, std::ofstream& Out);
     llvm::Value* genCode(AST::Node* ASTNode, bool getVarByAddr);
 };

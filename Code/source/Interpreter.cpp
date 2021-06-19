@@ -34,12 +34,21 @@ int Interpreter::execute(AST::Node* p, std::string& Filename, std::string& Progr
 
     std::cout << "Symbol Table: *****************" << std::endl;
     symbol_table->setup(p);
+
     // 弹出用来辅助的基础类型
     symbol_table->pop("integer");
     symbol_table->pop("real");
     symbol_table->pop("boolean");
     symbol_table->pop("char");
     symbol_table->pop("string");
+
+    // 为了方便，把type part中自定义的类型名暂时放到了符号表
+    // 检查完类型后，把它们都弹出来
+    for (const auto& it : symbol_table->TypeTable)
+    {
+        symbol_table->pop(it);
+    }
+
     symbol_table->show();
     std::cout << "Type of AST Node: *****************" << std::endl;
 

@@ -136,19 +136,20 @@ namespace Typing
     {
     public:
         std::map<std::string, Node*>* m_Field = nullptr; // 成员名字到类型的映射
+        std::vector<std::string> MemberIndex; // 成员名字的集合，用于限制成员的位置
     public:
-        Node* getAttribute(std::string str) const
-        {
-            if (m_Field->find(str) != m_Field->end())
-            {
-                return (*m_Field)[str];
-            }
-            return nullptr;
-        }
         recordNode(std::map<std::string, Node*>* Field)
         {
             nType = NodeType::t_RECORD;
             m_Field = Field;
+            for (const auto& it : *m_Field)
+            {
+                MemberIndex.emplace_back(it.first);
+            }
+        }
+        inline int getIndex(const std::string& Member) const
+        { // 返回成员所在下标
+            return std::find(MemberIndex.begin(), MemberIndex.end(), Member) - MemberIndex.begin();
         }
         virtual std::string toString(int& hPos) const override;
     };
