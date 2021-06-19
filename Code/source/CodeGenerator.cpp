@@ -57,14 +57,16 @@ void CodeGenerator::execute(const Interpreter* ipt, std::ofstream &Out)
     );
     Builder.SetInsertPoint(mainBlock);
 
-    // 根据符号表内容构造全局变量和常量
-    setupGlobal(ipt->symbol_table);
+    // 根据符号表内容构造全局变量和常量，以及函数
+    SymbolTable = ipt->symbol_table;
+    setupGlobal();
 
     // 生成主函数代码
     genCode(ipt->main_entry, false);
-
     // 主函数返回void
     Builder.CreateRet(nullptr);
+
+    defineFunctions();
 
     std::string IRCode;
     llvm::raw_string_ostream IR(IRCode);
@@ -76,14 +78,41 @@ void CodeGenerator::execute(const Interpreter* ipt, std::ofstream &Out)
     Out.close();
 }
 
-void CodeGenerator::setupGlobal(ST* SymbolTable)
+void CodeGenerator::setupGlobal()
 {
     for (const auto& it : SymbolTable->Table)
     { // 遍历符号表中每个定义
         std::string Name = it.first;
         Typing::Node* tNode = it.second;
 
-        if (tNode->nType == Typing::NodeType::t_CONSTANT)
+        if (tNode->nType == Typing::NodeType::t_FUNCTION)
+        { // 直接定义函数
+            auto* FunctNode = dynamic_cast<Typing::functNode*>(tNode);
+            auto ArgumentsType = std::vector<llvm::Type*>(); // 参数类型
+            for (auto Param_it = FunctNode->m_Params.begin(); Param_it != FunctNode->m_Params.end(); Param_it++)
+            {
+                std::string ParamName = Param_it->first;
+                bool isVar = Param_it->second;
+                if (isVar)
+                { // 否则，参数类型为相应的指针
+                    ArgumentsType.push_back(toLLVM(FunctNode->m_var_table->get(ParamName, 0))->getPointerTo());
+                }
+                else
+                { // 不是引用类型，则参数类型就是本身类型
+                    ArgumentsType.push_back(toLLVM(FunctNode->m_val_table->get(ParamName, 0)));
+                }
+            }
+            auto* FunctionProto = llvm::Function::Create(
+                    llvm::FunctionType::get(toLLVM(FunctNode->m_resType), ArgumentsType, true),
+                    llvm::GlobalValue::InternalLinkage,
+                    FunctNode->m_name,
+                    Module
+            );
+
+            // 将函数声明保存起来，之后再插入代码【否则会打断main block】
+            FunctionSet.insert(std::make_pair(FunctionProto, FunctNode));
+        }
+        else if (tNode->nType == Typing::NodeType::t_CONSTANT)
         { // 处理constant
             auto* constNode = dynamic_cast<Typing::constNode*>(tNode);
             switch (constNode->m_Sys->dType)
@@ -123,16 +152,25 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
     switch (ASTNode->m_Attribute)
     {
         case AST::Attribute::Identifier:
-        {
+        { /* 注意，这里绝对不可能是函数 */
             llvm::Value* ret;
             std::string Name = ASTNode->m_Identifier.Name;
             // 先找常数
             ret = GlobalConst[Name];
-            if (ret) return ret;
-            // 再找变量
-            ret = GlobalVariables[Name];
-            if (ret)
+            if (ret != nullptr) return ret;
+            // 再找本地函数参数
+            if (!ArgumentsStack.empty())
             {
+                auto& Arguments = ArgumentsStack.top();
+                ret = Arguments[Name];
+            }
+            if (ret == nullptr)
+            { // 如果不是常数，并且不属于函数参数
+                ret = GlobalVariables[Name];
+            }
+
+            if (ret)
+            { // 判断是要返回变量地址还是要返回变量指向的值
                 if (getVarByAddr) return ret;
                 else return Builder.CreateLoad(ret, Name);
             }
@@ -156,6 +194,28 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
         {
             switch (ASTNode->m_Operation.Operator)
             {
+                case CALL_FUNCT:
+                { // 调用函数
+                    // 获取函数
+                    std::string FunctionName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
+                    auto* FunctionNode = dynamic_cast<Typing::functNode*>(SymbolTable->get(FunctionName, 0));
+
+                    // 设置参数
+                    CallerArguments.clear();
+                    for (int i = 1;i < ASTNode->m_Operation.NumOperands; ++i)
+                    {
+                        if (FunctionNode->m_Params[i-1].second)
+                        { // 如果是引用类型，则输入地址
+                            CallerArguments.push_back(genCode(ASTNode->m_Operation.List_Operands[i], true));
+                        }
+                        else
+                        {
+                            CallerArguments.push_back(genCode(ASTNode->m_Operation.List_Operands[i], false));
+                        }
+                    }
+                    // 调用【这时候虽然函数没有定义，但是已经声明了】
+                    return Builder.CreateCall(Module->getFunction(FunctionName), CallerArguments);
+                }
                 case WHILE:
                 {
                     auto* LOOP_Condition_Block = llvm::BasicBlock::Create(Context, "loop_condition", Builder.GetInsertBlock()->getParent());
@@ -431,4 +491,53 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
         }
     }
     return nullptr;
+}
+
+void CodeGenerator::defineFunctions()
+{
+    for (const auto& it : FunctionSet)
+    {
+        llvm::Function* Function = it.first;
+        Typing::functNode* FunctNode = it.second;
+        // 创建函数体代码区
+        auto* FunctionBlock = llvm::BasicBlock::Create(Context, Function->getName(), Function);
+        // 进入函数体代码区
+        Builder.SetInsertPoint(FunctionBlock);
+        std::map<std::string, llvm::Value*> ArgumentMap; // 当前函数的参数映射表
+        // 加载参数
+        int ArgumentIndex = 0;
+        for (auto Argument_it = Function->arg_begin(); Argument_it != Function->arg_end(); Argument_it++)
+        {
+            auto Argument = dynamic_cast<llvm::Value*>(Argument_it);
+            std::string Name = FunctNode->m_Params[ArgumentIndex].first;
+            bool isVar = FunctNode->m_Params[ArgumentIndex].second;
+            if (isVar)
+            { // 这个参数是引用类型的话
+                ArgumentMap[Name] = Argument; // 直接传递地址
+            }
+            else
+            { // 如果不是引用类型，
+                // 为本地参数分配空间
+                ArgumentMap[Name] = Builder.CreateAlloca(Argument->getType(), nullptr, Name);
+                // 再直接load值
+                Builder.CreateStore(
+                        Argument,
+                        ArgumentMap[Name]
+                );
+            }
+            ArgumentIndex ++;
+        }
+        // 最后，函数的名字也作为一个参数
+        ArgumentMap[std::string(Function->getName())] = Builder.CreateAlloca(toLLVM(FunctNode->m_resType), nullptr, Function->getName());
+        ArgumentsStack.push(ArgumentMap);
+        // 参数建立完成
+        // 生成函数体代码
+        genCode(FunctNode->m_body, true);
+
+        // 弹出参数
+        ArgumentsStack.pop();
+        // 返回值
+        auto* RetPtr = ArgumentMap[std::string(Function->getName())];
+        Builder.CreateRet(Builder.CreateLoad(RetPtr));
+    }
 }

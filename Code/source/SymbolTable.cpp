@@ -86,11 +86,11 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                                 auto param = para_group->m_Operation.List_Operands[j];
                                 if (para_group->m_Operation.Operator == VAL_PARAM)
                                 { // 添加形参表
-                                    procedure->addParam(true, param->m_Identifier.Name, type, param->m_Line);
+                                    procedure->addParam(false, param->m_Identifier.Name, type, param->m_Line);
                                 }
                                 else if (para_group->m_Operation.Operator == VAR_PARAM)
                                 { // 添加引用参数表
-                                    procedure->addParam(false, param->m_Identifier.Name, type, param->m_Line);
+                                    procedure->addParam(true, param->m_Identifier.Name, type, param->m_Line);
                                 }
                                 else
                                 {
@@ -155,11 +155,11 @@ Typing::Node* ST::getType(AST::Node* p, Scope scope)
                                 
                                 if (para_group->m_Operation.Operator == VAL_PARAM)
                                 { // 添加形参表
-                                    function->addParam(true, param->m_Identifier.Name, type, param->m_Line);
+                                    function->addParam(false, param->m_Identifier.Name, type, param->m_Line);
                                 }
                                 else if (para_group->m_Operation.Operator == VAR_PARAM)
                                 { // 添加引用参数表
-                                    function->addParam(false, param->m_Identifier.Name, type, param->m_Line);
+                                    function->addParam(true, param->m_Identifier.Name, type, param->m_Line);
                                 }
                                 else 
                                 {

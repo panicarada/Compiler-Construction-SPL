@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <stack>
+#include <set>
 #include <stdarg.h>
 
 #include <llvm/IR/BasicBlock.h>
@@ -25,6 +26,7 @@
 namespace Typing
 {   // 提前声明Typing::Node类
     class Node;
+    class functNode;
 };
 namespace AST
 {   // 提前声明AST::Node类
@@ -42,6 +44,9 @@ public:
     static llvm::IRBuilder<> Builder;
     llvm::Module* Module;
 
+    // 全局符号表
+    ST* SymbolTable;
+
     // 全局变量
     // <名字，对应地址>
     std::map<std::string, llvm::Value*> GlobalVariables;
@@ -51,15 +56,19 @@ public:
     // 一个函数内部能够访问的变量只有GlobalVariable以及栈顶的Arguments
     std::stack<std::map<std::string, llvm::Value*>> ArgumentsStack;
 
-    // I/O的输入参数
-    std::vector<llvm::Value*> IOArguments;
+    // 函数集合，用于保存函数声明，最后再实现
+    std::set<std::pair<llvm::Function*, Typing::functNode*>> FunctionSet;
+
+    // 调用函数的输入参数
+    std::vector<llvm::Value*> CallerArguments;
 public:
     CodeGenerator()
     {
         Module = new llvm::Module("main", Context);
         setupIO();
     }
-    void setupGlobal(ST* SymbolTable);
+    void defineFunctions(); // 完成函数的定义
+    void setupGlobal();
     inline void setupIO() // 设置printf和scanf函数
     {
         auto ArgumentsType = std::vector<llvm::Type*>{llvm::Type::getInt8PtrTy(Context)};
@@ -80,54 +89,59 @@ public:
     }
     inline void callWrite(bool newLine, const std::string& Format, const std::vector<llvm::Value*>& Params)
     {
-        IOArguments.clear();
-        IOArguments.emplace_back(Builder.CreateGlobalStringPtr((newLine) ? Format + std::string("\n") : Format));
-        IOArguments.insert(IOArguments.end(), Params.begin(), Params.end());
+        CallerArguments.clear();
+        std::string StringFormat = Format;
+        if (newLine) StringFormat += "\n";
+        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(StringFormat));
+        CallerArguments.insert(CallerArguments.end(), Params.begin(), Params.end());
         Builder.CreateCall(
                 Module->getFunction("printf"),
-                IOArguments
+                CallerArguments
         );
     }
     inline void callRead(const std::string& Format, const std::vector<llvm::Value*>& Params)
     {
-        IOArguments.clear();
-        IOArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
-        IOArguments.insert(IOArguments.end(), Params.begin(), Params.end());
+        CallerArguments.clear();
+        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
+        CallerArguments.insert(CallerArguments.end(), Params.begin(), Params.end());
         Builder.CreateCall(
                 Module->getFunction("scanf"),
-                IOArguments
+                CallerArguments
         );
     }
     inline void callWrite(bool newLine, const std::string& Format, int Number, ...)
     {
-        IOArguments.clear();
-        IOArguments.emplace_back(Builder.CreateGlobalStringPtr(newLine ? (Format + std::string ("\n")) : Format));
+        CallerArguments.clear();
+        std::string StringFormat = Format;
+        if (newLine) StringFormat += "\n";
+        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(StringFormat));
+
         va_list ap;
         va_start(ap, Number);
         for (int i = 0;i < Number; ++i)
         {
-            IOArguments.emplace_back(va_arg(ap, llvm::Value*));
+            CallerArguments.emplace_back(va_arg(ap, llvm::Value*));
         }
         va_end(ap);
         Builder.CreateCall(
             Module->getFunction("printf"),
-            IOArguments
+            CallerArguments
         );
     }
     inline void callRead(const std::string& Format, int Number, ...)
     {
-        IOArguments.clear();
-        IOArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
+        CallerArguments.clear();
+        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
         va_list ap;
         va_start(ap, Number);
         for (int i = 0;i < Number; ++i)
         {
-            IOArguments.emplace_back(va_arg(ap, llvm::Value*));
+            CallerArguments.emplace_back(va_arg(ap, llvm::Value*));
         }
         va_end(ap);
         Builder.CreateCall(
                 Module->getFunction("scanf"),
-                IOArguments
+                CallerArguments
         );
     }
     // 把Typing::Node类转为llvm::Type类

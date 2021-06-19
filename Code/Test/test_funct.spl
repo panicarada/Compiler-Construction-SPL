@@ -1,0 +1,15 @@
+program test_funct;
+var
+	tmp : integer;
+
+function print(id : integer) : integer;
+begin
+	writeln("Hello World: %d!", id);
+	print := id;
+end
+;
+
+begin
+	tmp := print(10);
+end
+.
