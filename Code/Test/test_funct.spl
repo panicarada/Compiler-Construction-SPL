@@ -1,15 +1,22 @@
 program test_funct;
+const
+	str = "Hello World";
+
 var
 	tmp : integer;
 
-function print(id : integer) : integer;
+function print(
+	sentence : string;
+	id : integer
+	) : integer;
 begin
-	writeln("Hello World: %d!", id);
+	writeln(sentence, ": ", id);
 	print := id;
 end
 ;
 
 begin
-	tmp := print(10);
+	read("Please Enter your value: ", tmp);
+	tmp := print("Ni hao a", tmp);
 end
 .

@@ -36,6 +36,14 @@ llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode)
             {
                 return Builder.getInt1Ty();
             }
+            else if (sysNode->dType == Typing::DataType::d_CHAR)
+            {
+                return Builder.getInt8Ty();
+            }
+            else if (sysNode->dType == Typing::DataType::d_STRING)
+            { // 字符串就是一个字符指针
+                return Builder.getInt8PtrTy();
+            }
         }
     }
     return nullptr;
@@ -129,6 +137,12 @@ void CodeGenerator::setupGlobal()
                 case Typing::DataType::d_REAL:
                     GlobalConst[Name] = llvm::ConstantFP::get(Builder.getDoubleTy(),
                                                               constNode->m_Constant.dValue);
+                case Typing::DataType::d_CHAR:
+                    GlobalConst[Name] = llvm::ConstantInt::get(Builder.getInt8Ty(),
+                                                               constNode->m_Constant.cValue);
+                    break;
+                case Typing::DataType::d_STRING:
+                    GlobalConst[Name] = Builder.CreateGlobalStringPtr(constNode->m_Constant.sValue, "string_tmp_");
                     break;
             }
         }
@@ -169,10 +183,13 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                 ret = GlobalVariables[Name];
             }
 
-            if (ret)
+            if (ret != nullptr)
             { // 判断是要返回变量地址还是要返回变量指向的值
                 if (getVarByAddr) return ret;
-                else return Builder.CreateLoad(ret, Name);
+                else
+                {
+                    return Builder.CreateLoad(ret, Name);
+                }
             }
             break;
         }
@@ -188,6 +205,8 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                     return llvm::ConstantInt::get(Builder.getInt1Ty(), ASTNode->m_Constant.bValue, false);
                 case AST::ConstantType::Char: // 字符用ASCII表示，所以相当于8bit整数
                     return llvm::ConstantInt::get(Builder.getInt8Ty(), ASTNode->m_Constant.cValue, false);
+                case AST::ConstantType::String:
+                    return Builder.CreateGlobalStringPtr(ASTNode->m_Constant.sValue, "string_tmp_");
             }
         }
         case AST::Attribute::Operation:
@@ -464,7 +483,7 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                         if (FunctionName == "write" || FunctionName == "writeln")
                         {
                             std::vector<llvm::Value*> Params;
-                            for (int i = 2;i < ASTNode->m_Operation.NumOperands; ++i)
+                            for (int i = 1;i < ASTNode->m_Operation.NumOperands; ++i)
                             {
                                 llvm::Value* Param = genCode(ASTNode->m_Operation.List_Operands[i], false);
                                 if (Param->getType() == Builder.getInt1Ty())
@@ -473,17 +492,17 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                                 }
                                 Params.emplace_back(Param);
                             }
-                            callWrite((FunctionName == "writeln"), std::string(ASTNode->m_Operation.List_Operands[1]->m_Constant.sValue), Params);
+                            callWrite((FunctionName == "writeln"), Params);
                         }
                         else if (FunctionName == "read")
-                        {
+                        { // read格式为<read, 提示字符串, 待输入的参数>
                             std::vector<llvm::Value*> Params;
-                            for (int i = 2;i < ASTNode->m_Operation.NumOperands; ++i)
+                            for (int i = 1;i < ASTNode->m_Operation.NumOperands; ++i)
                             {
                                 llvm::Value* Param = genCode(ASTNode->m_Operation.List_Operands[i], true);
                                 Params.emplace_back(Param);
                             }
-                            callRead(std::string(ASTNode->m_Operation.List_Operands[1]->m_Constant.sValue), Params);
+                            callRead(Params);
                         }
                         break;
                     }

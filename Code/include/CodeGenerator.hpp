@@ -87,58 +87,70 @@ public:
                 Module
         );
     }
-    inline void callWrite(bool newLine, const std::string& Format, const std::vector<llvm::Value*>& Params)
+    inline void callWrite(bool newLine, const std::vector<llvm::Value*>& Params)
     {
         CallerArguments.clear();
-        std::string StringFormat = Format;
-        if (newLine) StringFormat += "\n";
-        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(StringFormat));
+        std::stringstream Format;
+
+        for (const auto& it : Params)
+        {
+            auto* Param = dynamic_cast<llvm::Value*>(it);
+            auto* Type = Param->getType();
+            if (Type == Builder.getInt32Ty())
+            { // integer
+                Format << "%d";
+            }
+            else if (Type == Builder.getDoubleTy())
+            { // real
+                Format << "%lf";
+            }
+            else if (Type == Builder.getInt8Ty())
+            { // char
+                Format << "%c";
+            }
+            else if (Type == Builder.getInt1Ty())
+            { // bool不存在，在输入前已经被cast到整数
+
+            }
+            else if (Type == Builder.getInt8PtrTy())
+            { // string
+                Format << "%s";
+            }
+        }
+        if (newLine)
+        {
+            Format << std::endl;
+        }
+        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(Format.str(), "format"));
         CallerArguments.insert(CallerArguments.end(), Params.begin(), Params.end());
         Builder.CreateCall(
                 Module->getFunction("printf"),
                 CallerArguments
         );
     }
-    inline void callRead(const std::string& Format, const std::vector<llvm::Value*>& Params)
-    {
+    inline void callRead(const std::vector<llvm::Value*>& Params)
+    { // read格式为<read, 提示字符串, 待输入的参数>
+        callWrite(false, {Params[0]});
         CallerArguments.clear();
-        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
-        CallerArguments.insert(CallerArguments.end(), Params.begin(), Params.end());
-        Builder.CreateCall(
-                Module->getFunction("scanf"),
-                CallerArguments
-        );
-    }
-    inline void callWrite(bool newLine, const std::string& Format, int Number, ...)
-    {
-        CallerArguments.clear();
-        std::string StringFormat = Format;
-        if (newLine) StringFormat += "\n";
-        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(StringFormat));
-
-        va_list ap;
-        va_start(ap, Number);
-        for (int i = 0;i < Number; ++i)
-        {
-            CallerArguments.emplace_back(va_arg(ap, llvm::Value*));
+        auto* ReadPtr = Params[1];
+        auto* ReadType = ReadPtr->getType()->getPointerElementType(); // read param一定是指针
+        if (ReadType == Builder.getInt32Ty())
+        { // integer
+            CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%d", "format"));
         }
-        va_end(ap);
-        Builder.CreateCall(
-            Module->getFunction("printf"),
-            CallerArguments
-        );
-    }
-    inline void callRead(const std::string& Format, int Number, ...)
-    {
-        CallerArguments.clear();
-        CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(Format));
-        va_list ap;
-        va_start(ap, Number);
-        for (int i = 0;i < Number; ++i)
-        {
-            CallerArguments.emplace_back(va_arg(ap, llvm::Value*));
+        else if (ReadType == Builder.getDoubleTy())
+        { // real
+            CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%lf", "format"));
         }
-        va_end(ap);
+        else if (ReadType == Builder.getInt8Ty())
+        { // char
+            CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%c", "format"));
+        }
+        else if (ReadType == Builder.getInt1Ty())
+        { // boolean，输入时也只能用整数，之后再截取
+            CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%d", "format"));
+        }
+        CallerArguments.emplace_back(ReadPtr);
         Builder.CreateCall(
                 Module->getFunction("scanf"),
                 CallerArguments
