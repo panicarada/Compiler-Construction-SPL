@@ -197,7 +197,7 @@ namespace Plot_txt
         if (Line < 0 || Line >= maxLine || Col < 0 || Col >= maxCol) Ok = false;
         if (!Ok)
         {
-            raiseError("语法树太大，无法绘制成txt版本，请用运行python代码查看图片版的语法树");
+            std::cout << ("语法树太大，无法绘制成txt版本，请用运行python代码查看图片版的语法树") << std::endl;
         }
     }
 

@@ -1,0 +1,6 @@
+program Hello;
+const 
+	str = "Hello Wolrd";
+begin
+	writeln(str);
+end.

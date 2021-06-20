@@ -1,36 +1,36 @@
+##1. 引言
 
-
-## 1. 引言
-
-#### 1.1 文件结构
+###1.1 文件结构
 
 <img src="resource/文件目录.png" alt="文件目录" style="zoom:40%;" />
 
 *  根目录
    *  Code：工程代码区域，**为了跨系统路径统一的方便，只能在这一目录运行可执行文件**`bin/main`。
       *  bin：可执行文件生成路径
-      *  build：编译产生的目标文件`.o`和`makefile`自动生成的依赖文件`.d`
+      *  build：CMake编译产生的目标文件
       *  include：头文件路径`.hpp`，包括bison编译产生的头文件
-      *  source：源文件路径`.cpp`，包括flex和bison编译产生的文件
-      *  lex_yacc：flex和bison源文件路径
+      *  source：源文件路径`.cpp`，包括flex和bison编译产生的源文件
+      *  lex_yacc：flex`.lex`和bison`.y`源文件路径
       *  Test：用于测试的`.spl`代码路径
-      *  Makefile
       *  Output：程序**运行过程**中产生的输出文件
          *  AST_txt：文本格式的语法树
          *  AST_raw：描述语法树的文本流，用于python代码进行进一步的处理
          *  AST_py：python代码解析`AST_raw`中文件后，输出的语法树图片
          *  Logs：输出的类型信息，后缀为`.st`的文件包含符号表，以及语法树中各个节点的类型（与语法树上的id一一对应）
+         *  IR_code：编译`.spl`代码所产生的中间代码，由`llvm`生成
+         *  MIPS_code：用`llvm`编译中间代码，所产生的针对MIPS架构的汇编代码
    *  Resource：存放文档所用图片
 
-#### 1.2 工程编译
+###1.2 工程编译
 
 采用全自动的`CMake`文件编译。在路径`./Code`下执行指令
 
 ```bash
+mkdir -p build
 cd build
 cmake ..
 make
-cd ..
+cd .. # 返回./Code
 ```
 
 即可（需要在本地上安装好LLVM，见博客https://blog.csdn.net/l2563898960/article/details/82871826）。下面的CMakeList.txt对任何工程都适配，只需要简单修改自定义的路径名，以及`lex`和`yacc`文件的名字即可
@@ -103,7 +103,7 @@ llvm_map_components_to_libnames(llvm_libs support core irreader)
 target_link_libraries(main ${llvm_libs})
 ```
 
-#### 1.3 运行说明
+###1.3 运行说明
 
 **注：请在路径`./Code/`下运行**
 
@@ -121,6 +121,8 @@ target_link_libraries(main ${llvm_libs})
 ./bin/main Hello		# 输入时不需要声明文件后缀，默认都是.spl
 ```
 
+####1.3.1 语法分析结果
+
 这一过程会在目录`./Code/Output/AST_txt`产生对应的txt版本的语法树，如下所示
 
 <img src="Resource/Hello_AST_txt.png" alt="Hello_AST_txt" style="zoom:40%;" />
@@ -135,7 +137,89 @@ python main.py Hello
 
 <img src="Resource/Hello_AST_py.png" style="zoom:30%;" />
 
-#### 1.4 配置说明
+####1.3.2 语义分析结果
+
+运行过程会在目录`./Code/Output/Logs`产生语义分析过程产生的符号表，以及对语法树中各个节点类型的标注，文件后缀为`.st`。
+
+<img src="Resource/1.3.2Hello_Logs.png" alt="1.3.2Hello_Logs" style="zoom:50%;" />
+
+#### 1.3.3 代码生成结果
+
+运行过程会在目录`./Code/Output/IR_code`产生spl代码对应的中间代码（也会在控制台直接输出），文件后缀为`.ll`。
+
+<img src="Resource/1.3.3Hello中间代码.png" alt="1.3.3Hello中间代码" style="zoom:50%;" />
+
+在本地配置好`llvm`以后，可以直接用`lli`命令来运行中间代码。
+
+![1.3.3运行中间代码](Resource/1.3.3运行中间代码.png)
+
+也可以用`llc -march=<指令集架构，如MIPS>`命令来产生汇编代码。
+
+```bash
+llc -march=mips ./Output/IR_code/Hello.ll -o ./Output/MIPS_code/Hello.s
+```
+
+```assembly
+	.text
+	.abicalls
+	.option	pic0
+	.section	.mdebug.abi32,"",@progbits
+	.nan	legacy
+	.text
+	.file	"main"
+	.globl	main                            # -- Begin function main
+	.p2align	2
+	.type	main,@function
+	.set	nomicromips
+	.set	nomips16
+	.ent	main
+main:                                   # @main
+	.cfi_startproc
+	.frame	$sp,24,$ra
+	.mask 	0x80000000,-4
+	.fmask	0x00000000,0
+	.set	noreorder
+	.set	nomacro
+	.set	noat
+# %bb.0:                                # %main_entry
+	addiu	$sp, $sp, -24
+	.cfi_def_cfa_offset 24
+	sw	$ra, 20($sp)                    # 4-byte Folded Spill
+	.cfi_offset 31, -4
+	lui	$1, %hi($format)
+	addiu	$4, $1, %lo($format)
+	lui	$1, %hi($string_tmp_)
+	jal	printf
+	addiu	$5, $1, %lo($string_tmp_)
+	lw	$ra, 20($sp)                    # 4-byte Folded Reload
+	jr	$ra
+	addiu	$sp, $sp, 24
+	.set	at
+	.set	macro
+	.set	reorder
+	.end	main
+$func_end0:
+	.size	main, ($func_end0)-main
+	.cfi_endproc
+                                        # -- End function
+	.type	$string_tmp_,@object            # @string_tmp_
+	.section	.rodata.str1.1,"aMS",@progbits,1
+$string_tmp_:
+	.asciz	"Hello Wolrd"
+	.size	$string_tmp_, 12
+
+	.type	$format,@object                 # @format
+$format:
+	.asciz	"%s\n"
+	.size	$format, 4
+
+	.section	".note.GNU-stack","",@progbits
+	.text
+```
+
+
+
+###1.4 配置说明
 
 *  Flex：flex 2.5.35(flex-32)
 
@@ -144,6 +228,10 @@ python main.py Hello
 *  g++：Apple clang version 12.0.5 (clang-1205.0.22.9)
 
 *  C++标准：-std = c++17
+
+*  CMake $\ge$3.19
+
+*  llvm 12.0.0
 
 *  Python3.9：用于绘制语法树，非必要
 
@@ -155,15 +243,15 @@ python main.py Hello
       pip3 install graphviz
       ```
 
-#### 1.5 实现功能一览
+###1.5 实现功能一览
 
 以`./Code/Test/stack.spl`为例。
 
-（1）生成语法树（文字版和图片版）
+####1.5.1 生成语法树（文字版和图片版）
 
 ![一览_AST](Resource/一览_AST.png)
 
-（2）生成符号表以及函数的参数表
+####1.5.2 生成符号表以及函数的参数表
 
 ```txt
 Symbol Table: *****************
@@ -220,7 +308,7 @@ procedure: "set"
          idx    37    sys_type     integer
 ```
 
-（3）语法树节点的类型标注。其中的id与语法树图片上的id一一对应。
+#### 1.5.3 语法树节点的类型标注。其中的id与语法树图片上的id一一对应。
 
 ```txt
 Type of AST Node: *****************
@@ -304,7 +392,7 @@ type of id: 146
     sys_type     boolean
 ```
 
-（4）类型错误检查与提示。
+####1.5.4 类型错误检查与提示。
 
 <img src="Resource/一览错误1.png" alt="一览错误1" style="zoom:50%;" />
 
@@ -312,9 +400,415 @@ type of id: 146
 
 <img src="Resource/一览错误3.png" alt="一览错误3" style="zoom:40%;" />
 
+#### 1.5.5 中间代码生成
+
+```java
+; ModuleID = 'main'
+source_filename = "main"
+
+@string_tmp_ = private unnamed_addr constant [41 x i8] c"option: [0]: pop\09[1]: push\09[other]: exit\00", align 1
+@format = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@string_tmp_.1 = private unnamed_addr constant [27 x i8] c"Please enter your option: \00", align 1
+@format.2 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@format.3 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@format.4 = private unnamed_addr constant [5 x i8] c"%lf\0A\00", align 1
+@string_tmp_.5 = private unnamed_addr constant [44 x i8] c"Please enter the element you want to push: \00", align 1
+@format.6 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
+@format.7 = private unnamed_addr constant [4 x i8] c"%lf\00", align 1
+@string_tmp_.8 = private unnamed_addr constant [39 x i8] c"[Error]: No more element to be popped!\00", align 1
+@format.9 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@string_tmp_.10 = private unnamed_addr constant [28 x i8] c"[Error]: The stack is full!\00", align 1
+@format.11 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+
+declare i32 @printf(i8*, ...)
+
+declare i32 @scanf(i8*, ...)
+
+define void @main() {
+main_entry:
+  %element = alloca double, align 8
+  %option = alloca i32, align 4
+  %index = alloca i32, align 4
+  %stack = alloca { i32, [1000 x double] }, align 8
+  %record_access_tmp_ = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %stack, i32 0, i32 0
+  store i32 0, i32* %record_access_tmp_, align 4
+  %0 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @format, i32 0, i32 0), i8* getelementptr inbounds ([41 x i8], [41 x i8]* @string_tmp_, i32 0, i32 0))
+  br label %loop
+
+loop:                                             ; preds = %after2, %main_entry
+  %1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format.2, i32 0, i32 0), i8* getelementptr inbounds ([27 x i8], [27 x i8]* @string_tmp_.1, i32 0, i32 0))
+  %2 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format.3, i32 0, i32 0), i32* %option)
+  %option1 = load i32, i32* %option, align 4
+  %ieq_tmp_ = icmp eq i32 %option1, 0
+  br i1 %ieq_tmp_, label %if, label %else
+
+after:                                            ; preds = %after2
+  ret void
+
+if:                                               ; preds = %loop
+  %3 = call double ({ i32, [1000 x double] }*, ...) @pop({ i32, [1000 x double] }* %stack)
+  %4 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @format.4, i32 0, i32 0), double %3)
+  br label %after2
+
+else:                                             ; preds = %loop
+  %option3 = load i32, i32* %option, align 4
+  %ieq_tmp_4 = icmp eq i32 %option3, 1
+  br i1 %ieq_tmp_4, label %if5, label %else6
+
+after2:                                           ; preds = %after7, %if
+  %option9 = load i32, i32* %option, align 4
+  %ieq_tmp_10 = icmp eq i32 %option9, 2
+  br i1 %ieq_tmp_10, label %after, label %loop
+
+if5:                                              ; preds = %else
+  %5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format.6, i32 0, i32 0), i8* getelementptr inbounds ([44 x i8], [44 x i8]* @string_tmp_.5, i32 0, i32 0))
+  %6 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @format.7, i32 0, i32 0), double* %element)
+  %element8 = load double, double* %element, align 8
+  call void (double, { i32, [1000 x double] }*, ...) @push(double %element8, { i32, [1000 x double] }* %stack)
+  br label %after7
+
+else6:                                            ; preds = %else
+  store i32 2, i32* %option, align 4
+  br label %after7
+
+after7:                                           ; preds = %else6, %if5
+  br label %after2
+}
+
+define internal void @set(double %0, [1000 x double]* %1, i32 %2, ...) {
+set:
+  %element = alloca double, align 8
+  store double %0, double* %element, align 8
+  %index = alloca i32, align 4
+  store i32 %2, i32* %index, align 4
+  %index1 = load i32, i32* %index, align 4
+  %3 = getelementptr [1000 x double], [1000 x double]* %1, i32 0, i32 %index1
+  %element2 = load double, double* %element, align 8
+  store double %element2, double* %3, align 8
+  ret void
+}
+
+define internal double @pop({ i32, [1000 x double] }* %0, ...) {
+pop:
+  %pop1 = alloca double, align 8
+  %record_access_tmp_ = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %0, i32 0, i32 0
+  %1 = load i32, i32* %record_access_tmp_, align 4
+  %igt_tmp_ = icmp sgt i32 %1, 0
+  br i1 %igt_tmp_, label %if, label %else
+
+if:                                               ; preds = %pop
+  %record_access_tmp_2 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %0, i32 0, i32 1
+  %2 = load [1000 x double], [1000 x double]* %record_access_tmp_2, align 8
+  %record_access_tmp_3 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %0, i32 0, i32 0
+  %3 = load i32, i32* %record_access_tmp_3, align 4
+  %4 = call double ([1000 x double], i32, ...) @get([1000 x double] %2, i32 %3)
+  store double %4, double* %pop1, align 8
+  %record_access_tmp_4 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %0, i32 0, i32 0
+  %record_access_tmp_5 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %0, i32 0, i32 0
+  %5 = load i32, i32* %record_access_tmp_5, align 4
+  %isub_tmp_ = sub i32 %5, 1
+  store i32 %isub_tmp_, i32* %record_access_tmp_4, align 4
+  br label %after
+
+else:                                             ; preds = %pop
+  %6 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @format.9, i32 0, i32 0), i8* getelementptr inbounds ([39 x i8], [39 x i8]* @string_tmp_.8, i32 0, i32 0))
+  br label %after
+
+after:                                            ; preds = %else, %if
+  %7 = load double, double* %pop1, align 8
+  ret double %7
+}
+
+define internal double @get([1000 x double] %0, i32 %1, ...) {
+get:
+  %list = alloca [1000 x double], align 8
+  store [1000 x double] %0, [1000 x double]* %list, align 8
+  %index = alloca i32, align 4
+  store i32 %1, i32* %index, align 4
+  %get1 = alloca double, align 8
+  %index2 = load i32, i32* %index, align 4
+  %2 = getelementptr [1000 x double], [1000 x double]* %list, i32 0, i32 %index2
+  %3 = load double, double* %2, align 8
+  store double %3, double* %get1, align 8
+  %4 = load double, double* %get1, align 8
+  ret double %4
+}
+
+define internal void @push(double %0, { i32, [1000 x double] }* %1, ...) {
+push:
+  %element = alloca double, align 8
+  store double %0, double* %element, align 8
+  %record_access_tmp_ = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %1, i32 0, i32 0
+  %2 = load i32, i32* %record_access_tmp_, align 4
+  %ilt_tmp_ = icmp slt i32 %2, 1000
+  br i1 %ilt_tmp_, label %if, label %else
+
+if:                                               ; preds = %push
+  %record_access_tmp_1 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %1, i32 0, i32 0
+  %record_access_tmp_2 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %1, i32 0, i32 0
+  %3 = load i32, i32* %record_access_tmp_2, align 4
+  %iadd_tmp_ = add i32 %3, 1
+  store i32 %iadd_tmp_, i32* %record_access_tmp_1, align 4
+  %element3 = load double, double* %element, align 8
+  %record_access_tmp_4 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %1, i32 0, i32 1
+  %record_access_tmp_5 = getelementptr inbounds { i32, [1000 x double] }, { i32, [1000 x double] }* %1, i32 0, i32 0
+  %4 = load i32, i32* %record_access_tmp_5, align 4
+  call void (double, [1000 x double]*, i32, ...) @set(double %element3, [1000 x double]* %record_access_tmp_4, i32 %4)
+  br label %after
+
+else:                                             ; preds = %push
+  %5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @format.11, i32 0, i32 0), i8* getelementptr inbounds ([28 x i8], [28 x i8]* @string_tmp_.10, i32 0, i32 0))
+  br label %after
+
+after:                                            ; preds = %else, %if
+  ret void
+}
+```
+
+#### 1.5.6 中间代码运行
+
+<img src="Resource/stack运行.png" alt="stack运行" style="zoom:50%;" />
+
+#### 1.5.7 MIPS汇编代码生成
+
+```assembly
+	.text
+	.abicalls
+	.option	pic0
+	.section	.mdebug.abi32,"",@progbits
+	.nan	legacy
+	.text
+	.file	"main"
+	.globl	main                            # -- Begin function main
+	.p2align	2
+	.type	main,@function
+	.set	nomicromips
+	.set	nomips16
+	.ent	main
+main:                                   # @main
+	.cfi_startproc
+	.frame	$sp,8088,$ra
+	.mask 	0xc0ff0000,-4
+	.fmask	0x00000000,0
+	.set	noreorder
+	.set	nomacro
+	.set	noat
+# %bb.0:                                # %main_entry
+	addiu	$sp, $sp, -8088
+	.cfi_def_cfa_offset 8088
+	sw	$ra, 8084($sp)                  # 4-byte Folded Spill
+	sw	$fp, 8080($sp)                  # 4-byte Folded Spill
+	sw	$23, 8076($sp)                  # 4-byte Folded Spill
+	sw	$22, 8072($sp)                  # 4-byte Folded Spill
+	sw	$21, 8068($sp)                  # 4-byte Folded Spill
+	sw	$20, 8064($sp)                  # 4-byte Folded Spill
+	sw	$19, 8060($sp)                  # 4-byte Folded Spill
+	sw	$18, 8056($sp)                  # 4-byte Folded Spill
+	sw	$17, 8052($sp)                  # 4-byte Folded Spill
+	sw	$16, 8048($sp)                  # 4-byte Folded Spill
+	.cfi_offset 31, -4
+	.cfi_offset 30, -8
+	.cfi_offset 23, -12
+	.cfi_offset 22, -16
+	.cfi_offset 21, -20
+	.cfi_offset 20, -24
+	.cfi_offset 19, -28
+	.cfi_offset 18, -32
+	.cfi_offset 17, -36
+	.cfi_offset 16, -40
+	lui	$1, %hi($format)
+	addiu	$4, $1, %lo($format)
+	lui	$1, %hi($string_tmp_)
+	addiu	$5, $1, %lo($string_tmp_)
+	jal	printf
+	sw	$zero, 24($sp)
+	lui	$1, %hi($format.2)
+	addiu	$16, $1, %lo($format.2)
+	lui	$1, %hi($string_tmp_.1)
+	addiu	$17, $1, %lo($string_tmp_.1)
+	lui	$1, %hi($format.3)
+	addiu	$18, $1, %lo($format.3)
+	addiu	$19, $sp, 8036
+	addiu	$20, $sp, 24
+	lui	$1, %hi($format.4)
+	addiu	$21, $1, %lo($format.4)
+	addiu	$23, $zero, 2
+	lui	$1, %hi($format.6)
+	addiu	$1, $1, %lo($format.6)
+	sw	$1, 20($sp)                     # 4-byte Folded Spill
+	lui	$1, %hi($string_tmp_.5)
+	addiu	$1, $1, %lo($string_tmp_.5)
+	sw	$1, 16($sp)                     # 4-byte Folded Spill
+	lui	$1, %hi($format.7)
+	addiu	$fp, $1, %lo($format.7)
+	j	$BB0_3
+	addiu	$22, $sp, 8040
+$BB0_1:                                 # %if
+                                        #   in Loop: Header=BB0_3 Depth=1
+	jal	pop
+	move	$4, $20
+	mfc1	$6, $f1
+	mfc1	$7, $f0
+	jal	printf
+	move	$4, $21
+$BB0_2:                                 # %after2
+                                        #   in Loop: Header=BB0_3 Depth=1
+	lw	$1, 8036($sp)
+	beq	$1, $23, $BB0_7
+	nop
+$BB0_3:                                 # %loop
+                                        # =>This Inner Loop Header: Depth=1
+	move	$4, $16
+	jal	printf
+	move	$5, $17
+	move	$4, $18
+	jal	scanf
+	move	$5, $19
+	lw	$1, 8036($sp)
+	beqz	$1, $BB0_1
+	nop
+# %bb.4:                                # %else
+                                        #   in Loop: Header=BB0_3 Depth=1
+	lw	$1, 8036($sp)
+	addiu	$2, $zero, 1
+	bne	$1, $2, $BB0_6
+	nop
+# %bb.5:                                # %if5
+                                        #   in Loop: Header=BB0_3 Depth=1
+	lw	$4, 20($sp)                     # 4-byte Folded Reload
+	lw	$5, 16($sp)                     # 4-byte Folded Reload
+	jal	printf
+	nop
+	move	$4, $fp
+	jal	scanf
+	move	$5, $22
+	ldc1	$f0, 8040($sp)
+	mfc1	$4, $f1
+	mfc1	$5, $f0
+	jal	push
+	move	$6, $20
+	j	$BB0_2
+	nop
+$BB0_6:                                 # %else6
+                                        #   in Loop: Header=BB0_3 Depth=1
+	j	$BB0_2
+	sw	$23, 8036($sp)
+$BB0_7:                                 # %after
+	lw	$16, 8048($sp)                  # 4-byte Folded Reload
+	lw	$17, 8052($sp)                  # 4-byte Folded Reload
+	lw	$18, 8056($sp)                  # 4-byte Folded Reload
+	lw	$19, 8060($sp)                  # 4-byte Folded Reload
+	lw	$20, 8064($sp)                  # 4-byte Folded Reload
+	lw	$21, 8068($sp)                  # 4-byte Folded Reload
+	lw	$22, 8072($sp)                  # 4-byte Folded Reload
+	lw	$23, 8076($sp)                  # 4-byte Folded Reload
+	lw	$fp, 8080($sp)                  # 4-byte Folded Reload
+	lw	$ra, 8084($sp)                  # 4-byte Folded Reload
+	jr	$ra
+	addiu	$sp, $sp, 8088
+	.set	at
+	.set	macro
+	.set	reorder
+	.end	main
+$func_end0:
+	.size	main, ($func_end0)-main
+	.cfi_endproc
+                                        # -- End function
+	.p2align	2                               # -- Begin function set
+	.type	set,@function
+	.set	nomicromips
+	.set	nomips16
+	.ent	set
+set:                                    # @set
+	.cfi_startproc
+	.frame	$sp,16,$ra
+	.mask 	0x00000000,0
+	.fmask	0x00000000,0
+	.set	noreorder
+	.set	nomacro
+	.set	noat
+# %bb.0:                                # %set
+	addiu	$sp, $sp, -16
+	.cfi_def_cfa_offset 16
+	sw	$7, 4($sp)
+	mtc1	$5, $f0
+	mtc1	$4, $f1
+	sdc1	$f0, 8($sp)
+	sll	$1, $7, 3
+	addu	$1, $6, $1
+	sdc1	$f0, 0($1)
+	jr	$ra
+	addiu	$sp, $sp, 16
+	.set	at
+	.set	macro
+	.set	reorder
+	.end	set
+$func_end1:
+	.size	set, ($func_end1)-set
+	.cfi_endproc
+                                        # -- End function
+	.p2align	2                               # -- Begin function pop
+	.type	pop,@function
+	.set	nomicromips
+	.set	nomips16
+	.ent	pop
+pop:                                    # @pop
+	.cfi_startproc
+	.frame	$sp,15928,$ra
+	.mask 	0x80010000,-52
+	.fmask	0xfff00000,-8
+	.set	noreorder
+	.set	nomacro
+	.set	noat
+# %bb.0:                                # %pop
+	addiu	$sp, $sp, -15928
+	.cfi_def_cfa_offset 15928
+	sdc1	$f30, 15920($sp)                # 8-byte Folded Spill
+	sdc1	$f28, 15912($sp)                # 8-byte Folded Spill
+	sdc1	$f26, 15904($sp)                # 8-byte Folded Spill
+	sdc1	$f24, 15896($sp)                # 8-byte Folded Spill
+	sdc1	$f22, 15888($sp)                # 8-byte Folded Spill
+	sdc1	$f20, 15880($sp)                # 8-byte Folded Spill
+	sw	$ra, 15876($sp)                 # 4-byte Folded Spill
+	sw	$16, 15872($sp)                 # 4-byte Folded Spill
+	.cfi_offset 63, -8
+	.cfi_offset 62, -4
+	.cfi_offset 61, -16
+	.cfi_offset 60, -12
+	.cfi_offset 59, -24
+	.cfi_offset 58, -20
+	.cfi_offset 57, -32
+	.cfi_offset 56, -28
+	.cfi_offset 55, -40
+	.cfi_offset 54, -36
+	.cfi_offset 53, -48
+	.cfi_offset 52, -44
+	.cfi_offset 31, -52
+	.cfi_offset 16, -56
+	sw	$7, 15940($sp)
+	sw	$6, 15936($sp)
+	sw	$5, 15932($sp)
+	lw	$1, 0($4)
+	blez	$1, $BB2_2
+	nop
+# %bb.1:                                # %if
+	move	$16, $4
+	ldc1	$f0, 16($4)
+	ldc1	$f2, 8($4)
+	ldc1	$f4, 24($4)
+	sdc1	$f4, 15856($sp)                 # 8-byte Folded Spill
+	ldc1	$f4, 32($4)
+	# 
+	# 超长的数组load/store，这里省略
+	#
+	
+```
+
+
+
 ##2.词法分析
 
-####2.1 关键token正则表达式
+###2.1 关键token正则表达式
 
 ```
 Letter  [a-zA-Z]
@@ -326,7 +820,7 @@ Identifier  {Letter}({Letter}|{Digit}|_)*
 
 其中标识符以字母开头，后面可以由数字、字母或下划线任意组合。
 
-####2.2 行数获取
+###2.2 行数获取
 
 flex和yacc文件都可以分为定义区、规则区和C语言代码区
 
@@ -386,7 +880,7 @@ const_expr_list
 	}
 ```
 
-####2.3 字符串读取
+###2.3 字符串读取
 
 我们字符串以双引号""作为开始和结束，在字符串内部出现的字符串应该作为纯粹的值来处理，而不能用常规的parser进行解析。为了实现这一功能，flex提供了“状态”设定的功能。在不同的状态下可以按照不同的正则表达式来处理。在定义区可以自定义正在读取字符串的状态。默认状态为`INITIAL`.
 
@@ -437,9 +931,9 @@ std::stringstream ss;
 }
 ```
 
-#### 2.4 注释
+###2.4 注释
 
-采用双斜线`\\`注释一行的方案。同理2.3，我们声明一个注释状态
+采用双斜线`//`注释一行的方案。同理2.3，我们声明一个注释状态
 
 ```c++
 /* 注释状态 */
@@ -470,9 +964,9 @@ std::stringstream ss;
 <COMMENT>. ;
 ```
 
-####2.5 关键词
+###2.5 关键词
 
-（1）运算符、界符定义
+####2.5.1 运算符、界符定义
 
 | LP: “(”        | PLUS: “+”     |
 | -------------- | ------------- |
@@ -487,7 +981,7 @@ std::stringstream ss;
 | UNEQUAL: “< >” | DOTDOT: “..”  |
 | NOT: “NOT”     | SEMI: “;”     |
 
-（2）系统函数、过程、常数、类型
+#### 2.5.2 系统函数、过程、常数、类型
 
 SYS_CON: "false", "maxint", "true"
 
@@ -505,13 +999,13 @@ REAL：实数常数值
 
 CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
 
-（3）关键字
+#### 2.5.2 关键字
 
 "and",    "array",    "begin",    "case",  "const", "div",   "do",   "downto",  "else",   "end",  "for", "function", "goto", "if", "mod", "not", "of",   "or",   "packed", "procedure", "program", "record",  "repeat",  "then",  "to", "type",  "until", "var",  "while".
 
 ##3. 语法分析
 
-####3.1 Context Free Grammar
+###3.1 Context Free Grammar
 
 1. program ： program_head routine DOT
 
@@ -910,11 +1404,11 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
 
    args_list ： args_list COMMA expression | expression
 
-#### 3.2 语法树构造【namespace AST】
+###3.2 语法树构造【namespace AST】
 
 对应的文件为`AST.hpp`和`AST.cpp`
 
-#####3.2.1 节点定义
+####3.2.1 节点定义
 
 （1）分类：其中Operation在语法树中存在子节点，其他的类型都是叶节点。
 
@@ -1011,7 +1505,7 @@ namespace AST
 };
 ```
 
-##### 3.2.2 节点成员方法
+####3.2.2 节点成员方法
 
 （1）常数类型节点构造函数
 
@@ -1129,9 +1623,9 @@ inline void add(std::vector<Node *>* List)
     }
 ```
 
-#### 3.3 yacc
+###3.3 yacc
 
-##### 3.3.1 token定义
+####3.3.1 token定义
 
 （1）token类型（`yacc.y`定义区）
 
@@ -1227,9 +1721,7 @@ factor	// 函数调用
 	... ...
 ```
 
-
-
-##### 3.3.2 yacc规则区
+####3.3.2 yacc规则区
 
 与3.1中的定义完全对应，而且较多重复性的工作。所以这里只详细介绍几种典型。
 
@@ -1404,7 +1896,7 @@ end
 
 <img src="Resource/case列表.png" alt="case列表" style="zoom:25%;" />
 
-##### 3.3.3 各个语法树节点子节点的格式
+####3.3.3 各个语法树节点子节点的格式
 
 下面的介绍中
 
@@ -1593,11 +2085,11 @@ end
 
 <img src="Resource/count_avg.jpg" alt="count_avg" style="zoom:36%;" />
 
-#### 3.4 语法树的绘制【namespace Plot_py / Plot_txt】
+###3.4 语法树的绘制【namespace Plot_py / Plot_txt】
 
 由于实现的方案一样，只是最终数据呈现方式有所区别，所以只介绍`Plot_py`
 
-##### 3.4.1 数据格式
+####3.4.1 数据格式
 
 语法树中每一个节点在文件`*.raw.ast`中对应的数据格式为
 $$
@@ -1650,7 +2142,7 @@ dot.render('./AST_py/' + sys.argv[1] + '.py.ast', view=True)
 
 <img src="Resource/呈现效果.png" alt="呈现效果" style="zoom:20%;" />
 
-##### 3.4.2 绘制方案
+####3.4.2 绘制方案
 
 绘制的方法原型为
 
@@ -1720,11 +2212,9 @@ namespace Plot_py
 }
 ```
 
+##4. 语义分析
 
-
-## 4. 语义分析
-
-### 4.1 基本流程
+###4.1 基本流程
 
 <img src="Resource/语义分析流程图.jpg" alt="语义分析流程图" style="zoom:60%;" />
 
@@ -1749,13 +2239,11 @@ namespace Plot_py
       *  在涉及需要类型检查的语句【比如赋值语句】时：首先递归地**检查并解析出**每个子节点的类型，然后判断匹配性。
       *  涉及函数/过程调用时，在符号表中取出函数/过程。首先检查参数类型是否匹配；如果是函数，则设定节点类型为函数返回类型。
 
-
-
-### 4.2 类型节点类型
+###4.2 类型节点类型
 
 定义在`namespace Typing`下，用于记录符号表中变量和用于检查的类型。
 
-##### 4.2.1 分类
+####4.2.1 分类
 
 ```c++
 namespace Typing
@@ -1785,7 +2273,7 @@ namespace Typing
 }
 ```
 
-##### 4.2.2 节点定义
+####4.2.2 节点定义
 
 （1）基类：采用继承的设计方案，所有的类型节点基类定义如下：
 
@@ -1900,6 +2388,7 @@ namespace Typing {
         Node* m_EleType = nullptr; // 元素类型
         Node* m_IdxType = nullptr; // 索引类型
         arrayNode(Node* IdxType, Node* EleType);
+    		inline unsigned int getSize() const;
         virtual std::string toString(int& hPos) const override;
     };
 }
@@ -1940,13 +2429,14 @@ namespace Typing {
 
 用类`ST`对普通的哈希表进行进一步的封装，实现符号表内容的插入、删除，以及符号表的初始化和类型检查等工作。
 
-##### 4.3.1 类的定义
+####4.3.1 类的定义
 
 ```c++
 class ST
 {
-    std::unordered_map<std::string, Typing::Node*> Table;
+    std::unordered_map<std::string, std::stack<Typing::Node*>> Table;
     std::unordered_map<std::string, unsigned int> LineTable;
+  	std::set<std::string> TypeTable; // type part中自定义的类型名
 private:
     enum Scope
     {
@@ -1963,6 +2453,7 @@ public:
     }
     explicit ST(bool addSys = true)
     { // 初始化Table，塞入系统类型
+      // 这只是为了方便类型检查，检查完会弹出
         if (addSys)
         {   // 是否要默认添加系统类型
             /* 系统数据 */
@@ -2026,7 +2517,7 @@ public:
        };
    ```
 
-##### 4.3.2 函数实现
+####4.3.2 函数实现
 
 （1）用`std::unorder_map`标准容器屏蔽哈希表的具体实现后，每一个元素的值是一个类型的链表，具体来说是一个先进先出的栈结构。如下图所示：
 
@@ -2037,28 +2528,26 @@ public:
 ```c++
 bool ST::insert(const std::string& str, Typing::Node* node, unsigned int Line)
 {
-    if (Table.find(str) == Table.end())
+    auto res = Table.find(str);
+    if (res == Table.end())
     {
-        node->prev = node->next = nullptr;
-        Table[str] = node;
-        LineTable[str] = Line;
+        Table[str] = std::stack<Typing::Node*>();
+        Table[str].push(node);
         return true;
     }
     else
-    { // 原本就存在str这一个key
-        // 用指针连接
-        Table[str]->next = node;
-        node->prev = Table[str];
-        Table[str] = node;
+    {
+        Table[str].push(node);
         return false;
     }
 }
 
 Typing::Node* ST::get(const std::string& str, unsigned int line)
 {
-    if (Table.find(str) != Table.end())
+    auto res = Table.find(str);
+    if (res != Table.end())
     {
-        return Table[str];
+        return res->second.top();
     }
     // 报错
     std::stringstream msg;
@@ -2068,27 +2557,23 @@ Typing::Node* ST::get(const std::string& str, unsigned int line)
 
 Typing::Node* ST::pop(const std::string& str)
 {
-    if (Table.find(str) == Table.end())
+    auto res = Table.find(str);
+
+    if (res == Table.end())
     { // 如果不存在，没办法删除
         std::stringstream msg;
         msg << "当前符号表中不存在名称: \"" << str << "\"" << std::endl;
         raiseError(msg.str())
     }
     else 
-    {   // 取出链表尾部
-        Typing::Node* res = Table[str];
-        Typing::Node* prev = Table[str]->prev;  // 上一个在这一位置的符号
-        if (prev)
-        {
-            Table[str] = prev;
-            Table[str]->next = nullptr;
-        }
-        else 
+    {
+        auto* ret = Table[str].top();
+        Table[str].pop();
+        if (Table[str].empty())
         {
             Table.erase(str);
         }
-        res->prev = nullptr;
-        return res;
+        return ret;
     }
 }
 ```
@@ -2222,11 +2707,11 @@ Typing::Node* ST::pop(const std::string& str)
    
            for (auto& it : function->m_val_table->Table)
            {   // 先把函数的参数表暂时加入符号表中
-             insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+             insert(it.first, it.second.top(), function->m_val_table->LineTable[it.first]);
            }   
            for (auto& it : function->m_var_table->Table)
            {   // 类型检查时不区分引用类型
-             insert(it.first, it.second, function->m_val_table->LineTable[it.first]);
+             insert(it.first, it.second.top(), function->m_val_table->LineTable[it.first]);
            }
    
            // 检查函数体
@@ -2291,20 +2776,20 @@ Typing::Node* ST::check(AST::Node* p);
 
    ```c++
    switch (p->m_Operation.Operator)
-       {
-           /* goto语句，跳转到对应label */
-         case GOTO:
-           { // 格式为[integer"]
-             assert(p->m_Operation.List_Operands[0]->m_Attribute == AST::Attribute::Constant);
-             auto jump_label = check(p->m_Operation.List_Operands[0]);
-             if (Typing::Node::isEqual(get("integer", 0), jump_label))
-             {
-               return nullptr;
-             }
-             std::stringstream msg;
-             msg << std::endl << "In line " << p->m_Line << ". goto statement的label必须为整数" << std::endl;
-             raiseError(msg.str());
-           }
+   {
+       /* goto语句，跳转到对应label */
+     case GOTO:
+       { // 格式为[integer"]
+         assert(p->m_Operation.List_Operands[0]->m_Attribute == AST::Attribute::Constant);
+         auto jump_label = check(p->m_Operation.List_Operands[0]);
+         if (Typing::Node::isEqual(get("integer", 0), jump_label))
+         {
+           return nullptr;
+         }
+         std::stringstream msg;
+         msg << std::endl << "In line " << p->m_Line << ". goto statement的label必须为整数" << std::endl;
+         raiseError(msg.str());
+       }
    ```
 
 *  循环语句：要求循环条件为boolean类型，然后检查执行语句的类型。类似的还有其他结构语句，比如If语句，case语句。
@@ -2566,21 +3051,812 @@ int Interpreter::execute(AST::Node* p, std::string& Filename, std::string& Progr
     // 恢复std::cout为原来的流缓冲区指针
     std::cout.rdbuf(cout_buffer);
 
-
+		// 生成代码
+    std::ofstream IROut("./Output/IR_Code/" + Filename + ".ll");
+    CodeGenerator codeGenerator;
+    codeGenerator.execute(this, IROut);
     return 0;
 }
 ```
 
-
-
-## 5. 优化考虑
+##5. 优化考虑
 
 代码优化是指对程序代码进行等价变换，且不改变程序的运行结果。程序代码可以是中间代码，也可以是目标代码。优化的含义是最终生成的目标代码更短，这里既有时间上的意义，也有空间上的意义，能够让代码更加精简、整洁。但是目前现有的编译器进行的代码优化也是一个步骤众多的过程，优化时也会耗费资源和时间，所以达到代码优化和本身资源消耗间的平衡也是做好优化所需要考虑的地方。常见的代码优化方法有：删除多余运算、合并已知量和复写传播，删除无用赋值等。
-	
-### 5.1 常量折叠
+###5.1 常量折叠
 
 这里的常量优化包括常量折叠以及常量扩散。常量折叠也可以认为是删除多余运算，这是一种比较常见的优化方法，同时也很有效。常数折叠是，如果在程序运行中出现常数表达式，那么在编译时就需要把常数表达式计算出来，并在代码生成时运用该值，舍弃常量表达式，以此来减少程序的运算量，进而缩短运行时间。比如，LLVM生成IR的时候，会进行常量折叠优化。LLVM有优化器选项，通过opt命令，我们可以直接在命令行中调用LLVM工具链提供的IR代码优化器对LLVM-IR 代码优化，该优化器同时支持对可读文本以及二进制格式下的LLVM-IR代码进行优化，并且可以通过参数执行相应的优化策略。
 
 ### 5.2 常量传播优化
 
-优化策略中包含“-constprop” ：该策略主要是用于 “常量传播优化”，这一方法也可以称为常量扩散或者复用，即目前赋值为常数的变量，在后续表达式中继续出现，且被当作常数进行使用，所以在后面复用该变量时，可以直接用常数进行替代，以此减少参数传递的时间，进而缩短程序运行时间。F
+优化策略中包含“-constprop” ：该策略主要是用于 “常量传播优化”，这一方法也可以称为常量扩散或者复用，即目前赋值为常数的变量，在后续表达式中继续出现，且被当作常数进行使用，所以在后面复用该变量时，可以直接用常数进行替代，以此减少参数传递的时间，进而缩短程序运行时间。
+
+
+
+## 6. 代码生成
+
+### 6.1 LLVM概述
+
+LLVM(Low Level Virtual Machine)是以C++编写的编译器基础设施，包含一系列模块化的编译器组件和工具教练用俩开发编译器前端和后端。LLVM起源于2000年伊利诺伊大学Vikram Adve和Chris Lattner的研究，它是为了任意一种编程语言而写成的程序，利用虚拟技术创造出编译阶段、链接阶段、运行阶段以及闲置阶段的优化，目前支持Ada、D语言、Fortran、GLSL、Java字节码、Swift、Python、Ruby等十多种语言。
+
+- 前端：LLVM最初被用来取代现有于GCC堆栈的代码产生器，许多GCC的前端已经可以与其运行，其中Clang是一个新的编译器，同时支持C、Objective-C以及C++。
+- 中间端：LLVM IR是一种类似汇编的底层语言，一种强类型的精简指令集，并对目标指令集进行了抽象。LLVM支持C++中对象形式、序列化bitcode形式和汇编形式。
+- 后端：LLVM支持ARM、Qualcomm Hexagon、MPIS、Nvidia并行指令集等多种后端指令集。
+
+### 6.2 LLVM IR
+
+LLVM IR是LLVM的核心所在，通过将不同高级语言的前端变换成LLVM IR进行优化、链接后再传给不同目标的后端转换成为二进制代码，前端、优化、后端三个阶段互相解耦，这种模块化的设计使得LLVM优化不依赖于任何源码和目标机器。
+
+<img src="Resource/LLVM.png" alt="LLVM" style="zoom:57%;" />
+
+#### 6.2.1 IR布局
+
+每个IR文件称为一个Module，它是其他所有IR对象的顶级容器，包含了目标信息、全局符号和所依赖的其他模块和符号表等对象的列表，其中全局符号又包括了全局变量、函数声明和函数定义。
+
+函数由参数和多个基本块组成，其中第一个基本块称为entry基本块，这是函数开始执行的起点，另外LLVM的函数拥有独立的符号表，可以对标识符进行查询和搜索。
+
+每一个基本块包含了标签和各种指令的集合，标签作为指令的索引用于实现指令间的跳转，指令包含Phi指令、一般指令以及终止指令等。
+
+![LLVM_layout](Resource/LLVM_layout.png)
+
+#### 6.2.2 IR上下文环境
+
+- LLVM::Context：提供用户创建变量等对象的上下文环境，尤其在多线程环境下至关重要
+- LLVM::IRBuilder：提供创建LLVM指令并将其插入基础块的API，插入的指令都是写到当前基础块的尾部。
+
+## 6.3 模块设计
+
+#### 6.3.1 大致流程
+
+*  初始化llvm
+*  根据符号表构造变量和常数，并分配相应空间
+*  函数/过程的声明（暂不定义）
+*  IO函数的声明
+*  生成主函数代码，期间把**所用到的**系统函数记录下来，并且在使用前进行声明（暂不定义）
+*  定义函数/过程
+*  定义系统函数/过程
+*  生成中间码
+
+```c++
+void CodeGenerator::execute(const Interpreter* ipt, std::ofstream &Out)
+{
+    /* 1. 初始化llvm */
+    // 主函数
+    auto* mainFunction = llvm::Function::Create(
+            llvm::FunctionType::get(Builder.getVoidTy(), false),
+            llvm::GlobalValue::ExternalLinkage,
+            "main",
+            Module
+    );
+    auto* mainBlock = llvm::BasicBlock::Create( // 主函数函数体
+            Context,
+            "main_entry",
+            mainFunction
+    );
+
+    // 跳转到main block
+    Builder.SetInsertPoint(mainBlock);
+
+    RecordsStack.push(std::map<std::string, Typing::recordNode*>());
+
+
+    /* 2. 根据符号表内容构造全局变量和常量，以及函数/过程的声明 */
+    SymbolTable = ipt->symbol_table;
+    setupGlobal();
+
+    /* 3. 生成主函数代码 */
+    genCode(ipt->main_entry, false);
+    // 主函数返回void
+    Builder.CreateRet(nullptr);
+
+    /* 4. 函数/过程的定义 */
+    // 生成函数的定义
+    defineFunctions();
+    // 生成过程的定义
+    defineProcedures();
+
+    /* 5. 生成所用到的系统函数的定义 */
+    for (const auto& SystemFunction : CalledSystemFunctions)
+    {
+        SystemFunctions::define(SystemFunction, Context, Builder, Module);
+    }
+
+    /* 6. 生成中间码 */
+    std::string IRCode;
+    llvm::raw_string_ostream IR(IRCode);
+    IR << *Module;
+    IR.flush();
+    std::cout << IRCode << std::endl;
+
+    Out << IRCode;
+    Out.close();
+}
+```
+
+
+
+####6.3.2 类型转化
+
+为了能够将数据类型直接对应到机器码，需要把前面`Typing::`模块的类型转化为llvm的类型。通过下面的函数实现。
+
+*  对于基础的系统类型：整数、浮点数、字符、布尔类型、字符串，都可以直接翻译到llvm中的基础类型。其中浮点数使用`double`，字符使用八位的整数表示（ASCII码），布尔值使用一位的整数，字符串使用八位的整数指针（字符指针）。
+*  对于结构体类型：首先解析其所有成员的llvm类型，构建出成员类型数组`std::vector<llvm::Type*> Members`，然后利用`llvm::StructType::get(Context, Members)`来为初始化数组类型。这里必须使用`get()`，因为它能避免相同类型的结构被重复定义。如果每个成员的类型和对应顺序相同，则结构体在llvm中被看作相同的。
+*  对于数组类型：解析出元素类型，再声明数组大小，利用`llvm::ArrayType::get(toLLVM(ArrayNode->m_EleType), ArrayNode->getSize());`构造。
+
+```c++
+llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode)
+{
+    switch (tNode->nType)
+    {
+        case Typing::NodeType::t_CONSTANT:
+        {
+            raiseError("这部分应该被处理过");
+        }
+        case Typing::NodeType::t_SYS_TYPE:
+        {
+            auto* sysNode = dynamic_cast<Typing::sysNode*>(tNode);
+            if (sysNode->dType == Typing::DataType::d_INTEGER)
+            {
+                return Builder.getInt32Ty();
+            }
+            else if (sysNode->dType == Typing::DataType::d_REAL)
+            {
+                return Builder.getDoubleTy();
+            }
+            else if (sysNode->dType == Typing::DataType::d_BOOLEAN)
+            {
+                return Builder.getInt1Ty();
+            }
+            else if (sysNode->dType == Typing::DataType::d_CHAR)
+            {
+                return Builder.getInt8Ty();
+            }
+            else if (sysNode->dType == Typing::DataType::d_STRING)
+            { // 字符串就是一个字符指针
+                return Builder.getInt8PtrTy();
+            }
+        }
+        case Typing::NodeType::t_RECORD:
+        {
+            auto* RecordNode = dynamic_cast<Typing::recordNode*>(tNode);
+            std::vector<llvm::Type*> Members;
+            for (auto Member_it = RecordNode->MemberIndex.begin(); Member_it != RecordNode->MemberIndex.end(); ++Member_it)
+            { // 按顺序遍历每个成员，添加到Members中
+                Members.emplace_back(toLLVM((*(RecordNode->m_Field))[*Member_it]));
+            }
+            auto* Record = llvm::StructType::get(Context, Members);
+
+            return Record;
+        }
+        case Typing::NodeType::t_ARRAY:
+        {
+            auto* ArrayNode = dynamic_cast<Typing::arrayNode*>(tNode);
+            // 数组中每个元素是一个pointer【->getPointerTo()】
+            return llvm::ArrayType::get(toLLVM(ArrayNode->m_EleType), ArrayNode->getSize());
+        }
+    }
+    return nullptr;
+}
+```
+
+#### 6.3.3 成员数据结构
+
+```c++
+		// 全局变量
+    // <名字，对应地址>
+    std::map<std::string, llvm::Value*> GlobalVariables;
+    // 常量
+    // <名字，对应值>
+    std::map<std::string, llvm::Value*> GlobalConst;
+    // 函数参数列表
+    // 一个函数内部能够访问的变量只有GlobalVariable以及栈顶的Arguments
+    std::stack<std::map<std::string, llvm::Value*>> ArgumentsStack;
+
+    // 结构体列表
+    std::stack<std::map<std::string, Typing::recordNode*>> RecordsStack;
+
+    // 函数集合，用于保存函数声明，最后再实现
+    std::set<std::pair<llvm::Function*, Typing::functNode*>> FunctionSet;
+    std::set<std::pair<llvm::Function*, Typing::procNode*>> ProcedureSet;
+
+    // 调用函数的输入参数
+    std::vector<llvm::Value*> CallerArguments;
+
+    // 被调用过的系统函数（之后需要定义）
+    std::set<std::string> CalledSystemFunctions;
+```
+
+#### 6.3.4 符号表的解析(void CodeGenerator::setupGlobal())
+
+因为在前面处理时，已经把type区域定义的类型全部展开，并且把处理type区域过程中加入的数据全部删掉（比如type int = integer本来会把<int, sysNode*>插入到符号表），所以只需要处理`const`、`var`、`function/procedure`这几个地方即可。
+
+（1）常数：在const区域定义
+
+解析到常数时，把它加入到llvm常量表中。
+
+```c++
+else if (tNode->nType == Typing::NodeType::t_CONSTANT)
+{ // 处理constant
+  auto* constNode = dynamic_cast<Typing::constNode*>(tNode);
+  switch (constNode->m_Sys->dType)
+  {
+    case Typing::DataType::d_INTEGER:
+      GlobalConst[Name] = llvm::ConstantInt::get(Builder.getInt32Ty(),
+                                                 constNode->m_Constant.iValue, true);
+      break;
+    case Typing::DataType::d_BOOLEAN:
+      GlobalConst[Name] = llvm::ConstantInt::get(Builder.getInt1Ty(),
+                                                 constNode->m_Constant.bValue);
+      break;
+
+    case Typing::DataType::d_REAL:
+      GlobalConst[Name] = llvm::ConstantFP::get(Builder.getDoubleTy(),
+                                                constNode->m_Constant.dValue);
+    case Typing::DataType::d_CHAR:
+      GlobalConst[Name] = llvm::ConstantInt::get(Builder.getInt8Ty(),
+                                                 constNode->m_Constant.cValue);
+      break;
+    case Typing::DataType::d_STRING:
+      GlobalConst[Name] = Builder.CreateGlobalStringPtr(constNode->m_Constant.sValue, "string_tmp_");
+      break;
+  }
+}
+```
+
+（2）变量：var区域定义
+
+在符号表中的表示为`<变量名, Typing::Node*>`，只需要把变量对应类型转为llvm类型，然后添加到llvm变量表中即可。
+
+```c++
+else
+{ // 添加全局变量
+  llvm::Type* Type = toLLVM(tNode);
+  if (tNode->nType == Typing::NodeType::t_RECORD)
+  {
+    RecordsStack.top()[Name] = dynamic_cast<Typing::recordNode*>(tNode);
+  }
+  if (Type)
+  {
+    GlobalVariables[Name] = Builder.CreateAlloca(Type, nullptr, Name);
+  }
+}
+```
+
+（3）函数
+
+在`namespace Typing`中，一个函数节点的结构如下，具有函数名、形参表、引用参数表、返回类型、函数体指针，并且记录了参数顺序。
+
+```c++
+class functNode : public Node
+{
+  public:
+  std::string m_name; // 函数名字
+  std::vector<std::pair<std::string, bool>> m_Params;    // 参数字符串表，主要是反应参数顺序
+  Node* m_resType = nullptr; // 返回类型
+  ST* m_val_table = nullptr;    // 形参表
+  ST* m_var_table = nullptr;    // 引用参数表
+  AST::Node* m_body; // 函数体的指针，指向<Routine-Body>
+  public:
+  functNode(std::string name, Node* resType, AST::Node* body);
+  void addParam(bool isVar, const std::string& paramName, Node* node, unsigned int line);
+  virtual std::string toString(int& hPos) const override;
+};
+```
+
+在llvm定义函数时，需要声明函数名、返回类型、以及按顺序的参数类型。所以同样使用`toLLVM()`把各个类型转为llvm格式即可。需要注意的是，由于spl中只存在全局函数，所以函数的存在域声明为整个Module即可。添加完函数的声明后，在`FunctionSet`中保留函数原型以及Typing函数指针（比如还需要用到它包含的函数体指针），用于最后的定义。
+
+*  选择先声明、最后定义的理由在于：定义函数需要重新进入一个基本块，而llvm无法返回到原本的基本块继续填入代码，因此这样会打断主函数基本块的代码写入。
+
+```C++
+else if (tNode->nType == Typing::NodeType::t_FUNCTION)
+{ // 直接定义函数
+  auto* FunctNode = dynamic_cast<Typing::functNode*>(tNode);
+  auto ArgumentsType = std::vector<llvm::Type*>(); // 参数类型
+  for (auto Param_it = FunctNode->m_Params.begin(); Param_it != FunctNode->m_Params.end(); Param_it++)
+  {
+    std::string ParamName = Param_it->first;
+    bool isVar = Param_it->second;
+    if (isVar)
+    { // 否则，参数类型为相应的指针
+      ArgumentsType.push_back(toLLVM(FunctNode->m_var_table->get(ParamName, 0))->getPointerTo());
+    }
+    else
+    { // 不是引用类型，则参数类型就是本身类型
+      ArgumentsType.push_back(toLLVM(FunctNode->m_val_table->get(ParamName, 0)));
+    }
+  }
+  auto* FunctionProto = llvm::Function::Create(
+    llvm::FunctionType::get(toLLVM(FunctNode->m_resType), ArgumentsType, true),
+    llvm::GlobalValue::InternalLinkage,
+    FunctNode->m_name,
+    Module
+  );
+
+  // 将函数声明保存起来，之后再插入代码【否则会打断main block】
+  FunctionSet.insert(std::make_pair(FunctionProto, FunctNode));
+}
+```
+
+（4）过程：与函数一样，只不过把返回类型声明为`Builder.getVoidTy()`，不再赘述。
+
+#### 6.3.5 语法树 --> 中间代码
+
+```C++
+llvm::Value* genCode(AST::Node* ASTNode, bool getVarByAddr);
+```
+
+这个函数用于在**当前基本块**生成以`ASTNode`为根的语法树的中间代码，其中`getVarByAddr`这个属性声明，访问到一个变量时，希望把它处理为数据，还是处理为指针。
+
+举例说明，下面的表达式中
+$$
+x:= x+1
+$$
+右边的$x$应该被看作值，对应的p代码为`lod %x`。而左边的值应该被看作指针，因为在保存语句中需要把右边的运算结果写到$x$的地址，对应的p代码为`sto %x, <运算结果>`。
+
+根据AST节点的属性，有不同的处理方法
+
+```c++
+switch (ASTNode->m_Attribute)
+```
+
+#### 6.3.5.1 常数
+
+和符号表中出现的常数处理一样，不过这里的出现的常数都是匿名的，直接返回值即可。比较特别的是，llvm创建字符串时，需要用到中间代码指令（其他常数只是简单替换），把字符串构建为一个全局变量指针。
+
+```c++
+case AST::Attribute::Constant:
+{
+  switch (ASTNode->m_Constant.Type)
+  {
+    case AST::ConstantType::Integer:
+      return llvm::ConstantInt::get(Builder.getInt32Ty(), ASTNode->m_Constant.iValue, true);
+    case AST::ConstantType::Real:
+      return llvm::ConstantFP::get(Builder.getDoubleTy(), ASTNode->m_Constant.dValue);
+    case AST::ConstantType::Boolean:
+      return llvm::ConstantInt::get(Builder.getInt1Ty(), ASTNode->m_Constant.bValue, false);
+    case AST::ConstantType::Char: // 字符用ASCII表示，所以相当于8bit整数
+      return llvm::ConstantInt::get(Builder.getInt8Ty(), ASTNode->m_Constant.cValue, false);
+    case AST::ConstantType::String:
+      return Builder.CreateGlobalStringPtr(ASTNode->m_Constant.sValue, "string_tmp_");
+  }
+}
+```
+
+#### 6.3.5.2 变量
+
+因为前面以及完成对符号表的处理，所以出现变量时，按照有限顺序有这么几种可能
+
+*  全局常量：在`GlobalConst`中查找
+*  本地函数参数：在`ArgumentsStack`中查找
+*  全局变量：在`GlobalVariables`中查找
+
+最后，根据输入`getVarByAddr`的不同，决定返回变量时是否要进行Load操作（存在结构中的变量都是指针）。
+
+```c++
+case AST::Attribute::Identifier:
+{ /* 注意，这里绝对不可能是函数 */
+  llvm::Value* ret;
+  std::string Name = ASTNode->m_Identifier.Name;
+  // 先找常数
+  ret = GlobalConst[Name];
+  if (ret != nullptr) return ret;
+  // 再找本地函数参数
+  if (!ArgumentsStack.empty())
+  {
+    auto& Arguments = ArgumentsStack.top();
+    ret = Arguments[Name];
+  }
+  if (ret == nullptr)
+  { // 如果不是常数，并且不属于函数参数
+    ret = GlobalVariables[Name];
+  }
+  if (ret != nullptr)
+  { // 判断是要返回变量地址还是要返回变量指向的值
+    if (getVarByAddr) return ret;
+    else
+    {
+      return Builder.CreateLoad(ret, Name);
+    }
+  }
+  break;
+}
+```
+
+#### 6.3.5.3 操作
+
+根据具体的操作符再进行划分
+
+```c++
+switch (ASTNode->m_Operation.Operator)
+```
+
+（1）SEMI：语句列，按照先后顺序生成代码即可。
+
+```c++
+case SEMI:
+{
+  genCode(ASTNode->m_Operation.List_Operands[0], getVarByAddr);
+  genCode(ASTNode->m_Operation.List_Operands[1], getVarByAddr);
+  break;
+}
+```
+
+（2）ASSIGN：赋值
+
+首先生成赋值号两边的代码，对于左边，变量应该看作指针；对于右边，变量应该看作值。之后考虑到`浮点数 := 整数`的特殊情形，当左边为浮点数时，通过`Builder.CreateSIToFP()`把右边的整数也变成浮点数，当右边指令也是double类型时，这条指令相当于为空（不会写入中间代码）。需要考虑类型转换是因为llvm指令要求严格的类型匹配，否则无法转为机器码。
+
+```c++
+case ASSIGN:
+{
+  auto* Left = dynamic_cast<Typing::sysNode*>(ASTNode->m_Operation.List_Operands[0]->m_Type);
+  auto* LeftValue = genCode(ASTNode->m_Operation.List_Operands[0], true);
+  auto* RightValue = genCode(ASTNode->m_Operation.List_Operands[1], false);
+  if (Left->dType == Typing::DataType::d_REAL)
+  { // 左边为浮点数时，右边也要变成浮点数
+    RightValue = Builder.CreateSIToFP(RightValue, Builder.getDoubleTy(), "si2double_tmp_");
+  }
+  Builder.CreateStore(
+    /* Value =  */ RightValue,
+    /* Variable= */LeftValue
+  );
+  break;
+}
+```
+
+（3）布尔运算
+
+用`Builder.Create...()`创建对应算术表达式
+
+```c++
+// 一元布尔运算
+case NOT:
+{
+  return Builder.CreateNot(genCode(ASTNode->m_Operation.List_Operands[0], false), "not_tmp_");
+}
+// 二元布尔运算
+case AND: case OR:
+{
+  int Operator = ASTNode->m_Operation.Operator;
+  auto* Left = ASTNode->m_Operation.List_Operands[0];
+  auto* Right = ASTNode->m_Operation.List_Operands[1];
+  if (Operator == AND) return Builder.CreateAnd(genCode(Left, false), genCode(Right, false), "and_tmp_");
+  if (Operator == OR) return Builder.CreateOr(genCode(Left, false), genCode(Right, false), "or_tmp_");
+}
+```
+
+（4）算数运算
+
+同理（3），用`Builder.Create...()`创建算数表达式；然后同理（2），如果两个操作数之一是浮点数，那么就都用`Builder.CreateSIToFP()`转为浮点数，再利用浮点数的算子。比较特殊的是，出现MINUS时，要考虑是否为负号的情形（只有一个运算数）
+
+```c++
+case PLUS: case MUL: case MINUS: case DIV: case MOD:
+{
+  int Operator = ASTNode->m_Operation.Operator;
+  if (Operator == MINUS && ASTNode->m_Operation.NumOperands == 1)
+  { // 取负
+    llvm::Value* Value = genCode(ASTNode->m_Operation.List_Operands[0], false);
+    if (Value->getType() == Builder.getInt32Ty()) return Builder.CreateNeg(Value, "ineg_tmp_");
+    if (Value->getType() == Builder.getDoubleTy()) return Builder.CreateFNeg(Value, "fneg_tmp_");
+    break;
+  }
+  llvm::Value* LeftValue = genCode(ASTNode->m_Operation.List_Operands[0], false);
+  llvm::Value* RightValue = genCode(ASTNode->m_Operation.List_Operands[1], false);
+  if (LeftValue->getType() == Builder.getDoubleTy() || RightValue->getType() == Builder.getDoubleTy())
+  {   // 二者之一为浮点数，则结果就为浮点数
+    // SIToFP: Signed Integer to Float Point
+    // 如果本身为浮点数，那么相当于没有操作
+    LeftValue = Builder.CreateSIToFP(LeftValue, Builder.getDoubleTy(), "si2double_tmp_");
+    RightValue = Builder.CreateSIToFP(RightValue, Builder.getDoubleTy(), "si2double_tmp_");
+    // 浮点数运算
+    if (Operator == PLUS) return Builder.CreateFAdd(LeftValue, RightValue, "fadd_tmp_");
+    if (Operator == MINUS) return Builder.CreateFSub(LeftValue, RightValue, "fsub_tmp_");
+    if (Operator == MUL)  return Builder.CreateFMul(LeftValue, RightValue, "fmul_tmp_");
+    if (Operator == DIV) return Builder.CreateFDiv(LeftValue, RightValue, "fdiv_tmp_");
+    if (Operator == MOD) return Builder.CreateFRem(LeftValue, RightValue, "fmod_tmp_");
+  }
+  else
+  { // 都是整数操作
+    if (Operator == PLUS) return Builder.CreateAdd(LeftValue, RightValue, "iadd_tmp_");
+    if (Operator == MINUS) return Builder.CreateSub(LeftValue, RightValue, "isub_tmp_");
+    if (Operator == MUL)  return Builder.CreateMul(LeftValue, RightValue, "imul_tmp_");
+    if (Operator == DIV) return Builder.CreateSDiv(LeftValue, RightValue, "idiv_tmp_");
+    if (Operator == MOD) return Builder.CreateSRem(LeftValue, RightValue, "fmod_tmp_");
+  }
+  break;
+}
+```
+
+（5）数值比较
+
+同理（4）
+
+```c++
+// 数值比较
+case _GE_: case _GT_: case _LE_: case _LT_: case EQUAL: case UNEQUAL:
+```
+
+（6）IF语句：语法树子节点格式为`条件, IF_Block, <Else_Block，如果存在的话>`
+
+在写入这部分的代码前，需要先计算表达式条件
+
+```c++
+auto* Condition = genCode(ASTNode->m_Operation.List_Operands[0], false);
+```
+
+创建三个基本块Basic Block。然后写入一条根据条件选择跳转的表达式`Builder.CreateCondBr(Condition, IF_Block, ELSE_Block);`，对应于
+
+```c++
+if (Condition) goto IF_Block;
+else goto ELSE_Block;
+```
+
+*  IF_Block：如果条件成立，所执行的代码。在原本if语句内容`genCode()`的基础上，最后加上一条跳转到After_Block的指令`Builder.CreateBr(After_Block);`。
+*  ELSE_Block：如果条件不成立，所执行的代码。最后加上一条跳转到After_Block的指令`Builder.CreateBr(After_Block);`。如果不存在else语句，则这个基本块只有一条跳转语句
+*  After_Block：处理完这条if语句后，后面代码的写入位置。
+
+```c++
+case IF:
+{
+  auto* Condition = genCode(ASTNode->m_Operation.List_Operands[0], false);
+  auto* IF_Block  = llvm::BasicBlock::Create(Context, "if", Builder.GetInsertBlock()->getParent());
+  auto* ELSE_Block = llvm::BasicBlock::Create(Context, "else", Builder.GetInsertBlock()->getParent());
+  auto* After_Block = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+
+  Builder.CreateCondBr(Condition, IF_Block, ELSE_Block); // 条件跳转语句
+
+  // 生成IF语句部分的代码
+  Builder.SetInsertPoint(IF_Block);
+  genCode(ASTNode->m_Operation.List_Operands[1], getVarByAddr);
+  // jump to After_Block
+  Builder.CreateBr(After_Block);
+
+  // 生成ELSE语句部分的代码
+  Builder.SetInsertPoint(ELSE_Block);
+  // 如果有Else部分
+  if (ASTNode->m_Operation.NumOperands == 3)
+  {
+    genCode(ASTNode->m_Operation.List_Operands[2], getVarByAddr);
+  }
+  // jump to After_Block
+  Builder.CreateBr(After_Block);
+
+  // 后面代码的内容全在After Block中
+  Builder.SetInsertPoint(After_Block);
+  break;
+}
+```
+
+（7）Repeat语句：语法树子节点格式为`条件，Loop_Block`
+
+与IF语句相似，主要区别在于
+
+*  直接跳转进入`Loop_Block`，而不用事先判断条件。
+*  在`Loop_Block`执行完原始代码后，再计算相应的条件。
+*  根据条件进行选择性跳转，而非IF语句中两个Block最后都是无条件跳转。如果条件满足，跳到`After_Block`继续写入后面的代码，否则跳回到`Loop_Block`开头
+
+```c++
+case REPEAT:
+{
+  llvm::BasicBlock* LOOP_Block = llvm::BasicBlock::Create(Context, "loop", Builder.GetInsertBlock()->getParent());
+  llvm::BasicBlock* After_Block = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+  // 先进入loop区域
+  Builder.CreateBr(LOOP_Block);
+  Builder.SetInsertPoint(LOOP_Block);
+  // loop区域代码块
+  genCode(ASTNode->m_Operation.List_Operands[1], getVarByAddr);
+
+  // 判断until条件
+  auto* Condition = genCode(ASTNode->m_Operation.List_Operands[0], false);
+  Builder.CreateCondBr(Condition, After_Block, LOOP_Block); // 如果条件满足，就跳出循环，否则回到开头
+
+  // 结束unti语句的代码
+  // 后面的代码写到after block
+  Builder.SetInsertPoint(After_Block);
+  break;
+}
+```
+
+（8）while语句、repeat语句与（7）类似，不再赘述。比较特别的是，repeat语句中，根据TO或者DOWNTO的token，写入额外的自增或自减指令：
+
+```c++
+// index variable自增或自减
+if (Operator == TO)
+{
+  IndexValue = Builder.CreateAdd(IndexValue, llvm::ConstantInt::get(Builder.getInt32Ty(), 1, true), "iadd_tmp_");
+  Builder.CreateStore(
+    IndexValue,
+    IndexVariable
+  );
+}
+else if (Operator == DOWNTO)
+{
+  IndexValue = Builder.CreateSub(IndexValue, llvm::ConstantInt::get(Builder.getInt32Ty(), 1, true), "isub_tmp_");
+  Builder.CreateStore(
+    IndexValue,
+    IndexVariable
+  );
+}
+```
+
+（9）case语句：看作一系列的`if-else`语句。
+
+```c++
+case CASE_STMT:
+{
+  auto* TestedValue = genCode(ASTNode->m_Operation.List_Operands[0], false);
+  auto CaseList = ASTNode->m_Operation.List_Operands[1]->m_Operation;
+  int NumCases = CaseList.NumOperands;
+  std::vector<llvm::BasicBlock*> CaseConditionBlocks(NumCases);
+  std::vector<llvm::BasicBlock*> CaseBodyBlocks(NumCases);
+
+  auto* AfterBlock = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+  for (int i = 0;i < NumCases; ++i)
+  { // 先初始化
+    CaseConditionBlocks[i] = llvm::BasicBlock::Create(Context, "case_condition_" + std::to_string(i), Builder.GetInsertBlock()->getParent());
+    CaseBodyBlocks[i] = llvm::BasicBlock::Create(Context, "case_body_" + std::to_string(i), Builder.GetInsertBlock()->getParent());
+  }
+  for (int i = 0;i < NumCases; ++i)
+  {
+    auto CaseUnit = CaseList.List_Operands[i]->m_Operation;
+    Builder.CreateBr(CaseConditionBlocks[i]);
+    auto* TargetValue = genCode(CaseUnit.List_Operands[0], false);
+    llvm::Value* Condition;
+    // 如果之一为浮点数，则都变成浮点数
+    if (TestedValue->getType() == Builder.getDoubleTy() || TargetValue->getType() == Builder.getDoubleTy())
+    {
+      TestedValue = Builder.CreateSIToFP(TestedValue, Builder.getDoubleTy(), "si2double_tmp_");
+      TargetValue = Builder.CreateSIToFP(TargetValue, Builder.getDoubleTy(), "si2double_tmp_");
+      Condition = Builder.CreateFCmp(llvm::FCmpInst::Predicate::FCMP_OEQ, TestedValue, TargetValue, "feq_tmp_");
+    }
+    else
+    { // 都是整数
+      Condition = Builder.CreateICmp(llvm::ICmpInst::Predicate::ICMP_EQ, TestedValue, TargetValue, "ieq_tmp_");
+    }
+    // 如果条件满足，则跳到函数体，否则下一个条件
+    if (i < NumCases)
+    {
+      Builder.CreateCondBr(Condition, CaseBodyBlocks[i], CaseConditionBlocks[i+1]);
+    }
+    else
+    {
+      Builder.CreateCondBr(Condition, CaseBodyBlocks[i], AfterBlock);
+    }
+
+    // 构造case函数体
+    Builder.SetInsertPoint(CaseBodyBlocks[i]);
+    genCode(CaseUnit.List_Operands[1], getVarByAddr);
+    // 跳转到after
+    Builder.CreateBr(AfterBlock);
+  }
+  // 结束case语句处理
+  Builder.SetInsertPoint(AfterBlock);
+  break;
+}
+```
+
+（10）结构体访问：语法树子节点为`结构变量, 成员名`
+
+*  首先，按照指针方式取出结构体变量，按照**字符串**格式取出成员名。
+*  然后根据结构体的名称，找到`Typing::recordType*`结构指针。
+*  根据`Typing::recordType`提供的方法，获取成员名的下标。
+*  根据下标，用`Builder.CreateStructGEP()`方法取出对应下标的成员变量。
+*  这时候取出的变量是指针，同样根据输入`getVarByAddr`判断返回前是否需要Load操作。
+
+```c++
+case DOT:
+{ // 访问结构体
+  auto* Record = genCode(ASTNode->m_Operation.List_Operands[0], true);
+  std::string RecordName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
+  // 获取成员名字
+  std::string Member = ASTNode->m_Operation.List_Operands[1]->m_Identifier.Name;
+
+  auto* RecordNode = RecordsStack.top()[RecordName]; // 本地找不到
+  if (!RecordNode) // 就到全局找
+  {
+    RecordNode = dynamic_cast<Typing::recordNode*>(SymbolTable->get(RecordName, 0));
+  }
+
+  int MemberIndex = RecordNode->getIndex(Member);
+  auto* ret = Builder.CreateStructGEP(Record, MemberIndex, "record_access_tmp_");
+  if (!getVarByAddr)
+  {
+    ret = Builder.CreateLoad(ret);
+  }
+  return ret;
+}
+```
+
+（11）数组访问：语法树子节点为`数组名, 索引表达式`
+
+*  首先，按照指针方式取出数组。
+
+*  然后生成代码计算索引，结果应该是整数下标。
+
+*  同样使用`Builder.CreateGEP()`方法取出数组对应位置的元素指针。这里输入的`idxList`参数是
+
+   ```c++
+   {llvm::ConstantInt::get(Builder.getInt32Ty(), 0, false), Index}
+   ```
+
+   而非同理结构体的
+
+   ```c++
+   Index
+   ```
+
+   这是因为数组在llvm中默认是二维表示的，所以访问第$i$个元素使用`arr[0][i]`而非`arr[i]`。
+
+*  最后，判断`getVarByAddr`
+
+```c++
+case BRACKET:
+{ // 访问数组
+  // 子节点为[数组名，索引]
+  auto* Array = genCode(ASTNode->m_Operation.List_Operands[0], true);
+
+  auto* Index = genCode(ASTNode->m_Operation.List_Operands[1], false); // 一定是llvm::Int32
+  auto* ret = Builder.CreateGEP(Array, {llvm::ConstantInt::get(Builder.getInt32Ty(), 0, false),
+                                        Index}, "array_access_");
+
+  if (!getVarByAddr)
+  {
+    ret = Builder.CreateLoad(ret);
+  }
+  return ret;
+}
+```
+
+（12）函数调用：语法树子节点格式为`函数名, ...（参数列表）`
+
+*  首先，根据函数名在符号表中获取相应函数指针。
+*  然后按照子节点顺序设置参数，并压入参数列表`CallerArguments`中。
+*  如果参数类型为引用，那么**传入指针**，否则传入值。
+*  因为前面以及调用过函数，可以通过`Module->getFunction(FunctionName)`获取前面声明的llvm函数原型。
+*  最后调用`Builder.CreateCall()`来找到函数的定义，并调用
+*  return返回值
+
+```c++
+case CALL_FUNCT:
+{ // 调用函数
+  // 获取函数
+  std::string FunctionName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
+
+  auto* FunctionNode = dynamic_cast<Typing::functNode*>(SymbolTable->get(FunctionName, 0));
+
+  // 设置参数
+  CallerArguments.clear();
+  for (int i = 1;i < ASTNode->m_Operation.NumOperands; ++i)
+  {
+    if (FunctionNode->m_Params[i-1].second)
+    { // 如果是引用类型，则输入地址
+      CallerArguments.push_back(genCode(ASTNode->m_Operation.List_Operands[i], true));
+    }
+    else
+    {
+      CallerArguments.push_back(genCode(ASTNode->m_Operation.List_Operands[i], false));
+    }
+  }
+  // 调用【这时候虽然函数没有定义，但是已经声明了】
+  return Builder.CreateCall(Module->getFunction(FunctionName), CallerArguments);
+}
+```
+
+（13）过程调用：和（12）同理，只是没有返回值（即返回nullptr），不再赘述。
+
+### 6.3.6 生成函数定义
+
+遍历每一个声明的函数并进行定义（顺序无关）
+
+
+
+```c++
+void CodeGenerator::defineFunctions()
+{
+    for (const auto& it : FunctionSet)
+    {
+      	llvm::Function* Function = it.first;
+        Typing::functNode* FunctNode = it.second;
+      	...定义单个函数...
+    }
+}
+```
+

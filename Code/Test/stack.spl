@@ -8,56 +8,80 @@ type
 				list	: List;
 				idx : integer;
 		   end;
-	bool = boolean;
 var 
 	stack : Stack;
 	index : integer;
+	option: integer; // 选择是要pop(0)还是push(1)还是结束(2)
+	element: real;
+
+
 
 function get(
-var	list : List;
-	idx   : integer
+	list : List;
+	index: integer
 ) : real;
 begin
-	get := list[idx];
-end
-;
+	get := list[index];
+end;
 
 function pop(
 	var stack : Stack
 ) : real;	// 返回结果
 begin
 	if stack.idx > 0 then begin
+		pop := get(stack.list, stack.idx);
 		stack.idx := stack.idx - 1;
-		pop := get(stack, stack.idx);
+	end
+	else begin
+		writeln("[Error]: No more element to be popped!");
 	end;
 end
 ;
+
 
 procedure set(
-var list : List;
-	idx  : integer;
-element  : real
+	element: real;
+var
+	list : List;
+	index: integer
 );
 begin
-	list[idx] := element;
+	list[index] := element;
 end
 ;
 
-function push(
-	var stack : Stack;
-	element   : real
-) : bool; // 返回是否成功
+procedure push(
+	element   : real;
+var 
+	stack : Stack
+);
 begin
 	if stack.idx < MAX_LEN then begin
-		stack.idx := stack.idx - 1;
-		set(stack.list, stack.idx, element);
+		stack.idx := stack.idx + 1;
+		set(element, stack.list, stack.idx);
 	end
-	else begin 
-		push := false;
+	else begin
+		writeln("[Error]: The stack is full!");
 	end;
 end
 ;
-begin
 
+
+begin
+	stack.idx := 0;
+	writeln("option: [0]: pop	[1]: push	[other]: exit");
+	repeat
+		read("Please enter your option: ", option);
+		if option = 0 then begin
+			writeln(pop(stack));	
+		end
+		else if option = 1 then begin
+			read("Please enter the element you want to push: ", element);
+			push(element, stack);
+		end
+		else begin
+			option := 2;
+		end;
+	until option = 2;
 end
 .

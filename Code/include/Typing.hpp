@@ -70,8 +70,6 @@ namespace Typing
     {
     public:
         NodeType nType;
-        Node* prev = nullptr;
-        Node* next = nullptr;
     public:
         static bool isEqual(Node* node1, Node* node2); // 检查类型是否一致
         virtual std::string toString(int& hPos) const = 0; // 输出类型信息
@@ -86,11 +84,10 @@ namespace Typing
         {
             nType = NodeType::t_ENUM;
             m_List = List;
-            // 为了便于类型判断，我们对enum类型列表进行排序
-            // std::sort(m_List->begin(), m_List->end(), [](std::string& a, std::string& b) -> bool{
-            //     if (std::strcmp(a.c_str(), b.c_str()) > 0) return true;
-            //     return false;
-            // });
+        }
+        inline unsigned int getIndex(const std::string& Name) const
+        {
+            return (std::find(m_List->begin(), m_List->end(), Name) - m_List->begin());
         }
         virtual std::string toString(int& hPos) const override
         {
@@ -216,6 +213,20 @@ namespace Typing
             : m_IdxType(IdxType), m_EleType(EleType)
         {
             nType = NodeType::t_ARRAY;
+        }
+        inline unsigned int getSize() const
+        {
+            if (m_IdxType->nType == Typing::NodeType::t_RANGE)
+            {
+                auto* Index = dynamic_cast<rangeNode*>(m_IdxType);
+                return (Index->m_UpperBound - Index->m_LowerBound);
+            }
+            else if (m_IdxType->nType == Typing::NodeType::t_ENUM)
+            {
+                auto* Index = dynamic_cast<enumNode*>(m_IdxType);
+                return Index->m_List->size();
+            }
+            return 0;
         }
         virtual std::string toString(int& hPos) const override;
     };

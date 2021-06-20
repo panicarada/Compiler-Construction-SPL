@@ -6,6 +6,7 @@
 #include "CodeGenerator.hpp"
 #include "Typing.hpp"
 #include "Interpreter.hpp"
+#include "SystemFunctions.hpp"
 #include "yacc.tab.hpp"
 
 
@@ -13,7 +14,7 @@ llvm::LLVMContext CodeGenerator::Context;
 llvm::IRBuilder<> CodeGenerator::Builder(Context);
 
 
-llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode, const char* RecordName = nullptr)
+llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode)
 {
     switch (tNode->nType)
     {
@@ -48,17 +49,20 @@ llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode, const char* RecordName = 
         case Typing::NodeType::t_RECORD:
         {
             auto* RecordNode = dynamic_cast<Typing::recordNode*>(tNode);
-//            auto* Record = llvm::StructType::create(Context, RecordName ? RecordName : "record_tmp_");
             std::vector<llvm::Type*> Members;
             for (auto Member_it = RecordNode->MemberIndex.begin(); Member_it != RecordNode->MemberIndex.end(); ++Member_it)
             { // 按顺序遍历每个成员，添加到Members中
                 Members.emplace_back(toLLVM((*(RecordNode->m_Field))[*Member_it]));
             }
-//            Record->setBody(Members);
             auto* Record = llvm::StructType::get(Context, Members);
 
-
             return Record;
+        }
+        case Typing::NodeType::t_ARRAY:
+        {
+            auto* ArrayNode = dynamic_cast<Typing::arrayNode*>(tNode);
+            // 数组中每个元素是一个pointer【->getPointerTo()】
+            return llvm::ArrayType::get(toLLVM(ArrayNode->m_EleType), ArrayNode->getSize());
         }
     }
     return nullptr;
@@ -66,11 +70,11 @@ llvm::Type* CodeGenerator::toLLVM(Typing::Node* tNode, const char* RecordName = 
 
 void CodeGenerator::execute(const Interpreter* ipt, std::ofstream &Out)
 {
-
+    /* 1. 初始化llvm */
     // 主函数
     auto* mainFunction = llvm::Function::Create(
             llvm::FunctionType::get(Builder.getVoidTy(), false),
-            llvm::GlobalValue::InternalLinkage,
+            llvm::GlobalValue::ExternalLinkage,
             "main",
             Module
     );
@@ -85,17 +89,29 @@ void CodeGenerator::execute(const Interpreter* ipt, std::ofstream &Out)
 
     RecordsStack.push(std::map<std::string, Typing::recordNode*>());
 
-    // 根据符号表内容构造全局变量和常量，以及函数
+
+    /* 2. 根据符号表内容构造全局变量和常量，以及函数/过程的声明 */
     SymbolTable = ipt->symbol_table;
     setupGlobal();
 
-    // 生成主函数代码
+    /* 3. 生成主函数代码 */
     genCode(ipt->main_entry, false);
     // 主函数返回void
     Builder.CreateRet(nullptr);
 
+    /* 4. 函数/过程的定义 */
+    // 生成函数的定义
     defineFunctions();
+    // 生成过程的定义
+    defineProcedures();
 
+    /* 5. 生成所用到的系统函数的定义 */
+    for (const auto& SystemFunction : CalledSystemFunctions)
+    {
+        SystemFunctions::define(SystemFunction, Context, Builder, Module);
+    }
+
+    /* 6. 生成中间码 */
     std::string IRCode;
     llvm::raw_string_ostream IR(IRCode);
     IR << *Module;
@@ -113,6 +129,32 @@ void CodeGenerator::setupGlobal()
         std::string Name = it.first;
         Typing::Node* tNode = it.second.top();
 
+        if (tNode->nType == Typing::NodeType::t_PROCEDURE)
+        { // 直接定义过程
+            auto* ProcNode = dynamic_cast<Typing::procNode*>(tNode);
+            auto ArgumentsType = std::vector<llvm::Type*>(); // 参数类型
+            for (auto Param_it = ProcNode->m_Params.begin(); Param_it != ProcNode->m_Params.end(); Param_it++)
+            {
+                std::string ParamName = Param_it->first;
+                bool isVar = Param_it->second;
+                if (isVar)
+                { // 否则，参数类型为相应的指针
+                    ArgumentsType.push_back(toLLVM(ProcNode->m_var_table->get(ParamName, 0))->getPointerTo());
+                }
+                else
+                { // 不是引用类型，则参数类型就是本身类型
+                    ArgumentsType.push_back(toLLVM(ProcNode->m_val_table->get(ParamName, 0)));
+                }
+            }
+            auto* FunctionProto = llvm::Function::Create(
+                    llvm::FunctionType::get(Builder.getVoidTy(), ArgumentsType, true),
+                    llvm::GlobalValue::InternalLinkage,
+                    ProcNode->m_name,
+                    Module
+            );
+            // 将函数声明保存起来，之后再插入代码【否则会打断main block】
+            ProcedureSet.insert(std::make_pair(FunctionProto, ProcNode));
+        }
         if (tNode->nType == Typing::NodeType::t_FUNCTION)
         { // 直接定义函数
             auto* FunctNode = dynamic_cast<Typing::functNode*>(tNode);
@@ -167,22 +209,9 @@ void CodeGenerator::setupGlobal()
                     break;
             }
         }
-//        else if (tNode->nType == Typing::NodeType::t_RECORD)
-//        { // 结构类型
-//            auto* RecordNode = dynamic_cast<Typing::recordNode*>(tNode);
-//            auto* Record = llvm::StructType::create(Context, Name);
-//
-//            std::vector<llvm::Type*> Members;
-//            for (auto Member_it = RecordNode->MemberIndex.begin(); Member_it != RecordNode->MemberIndex.end(); ++Member_it)
-//            { // 按顺序遍历每个成员，添加到Members中
-//                Members.emplace_back(toLLVM((*(RecordNode->m_Field))[*Member_it]));
-//            }
-//            Record->setBody(Members);
-//            GlobalVariables[Name] = Builder.CreateAlloca(Record, nullptr, "alloc_record_tmp_");
-//        }
         else
         { // 添加全局变量
-            llvm::Type* Type = toLLVM(tNode, Name.c_str());
+            llvm::Type* Type = toLLVM(tNode);
             if (tNode->nType == Typing::NodeType::t_RECORD)
             {
                 RecordsStack.top()[Name] = dynamic_cast<Typing::recordNode*>(tNode);
@@ -250,6 +279,72 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
         {
             switch (ASTNode->m_Operation.Operator)
             {
+                case BRACKET:
+                {
+                    // 子节点为[数组名，索引]
+                    auto* Array = genCode(ASTNode->m_Operation.List_Operands[0], true);
+
+                    auto* Index = genCode(ASTNode->m_Operation.List_Operands[1], false); // 一定是llvm::Int32
+                    auto* ret = Builder.CreateGEP(Array, {llvm::ConstantInt::get(Builder.getInt32Ty(), 0, false),
+                                                          Index});
+
+                    if (!getVarByAddr)
+                    {
+                        ret = Builder.CreateLoad(ret);
+                    }
+                    return ret;
+                }
+                case CASE_STMT:
+                {
+                    auto* TestedValue = genCode(ASTNode->m_Operation.List_Operands[0], false);
+                    auto CaseList = ASTNode->m_Operation.List_Operands[1]->m_Operation;
+                    int NumCases = CaseList.NumOperands;
+                    std::vector<llvm::BasicBlock*> CaseConditionBlocks(NumCases);
+                    std::vector<llvm::BasicBlock*> CaseBodyBlocks(NumCases);
+
+                    auto* AfterBlock = llvm::BasicBlock::Create(Context, "after", Builder.GetInsertBlock()->getParent());
+                    for (int i = 0;i < NumCases; ++i)
+                    { // 先初始化
+                        CaseConditionBlocks[i] = llvm::BasicBlock::Create(Context, "case_condition_" + std::to_string(i), Builder.GetInsertBlock()->getParent());
+                        CaseBodyBlocks[i] = llvm::BasicBlock::Create(Context, "case_body_" + std::to_string(i), Builder.GetInsertBlock()->getParent());
+                    }
+                    for (int i = 0;i < NumCases; ++i)
+                    {
+                        auto CaseUnit = CaseList.List_Operands[i]->m_Operation;
+                        Builder.CreateBr(CaseConditionBlocks[i]);
+                        auto* TargetValue = genCode(CaseUnit.List_Operands[0], false);
+                        llvm::Value* Condition;
+                        // 如果之一为浮点数，则都变成浮点数
+                        if (TestedValue->getType() == Builder.getDoubleTy() || TargetValue->getType() == Builder.getDoubleTy())
+                        {
+                            TestedValue = Builder.CreateSIToFP(TestedValue, Builder.getDoubleTy(), "si2double_tmp_");
+                            TargetValue = Builder.CreateSIToFP(TargetValue, Builder.getDoubleTy(), "si2double_tmp_");
+                            Condition = Builder.CreateFCmp(llvm::FCmpInst::Predicate::FCMP_OEQ, TestedValue, TargetValue, "feq_tmp_");
+                        }
+                        else
+                        { // 都是整数
+                            Condition = Builder.CreateICmp(llvm::ICmpInst::Predicate::ICMP_EQ, TestedValue, TargetValue, "ieq_tmp_");
+                        }
+                        // 如果条件满足，则跳到函数体，否则下一个条件
+                        if (i < NumCases)
+                        {
+                            Builder.CreateCondBr(Condition, CaseBodyBlocks[i], CaseConditionBlocks[i+1]);
+                        }
+                        else
+                        {
+                            Builder.CreateCondBr(Condition, CaseBodyBlocks[i], AfterBlock);
+                        }
+
+                        // 构造case函数体
+                        Builder.SetInsertPoint(CaseBodyBlocks[i]);
+                        genCode(CaseUnit.List_Operands[1], getVarByAddr);
+                        // 跳转到after
+                        Builder.CreateBr(AfterBlock);
+                    }
+                    // 结束case语句处理
+                    Builder.SetInsertPoint(AfterBlock);
+                    break;
+                }
                 case DOT:
                 { // 访问数组
                     auto* Record = genCode(ASTNode->m_Operation.List_Operands[0], true);
@@ -264,15 +359,35 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                     }
 
                     int MemberIndex = RecordNode->getIndex(Member);
-                    Record->getType()->print(llvm::errs());
-                    auto* ret = Builder.CreateStructGEP(Record, MemberIndex, "member_tmp_");
+                    auto* ret = Builder.CreateStructGEP(Record, MemberIndex, "record_access_tmp_");
                     if (!getVarByAddr)
                     {
                         ret = Builder.CreateLoad(ret);
                     }
-
-
                     return ret;
+                }
+                case CALL_PROC:
+                { // 调用过程
+                    // 获取函数
+                    std::string ProcedureName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
+
+                    auto* ProcedureNode = dynamic_cast<Typing::procNode*>(SymbolTable->get(ProcedureName, 0));
+                    // 设置参数
+                    CallerArguments.clear();
+                    for (int i = 1;i < ASTNode->m_Operation.NumOperands; ++i)
+                    {
+                        if (ProcedureNode->m_Params[i-1].second)
+                        { // 如果是引用类型，则输入地址
+                            CallerArguments.push_back(genCode(ASTNode->m_Operation.List_Operands[i], true));
+                        }
+                        else
+                        {
+                            CallerArguments.push_back(genCode(ASTNode->m_Operation.List_Operands[i], false));
+                        }
+                    }
+                    // 调用【这时候虽然过程没有定义，但是已经声明了】
+                    Builder.CreateCall(Module->getFunction(ProcedureName), CallerArguments);
+                    break;
                 }
                 case CALL_FUNCT:
                 { // 调用函数
@@ -403,6 +518,9 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                     int Operator = ASTNode->m_Operation.Operator;
                     llvm::Value* LeftValue = genCode(ASTNode->m_Operation.List_Operands[0], false);
                     llvm::Value* RightValue = genCode(ASTNode->m_Operation.List_Operands[1], false);
+//                    std::cout << "Left: "; LeftValue->getType()->print(llvm::dbgs()); std::cout << std::endl;
+//                    std::cout << "Right: "; RightValue->getType()->print(llvm::dbgs()); std::cout << std::endl;
+
                     if (LeftValue->getType() == Builder.getDoubleTy() || RightValue->getType() == Builder.getDoubleTy())
                     { // 二者之一为浮点数，则结果就为浮点数
                         // SIToFP: Signed Integer to Float Point
@@ -565,6 +683,46 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                             }
                             callRead(Params);
                         }
+                        else if (FunctionName == "odd" || FunctionName == "chr")
+                        { // 输入整数
+                            auto* Input = genCode(ASTNode->m_Operation.List_Operands[1], false);
+                            SystemFunctions::declare(FunctionName, Builder, Module);
+                            CalledSystemFunctions.insert(FunctionName);
+                            auto* ret = Builder.CreateCall(Module->getFunction(FunctionName), {Input});
+                            CallerArguments.clear();
+                            return ret;
+                        }
+                        else if (FunctionName == "abs" || FunctionName == "sqr")
+                        { // 输出和输入的类型一致
+                            auto* Input = genCode(ASTNode->m_Operation.List_Operands[1], false);
+                            std::string Name = FunctionName;
+                            // 如果是浮点数，则fabs/fsqr，否则iabs/fsqr
+                            if (Input->getType() == Builder.getInt32Ty())
+                            {
+                                Name = "i" + Name;
+                            }
+                            else if (Input->getType() == Builder.getDoubleTy())
+                            {
+                                Name = "f" + Name;
+                            }
+                            // 先声明
+                            SystemFunctions::declare(Name, Builder, Module);
+                            CalledSystemFunctions.insert(Name);
+                            // 然后再调用
+                            return Builder.CreateCall(Module->getFunction(Name), {Input});
+                        }
+                        else if (FunctionName == "sqrt")
+                        {
+                            auto* Input = genCode(ASTNode->m_Operation.List_Operands[1], false);
+                            // 用到了fabs
+                            SystemFunctions::declare("fabs", Builder, Module);
+                            CalledSystemFunctions.insert("fabs");
+                            SystemFunctions::declare("sqrt", Builder, Module);
+                            CalledSystemFunctions.insert("sqrt");
+                            // 然后再调用，需要注意的是，输入一定要为double
+                            return Builder.CreateCall(Module->getFunction("sqrt"),
+                                                      {Builder.CreateSIToFP(Input, Builder.getDoubleTy(), "si2double_tmp_")});
+                        }
                         break;
                     }
                 }
@@ -618,7 +776,7 @@ void CodeGenerator::defineFunctions()
         }
         // 最后，函数的名字也作为一个参数
         std::string FunctionName(Function->getName());
-        ArgumentMap[FunctionName] = Builder.CreateAlloca(toLLVM(FunctNode->m_resType, FunctionName.c_str()), nullptr, FunctionName);
+        ArgumentMap[FunctionName] = Builder.CreateAlloca(toLLVM(FunctNode->m_resType), nullptr, FunctionName);
 
         if (FunctNode->m_resType->nType == Typing::NodeType::t_RECORD)
         {
@@ -635,9 +793,67 @@ void CodeGenerator::defineFunctions()
         // 弹出结构体
         RecordsStack.pop();
 
-
         // 返回值
         auto* RetPtr = ArgumentMap[std::string(Function->getName())];
         Builder.CreateRet(Builder.CreateLoad(RetPtr));
+    }
+}
+
+void CodeGenerator::defineProcedures()
+{
+    for (const auto& it : ProcedureSet)
+    {
+        llvm::Function* Function = it.first;
+        Typing::procNode* ProcedureNode = it.second;
+        // 创建函数体代码区
+        auto* FunctionBlock = llvm::BasicBlock::Create(Context, Function->getName(), Function);
+        // 进入函数体代码区
+        Builder.SetInsertPoint(FunctionBlock);
+        std::map<std::string, llvm::Value*> ArgumentMap; // 当前函数的参数映射表
+
+        RecordsStack.push(std::map<std::string, Typing::recordNode*>());
+        // 加载参数
+        int ArgumentIndex = 0;
+        for (auto Argument_it = Function->arg_begin(); Argument_it != Function->arg_end(); Argument_it++)
+        {
+            auto Argument = dynamic_cast<llvm::Value*>(Argument_it);
+            std::string Name = ProcedureNode->m_Params[ArgumentIndex].first;
+            Typing::Node* Type;
+            bool isVar = ProcedureNode->m_Params[ArgumentIndex].second;
+            if (isVar)
+            { // 这个参数是引用类型的话
+                ArgumentMap[Name] = Argument; // 直接传递地址
+                Type = ProcedureNode->m_var_table->get(Name, 0);
+            }
+            else
+            { // 如果不是引用类型，
+                Type = ProcedureNode->m_val_table->get(Name, 0);
+                // 为本地参数分配空间
+                ArgumentMap[Name] = Builder.CreateAlloca(Argument->getType(), nullptr, Name);
+                // 再直接load值
+                Builder.CreateStore(
+                        Argument,
+                        ArgumentMap[Name]
+                );
+            }
+            if (Type->nType == Typing::NodeType::t_RECORD)
+            {
+                RecordsStack.top()[Name] = dynamic_cast<Typing::recordNode*>(Type);
+            }
+            ArgumentIndex ++;
+        }
+
+        ArgumentsStack.push(ArgumentMap);
+        // 参数建立完成
+        // 生成函数体代码
+        genCode(ProcedureNode->m_body, true);
+
+        // 弹出参数
+        ArgumentsStack.pop();
+        // 弹出结构体
+        RecordsStack.pop();
+
+        // 返回值为void
+        Builder.CreateRet(nullptr);
     }
 }

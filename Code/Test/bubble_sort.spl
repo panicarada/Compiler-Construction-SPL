@@ -3,19 +3,32 @@ const
 	ZERO = 0;
 	MAX_LEN = 100;
 type
-	Array = array[ZERO .. MAX_LEN] of integer;
-	Vector = record
-				arr : Array;
-				size: integer;
-			 end;
+	Array = array[ZERO .. MAX_LEN] of real;
 var
 	i, j : integer;
-	temp : integer;
+	temp : real;
+	size : integer;
+	arr  : Array;
+
+
+procedure swap(
+	temp : real;
+var
+	x, y : real
+);
+begin
+	temp := x;
+	x := y;
+	y := temp;
+end;
 
 procedure sort(
+	i, j : integer;
+	temp : real;
 var	arr : Array;
 	size : integer
 );
+
 begin
 	for i := 0 to size-1 do
 	begin
@@ -23,16 +36,24 @@ begin
 		begin
 			if (arr[j] < arr[j-1]) then
 			begin	// 交换，气泡上浮
-				temp := arr[j];
-				arr[j] := arr[j-1];
-				arr[j-1] := temp;
+				swap(temp, arr[j], arr[j-1]);
 			end;
 		end;
 	end;
 end;
 
-
 begin
-
+	read("Please enter your array size: ", size);
+	for i := 1 to size do begin
+		write("Please enter arr[", i-1, "]: ");
+		read("", arr[i-1]);
+	end;
+	sort(i, j, temp, arr, size);
+	writeln("after sort: ");
+	i := 0;
+	repeat
+		writeln("arr[i] = ", arr[i]);
+		i := i + 1;
+	until i = size;
 end
 .

@@ -1,8 +1,32 @@
-program test;
+program square_root;
 var
-	x : integer;
+	x : real;
+	eps : real;
+	EPS : real;
+
+
+function mySquareRoot(
+	x : real;
+var
+	eps: real;
+	EPS: real
+	) : real;
 begin
-	read(x);
-	writeln(sqrt(x));
+	mySquareRoot := x;
+	repeat
+		mySquareRoot := (mySquareRoot + x / mySquareRoot) / 2;
+		eps := mySquareRoot * mySquareRoot - x;
+	until eps <= EPS;
+end
+;
+
+
+begin
+	read("Please enter the number you want to compute: ", x);
+	read("Please enter the EPS: ", EPS);
+
+	writeln("sqrt(", x, ") = ", mySquareRoot(x, eps, EPS));
+	writeln("eps = ", eps);
+	writeln("systemSqrt(", x, ") = ", sqrt(x));
 end
 .

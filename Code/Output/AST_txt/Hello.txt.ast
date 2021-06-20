@@ -2,19 +2,19 @@
 Graph 0:
 
                        0: [Routine]
-                             |
-                |----------------------------|
-                |                            |
-        1: [Routine Head]            6: [Routine Body]
-                |                            |
-                |                            |
-                |                            |
-         2: [const part]            7: [Sys procedure]
-                |                            |
-                |                      |------------|
-                |                      |            |
-             3: [=]              8: id(writeln) 9: id(str)
-                |
+                            |
+               |----------------------------|
+               |                            |
+       1: [Routine Head]            6: [Routine Body]
+               |                            |
+               |                            |
+               |                            |
+        2: [const part]            7: [Sys procedure]
+               |                            |
+               |                      |------------|
+               |                      |            |
+             3: [=]             8: id(writeln) 9: id(str)
+               |
      |---------------|
      |               |
- 4: id(str) 5: c("Hello World!")
+ 4: id(str) 5: c("Hello Wolrd")

@@ -27,6 +27,7 @@ namespace Typing
 {   // 提前声明Typing::Node类
     class Node;
     class functNode;
+    class procNode;
     class recordNode;
 };
 namespace AST
@@ -52,6 +53,7 @@ public:
     // <名字，对应地址>
     std::map<std::string, llvm::Value*> GlobalVariables;
     // 常量
+    // <名字，对应值>
     std::map<std::string, llvm::Value*> GlobalConst;
     // 函数参数列表
     // 一个函数内部能够访问的变量只有GlobalVariable以及栈顶的Arguments
@@ -62,9 +64,13 @@ public:
 
     // 函数集合，用于保存函数声明，最后再实现
     std::set<std::pair<llvm::Function*, Typing::functNode*>> FunctionSet;
+    std::set<std::pair<llvm::Function*, Typing::procNode*>> ProcedureSet;
 
     // 调用函数的输入参数
     std::vector<llvm::Value*> CallerArguments;
+
+    // 被调用过的系统函数（之后需要定义）
+    std::set<std::string> CalledSystemFunctions;
 public:
     CodeGenerator()
     {
@@ -72,6 +78,8 @@ public:
         setupIO();
     }
     void defineFunctions(); // 完成函数的定义
+    void defineProcedures(); // 完成过程的定义
+
     void setupGlobal();
     inline void setupIO() // 设置printf和scanf函数
     {
@@ -161,7 +169,7 @@ public:
         );
     }
     // 把Typing::Node类转为llvm::Type类
-    static llvm::Type* toLLVM(Typing::Node* tNode, const char*);
+    static llvm::Type* toLLVM(Typing::Node* tNode);
     void execute(const Interpreter* ipt, std::ofstream& Out);
     llvm::Value* genCode(AST::Node* ASTNode, bool getVarByAddr);
 };
