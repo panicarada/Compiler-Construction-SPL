@@ -15,7 +15,7 @@ begin
 	mySquareRoot := x;
 	repeat
 		mySquareRoot := (mySquareRoot + x / mySquareRoot) / 2;
-		eps := mySquareRoot * mySquareRoot - x;
+		eps := sqr(mySquareRoot) - x;
 	until eps <= EPS;
 end
 ;

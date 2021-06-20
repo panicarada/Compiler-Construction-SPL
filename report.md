@@ -1,3 +1,47 @@
+
+
+
+
+<h2 align = "center">课程名称：编译原理</h2>
+<h3 align = "center">
+  实验名称：SPL编译器设计
+</h3>
+<h3 align = "center">成员：邱泽鸿（3180101966）</br>项俊程（3180103493）</h3>
+<h3 align = "center">
+  专业：邱泽鸿（计算机科学与技术）项俊程（信息安全）
+</h3>
+<h3 align = "center">
+  指导老师：王强
+</h3>
+<h4 align = "center">
+  日期：2021年5月31日
+</h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 分工
+
+*  项俊程：优化代码考虑（没有参与代码）
+*  邱泽鸿：其他全部
+
+<div style="page-break-after:always"></div>
+
+
+
+[TOC]
+
+
+
 ##1. 引言
 
 ###1.1 文件结构
@@ -11,7 +55,7 @@
       *  include：头文件路径`.hpp`，包括bison编译产生的头文件
       *  source：源文件路径`.cpp`，包括flex和bison编译产生的源文件
       *  lex_yacc：flex`.lex`和bison`.y`源文件路径
-      *  Test：用于测试的`.spl`代码路径
+      *  Test：用于测试的`.spl`代码路径，**里面放的所有代码都可以直接编译运行**
       *  Output：程序**运行过程**中产生的输出文件
          *  AST_txt：文本格式的语法树
          *  AST_raw：描述语法树的文本流，用于python代码进行进一步的处理
@@ -1306,7 +1350,7 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
    *  `sqrt(x)`：输出平方根（square root)
    *  `sqr(x)`：输出平方（square）
 
-   *  `read(x)`：等待用户输入，将结果输入到变量`x`，类似于C语言中的`scanf`。注：PASCAL中设置为读取文件，但是和文档给出的CFG不匹配，而且交互不太方便，所以做了修改。
+   *  `read("提示输入", x)`：等待用户输入，将结果输入到变量`x`，类似于C语言中的`scanf`，但是不需要格式化字符说明变量类型。注：PASCAL中设置为读取文件，但是和文档给出的CFG不匹配，而且交互不太方便，所以做了修改。
 
    （3）条件语句
 
@@ -1356,7 +1400,7 @@ CHAR：字符常数值，用单引号括起来，如’a’，‘A’<’a’
    	input : integer
    	value : integer
    begin
-   	read(input); // 用户输入传入input，见3.1.8（2）的介绍
+   	read("Please enter your input", input); // 用户输入传入input，见3.1.8（2）的介绍
    	value := 2;
    	case input of 
      	one : {若用户输入1，执行语句};
@@ -2071,7 +2115,7 @@ var
 	avg   : real;
 begin
 	repeat
-		read(temp);
+		read("Please enter your temp: ", temp);
 		total := total + temp;
 		count := count + 1;
 	until temp = 0;
@@ -3291,6 +3335,7 @@ else if (tNode->nType == Typing::NodeType::t_CONSTANT)
     case Typing::DataType::d_REAL:
       GlobalConst[Name] = llvm::ConstantFP::get(Builder.getDoubleTy(),
                                                 constNode->m_Constant.dValue);
+      break;
     case Typing::DataType::d_CHAR:
       GlobalConst[Name] = llvm::ConstantInt::get(Builder.getInt8Ty(),
                                                  constNode->m_Constant.cValue);
@@ -3842,11 +3887,108 @@ case CALL_FUNCT:
 
 （13）过程调用：和（12）同理，只是没有返回值（即返回nullptr），不再赘述。
 
-### 6.3.6 生成函数定义
+（14）系统过程/函数调用：
+
+```c++
+case SYS_PROC: case SYS_FUNCT:
+{ // 系统函数调用
+  // 函数名
+  std::string FunctionName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
+  ... ...
+```
+
+*  IO函数已经在`setupIO()`中进行声明，而且不在意输入类型，可以直接获取所有参数后进行调用。特别的是，write函数内部是使用格式化字符串来声明输出类型的，所以要把布尔类型转化为32位整数才能够用`%d`来输出。
+
+```c++
+if (FunctionName == "write" || FunctionName == "writeln")
+{
+  std::vector<llvm::Value*> Params;
+  for (int i = 1;i < ASTNode->m_Operation.NumOperands; ++i)
+  {
+    llvm::Value* Param = genCode(ASTNode->m_Operation.List_Operands[i], false);
+    if (Param->getType() == Builder.getInt1Ty())
+    { // 这是一个bool类型，但是输出时按照integer
+      Param = Builder.CreateIntCast(Param, Builder.getInt32Ty(), true, "bool2int_tmp_");
+    }
+    Params.emplace_back(Param);
+  }
+  callWrite((FunctionName == "writeln"), Params);
+}
+else if (FunctionName == "read")
+{ // read格式为<read, 提示字符串, 待输入的参数>
+  std::vector<llvm::Value*> Params;
+  for (int i = 1;i < ASTNode->m_Operation.NumOperands; ++i)
+  {
+    llvm::Value* Param = genCode(ASTNode->m_Operation.List_Operands[i], true);
+    Params.emplace_back(Param);
+  }
+  callRead(Params);
+}
+```
+
+*  单个整数所谓输入的函数：`odd(x)`返回整数是否为奇数、`chr(x)`返回整数对应的ASCII字符。先声明这个系统函数，然后添加到`CalledSystemFunctions`中，最后进行定义。
+
+```c++
+else if (FunctionName == "odd" || FunctionName == "chr")
+{ // 输入整数
+  auto* Input = genCode(ASTNode->m_Operation.List_Operands[1], false);
+  SystemFunctions::declare(FunctionName, Builder, Module);
+  CalledSystemFunctions.insert(FunctionName);
+  auto* ret = Builder.CreateCall(Module->getFunction(FunctionName), {Input});
+  CallerArguments.clear();
+  return ret;
+}
+```
+
+*  单个输入，可以为整数也可以为浮点数的函数，并且输出类型和输入类型一致：`abs(x)`计算绝对值，`sqr`计算平方。在内部会分成整数版本以及浮点数版本，即`iabs(x), isqr(x)`和`fabs(x), fsqr(x)`。
+
+```c++
+else if (FunctionName == "abs" || FunctionName == "sqr")
+{ // 输出和输入的类型一致
+  auto* Input = genCode(ASTNode->m_Operation.List_Operands[1], false);
+  std::string Name = FunctionName;
+  // 如果是浮点数，则fabs/fsqr，否则iabs/fsqr
+  if (Input->getType() == Builder.getInt32Ty())
+  {
+    Name = "i" + Name;
+  }
+  else if (Input->getType() == Builder.getDoubleTy())
+  {
+    Name = "f" + Name;
+  }
+  // 先声明
+  SystemFunctions::declare(Name, Builder, Module);
+  CalledSystemFunctions.insert(Name);
+  // 然后再调用
+  return Builder.CreateCall(Module->getFunction(Name), {Input});
+}
+```
+
+*  单个输入，无论输入是整数还是浮点数，都返回浮点数：`sqrt(x)`计算平方根。在内部实现时，只有输入是浮点数的版本，因此调用前，需要把整数转为浮点数。
+
+```c++
+else if (FunctionName == "sqrt")
+{
+  auto* Input = genCode(ASTNode->m_Operation.List_Operands[1], false);
+  // 用到了fabs
+  SystemFunctions::declare("fabs", Builder, Module);
+  CalledSystemFunctions.insert("fabs");
+  SystemFunctions::declare("sqrt", Builder, Module);
+  CalledSystemFunctions.insert("sqrt");
+  // 然后再调用，需要注意的是，输入一定要为double
+  return Builder.CreateCall(Module->getFunction("sqrt"),
+                            {Builder.CreateSIToFP(Input, Builder.getDoubleTy(), "si2double_tmp_")});
+}
+```
+
+
+
+###6.4 生成函数定义
 
 遍历每一个声明的函数并进行定义（顺序无关）
 
-
+*  FAQ：为什么不存函数名，然后像调用函数一样用`Module->getFunction(FunctionName)`来获得llvm函数指针？
+   *  因为后面才知道上面这种方法；而且指针所占空间要比字符串小得多。
 
 ```c++
 void CodeGenerator::defineFunctions()
@@ -3860,3 +4002,739 @@ void CodeGenerator::defineFunctions()
 }
 ```
 
+#### 6.4.1 IO函数
+
+*  首先，在Module中声明`scanf`和`printf`的定义，与C语言中对应函数是一致的。这两个函数属于系统调用，无法自行完成定义，所以相应的函数名也不能修改。函数的输入输出参数类型也是固定的，输入的数目可以任意，但是第一个一定是表明格式的字符串。
+
+   ```c++
+   inline void setupIO() // 设置printf和scanf函数
+   {
+     auto ArgumentsType = std::vector<llvm::Type*>{llvm::Type::getInt8PtrTy(Context)};
+     // 向Module中插入printf函数
+     llvm::Function::Create(
+       llvm::FunctionType::get(Builder.getInt32Ty(), ArgumentsType, true),
+       llvm::Function::ExternalLinkage,
+       "printf", // Rmk: 名字不能改
+       Module
+     );
+     // 向Module中插入scanf函数
+     llvm::Function::Create(
+       llvm::FunctionType::get(Builder.getInt32Ty(), ArgumentsType, true),
+       llvm::Function::ExternalLinkage,
+       "scanf",
+       Module
+     );
+   }
+   ```
+
+*  `read()`函数被封装到`callWrite()`中。
+
+   ```c++
+   inline void callRead(const std::vector<llvm::Value*>& Params)
+   ```
+
+   输入第一个是用于提示的字符串，后面是一系列需要用户输入的参数变量。
+
+   *  首先，调用`write()`输出提示字符串。
+   *  然后清空参数`CallerArguments`。
+   *  获取参数指针，根据指针指向的数据类型选择相应的格式化字符串
+   *  把格式化字符串放到`CallerArguments`首位，待读取参数按顺序放到数组后面
+   *  系统调用`scanf()`
+
+   ```c++
+   inline void callRead(const std::vector<llvm::Value*>& Params)
+   { // read格式为<read, 提示字符串, 待输入的参数>
+     callWrite(false, {Params[0]});
+     CallerArguments.clear();
+     auto* ReadPtr = Params[1];
+     auto* ReadType = ReadPtr->getType()->getPointerElementType(); // read param一定是指针
+     if (ReadType == Builder.getInt32Ty())
+     { // integer
+       CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%d", "format"));
+     }
+     else if (ReadType == Builder.getDoubleTy())
+     { // real
+       CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%lf", "format"));
+     }
+     else if (ReadType == Builder.getInt8Ty())
+     { // char
+       CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%c", "format"));
+     }
+     else if (ReadType == Builder.getInt1Ty())
+     { // boolean，输入时也只能用整数，之后再截取
+       CallerArguments.emplace_back(Builder.CreateGlobalStringPtr("%d", "format"));
+     }
+     CallerArguments.emplace_back(ReadPtr);
+     Builder.CreateCall(
+       Module->getFunction("scanf"),
+       CallerArguments
+     );
+   }
+   ```
+
+*  `write()`和`writeln()`函数被封装到`inline void callWrite(bool newLine, const std::vector<llvm::Value*>& Params)`，两个函数的区别只在于是否要输出换行符，通过参数`bool newLine`来表示。
+
+   和`callRead()`处理的流程类型。不过由于输出的参数数目不定，需要遍历每个参数，并判断相应的类型。
+
+   ```c++
+   inline void callWrite(bool newLine, const std::vector<llvm::Value*>& Params)
+   {
+     CallerArguments.clear();
+     std::stringstream Format;
+   
+     for (const auto& it : Params)
+     {
+       auto* Param = dynamic_cast<llvm::Value*>(it);
+       auto* Type = Param->getType();
+       if (Type == Builder.getInt32Ty())
+       { // integer
+         Format << "%d";
+       }
+       else if (Type == Builder.getDoubleTy())
+       { // real
+         Format << "%lf";
+       }
+       else if (Type == Builder.getInt8Ty())
+       { // char
+         Format << "%c";
+       }
+       else if (Type == Builder.getInt1Ty())
+       { // bool不存在，在输入前已经被cast到整数
+   
+       }
+       else if (Type == Builder.getInt8PtrTy())
+       { // string
+         Format << "%s";
+       }
+     }
+     if (newLine)
+     {
+       Format << std::endl;
+     }
+     CallerArguments.emplace_back(Builder.CreateGlobalStringPtr(Format.str(), "format"));
+     CallerArguments.insert(CallerArguments.end(), Params.begin(), Params.end());
+     Builder.CreateCall(
+       Module->getFunction("printf"),
+       CallerArguments
+     );
+   }
+   ```
+
+#### 6.4.2 自定义函数
+
+不同于系统调用，这部分函数的函数体需要自己生成代码来定义。
+
+*  首先，根据相应的llvm函数原型指针创建基本块，用来写入函数体的代码
+
+*  通过`Function->arg_begin()`和`Function->arg_end()`获取调用函数时输入的参数。
+
+*  这里输入的参数是按照顺序的，但是并没有声明变量名字，需要利用`Typing::functNode*`的功能获得对应位置的变量名，然后把`<变量名, 参数指针>`写入参数映射表`ArgumentMap`，
+
+*  如果参数是引用类型，则传入的是指针，这时候直接把指针值传给相应的参数指针即可；否则是形参类型，输入的是值，这时候就需要为参数指针分配空间，
+
+   ```c++
+   ArgumentMap[Name] = Builder.CreateAlloca(Argument->getType(), nullptr, Name);
+   ```
+
+   然后再把传入的值储存到参数指针指向的空间，即Store。
+
+   ```c++
+   Builder.CreateStore(Argument, ArgumentMap[Name]);
+   ```
+
+*  由于函数名在函数体内也对应一个变量，所以也要为其分配空间，并加入参数映射表`ArgumentMap`中
+
+   ```c++
+   std::string FunctionName(Function->getName());
+   ArgumentMap[FunctionName] = Builder.CreateAlloca(toLLVM(FunctNode->m_resType), nullptr, FunctionName);
+   ```
+
+```c++
+llvm::Function* Function = it.first;
+Typing::functNode* FunctNode = it.second;
+// 创建函数体代码区
+auto* FunctionBlock = llvm::BasicBlock::Create(Context, Function->getName(), Function);
+// 进入函数体代码区
+Builder.SetInsertPoint(FunctionBlock);
+std::map<std::string, llvm::Value*> ArgumentMap; // 当前函数的参数映射表
+
+RecordsStack.push(std::map<std::string, Typing::recordNode*>());
+// 加载参数
+int ArgumentIndex = 0;
+for (auto Argument_it = Function->arg_begin(); Argument_it != Function->arg_end(); Argument_it++)
+{
+  auto Argument = dynamic_cast<llvm::Value*>(Argument_it);
+  std::string Name = FunctNode->m_Params[ArgumentIndex].first;
+  Typing::Node* Type;
+  bool isVar = FunctNode->m_Params[ArgumentIndex].second;
+  if (isVar)
+  { // 这个参数是引用类型的话
+    ArgumentMap[Name] = Argument; // 直接传递地址
+    Type = FunctNode->m_var_table->get(Name, 0);
+  }
+  else
+  { // 如果不是引用类型，
+    Type = FunctNode->m_val_table->get(Name, 0);
+    // 为本地参数分配空间
+    ArgumentMap[Name] = Builder.CreateAlloca(Argument->getType(), nullptr, Name);
+    // 再直接store值
+    Builder.CreateStore(
+      Argument,
+      ArgumentMap[Name]
+    );
+  }
+  if (Type->nType == Typing::NodeType::t_RECORD)
+  {
+    RecordsStack.top()[Name] = dynamic_cast<Typing::recordNode*>(Type);
+  }
+  ArgumentIndex ++;
+}
+// 最后，函数的名字也作为一个参数
+std::string FunctionName(Function->getName());
+ArgumentMap[FunctionName] = Builder.CreateAlloca(toLLVM(FunctNode->m_resType), nullptr, FunctionName);
+
+if (FunctNode->m_resType->nType == Typing::NodeType::t_RECORD)
+{
+  RecordsStack.top()[FunctionName] = dynamic_cast<Typing::recordNode*>(FunctNode->m_resType);
+}
+
+ArgumentsStack.push(ArgumentMap);
+// 参数建立完成
+// 生成函数体代码
+genCode(FunctNode->m_body, true);
+
+// 弹出参数
+ArgumentsStack.pop();
+// 弹出结构体
+RecordsStack.pop();
+
+// 返回值
+auto* RetPtr = ArgumentMap[std::string(Function->getName())];
+Builder.CreateRet(Builder.CreateLoad(RetPtr));
+```
+
+#### 6.4.3 自定义过程
+
+同6.4.2，区别只在于没有返回值，并且不用把过程名作为一个参数分配到参数映射表中，不再赘述。
+
+
+
+### 6.5 系统函数
+
+为了方便管理，这部分代码写在`SystemFunctions.hpp`，并且都是`namespace SystemFunctions`中的静态函数。
+
+#### 6.5.1 函数声明
+
+根据6.3.5.3（14）中的说明，声明好函数的名字、输入参数以及输出类型即可。
+
+```c++
+void declare(const std::string& Name, llvm::IRBuilder<>& Builder, llvm::Module* Module)
+{
+  if (Module->getFunction(Name))
+  { // 这个函数已经声明过了
+    return ;
+  }
+  if (Name == "odd")
+  { // 判断整数输入是否为奇数
+    llvm::Function::Create(
+      llvm::FunctionType::get(Builder.getInt1Ty(), {Builder.getInt32Ty()}, true),
+      llvm::GlobalValue::ExternalLinkage,
+      Name,
+      Module
+    );
+  }
+  else if (Name == "iabs" || Name == "isqr")
+  { // 单元整数，返回整数
+    llvm::Function::Create(
+      llvm::FunctionType::get(Builder.getInt32Ty(), {Builder.getInt32Ty()}, true),
+      llvm::GlobalValue::ExternalLinkage,
+      Name,
+      Module
+    );
+  }
+  else if (Name == "fabs" || Name == "fsqr" || Name == "sqrt")
+  { // 单元浮点，返回浮点
+    llvm::Function::Create(
+      llvm::FunctionType::get(Builder.getDoubleTy(), {Builder.getDoubleTy()}, true),
+      llvm::GlobalValue::ExternalLinkage,
+      Name,
+      Module
+    );
+  }
+  else if (Name == "chr")
+  { // 输入字符，输出整数
+    llvm::Function::Create(
+      llvm::FunctionType::get(Builder.getInt8Ty(), {Builder.getInt32Ty()}, true),
+      llvm::GlobalValue::ExternalLinkage,
+      Name,
+      Module
+    );
+  }
+}
+```
+
+#### 6.5.2 函数定义
+
+和平常的函数定义域，只是代码区的生成不再是根据语法树，而是直接写入llvm代码。
+
+```c++
+void define(const std::string& Name, llvm::LLVMContext& Context, llvm::IRBuilder<>& Builder, const llvm::Module* Module)
+{
+  llvm::Function* Function = Module->getFunction(Name);
+  // 创建函数体代码区
+  auto* FunctionBlock = llvm::BasicBlock::Create(Context, Function->getName(), Function);
+  // 进入函数体代码区
+  Builder.SetInsertPoint(FunctionBlock);
+
+  auto* Input = dynamic_cast<llvm::Value*>(Function->arg_begin());
+  llvm::Value* ret;
+}
+```
+
+（1）简单操作
+
+```c++
+if (Name == "chr")
+{   // 截取后八位即可
+  Builder.CreateRet(Builder.CreateIntCast(Input, Builder.getInt8Ty(), false, "int_cast_tmp_"));
+}
+else if (Name == "isqr")
+{
+  Builder.CreateRet(Builder.CreateMul(Input, Input, "imul_tmp_"));
+}
+else if (Name == "fsqr")
+{
+  Builder.CreateRet(Builder.CreateFMul(Input, Input, "fmul_tmp_"));
+}
+else if (Name == "odd")
+{   // 截取最小位即可
+  Builder.CreateRet(Builder.CreateIntCast(Input, Builder.getInt1Ty(), false, "int_cast_tmp_"));
+}
+```
+
+（2）绝对值
+
+翻译下面的C代码，只是分为iabs（整数）和fabs（浮点数）两种
+
+```c++
+int iabs(int x)
+{
+  	if (x < 0) return -x;
+  	else return x;
+}
+```
+
+参考6.3.5.3（6）中if语句的写法，得到如下的代码
+
+```c++
+else if (Name == "iabs")
+{
+  auto* Condition = Builder.CreateICmp(llvm::ICmpInst::Predicate::ICMP_SLT, Input, llvm::ConstantInt::get(Builder.getInt32Ty(), 0), "ile_tmp_");
+  auto* IFBlock = llvm::BasicBlock::Create(Context, "if_lt_0_", Builder.GetInsertBlock()->getParent());
+  auto* ELSEBlock = llvm::BasicBlock::Create(Context, "after_", Builder.GetInsertBlock()->getParent());
+
+  Builder.CreateCondBr(Condition, IFBlock, ELSEBlock);
+  Builder.SetInsertPoint(IFBlock);
+  Builder.CreateRet(Builder.CreateNeg(Input, "ineg_tmp_"));
+
+  Builder.SetInsertPoint(ELSEBlock);
+  Builder.CreateRet(Input);
+}
+else if (Name == "fabs")
+{
+  auto* Condition = Builder.CreateFCmp(llvm::ICmpInst::Predicate::FCMP_OLT, Input, llvm::ConstantFP::get(Builder.getDoubleTy(), 0), "fle_tmp_");
+  auto* IFBlock = llvm::BasicBlock::Create(Context, "if_lt_0_", Builder.GetInsertBlock()->getParent());
+  auto* ELSEBlock = llvm::BasicBlock::Create(Context, "after_", Builder.GetInsertBlock()->getParent());
+
+  Builder.CreateCondBr(Condition, IFBlock, ELSEBlock);
+  Builder.SetInsertPoint(IFBlock);
+  Builder.CreateRet(Builder.CreateFNeg(Input, "fneg_tmp_"));
+
+  Builder.SetInsertPoint(ELSEBlock);
+  Builder.CreateRet(Input);;
+}
+```
+
+（3）平方根
+
+用牛顿法计算$x_{n+1}:=\frac{x_{n}+x_{0}/x_{n}}{2}$
+
+```c++
+double sqrt_(double x)
+{
+  	double ret;
+    while(fabs(ret * ret -x))>0.000001)
+    {
+      	ret = (ret + x/ret)/2;
+    }
+    return ret;
+}
+```
+
+```c++
+else if (Name == "sqrt")
+{ // 平方根
+  // 采用repeat until的写法
+  ret = Builder.CreateAlloca(Builder.getDoubleTy(), nullptr, "ret_");
+  Builder.CreateStore(Input, ret); // 首先ret <- x
+  auto* LastRet = Builder.CreateLoad(ret);
+
+  // 循环代码块
+  auto* LoopBlock = llvm::BasicBlock::Create(Context, "loop_", Builder.GetInsertBlock()->getParent());
+  // 跳出循环的代码块
+  auto* AfterBlock = llvm::BasicBlock::Create(Context, "after_", Builder.GetInsertBlock()->getParent());
+
+  // 进入循环体
+  Builder.CreateBr(LoopBlock);
+  Builder.SetInsertPoint(LoopBlock);
+  // 计算ret <- (ret + ret / g) /2
+  Builder.CreateStore(
+    Builder.CreateFDiv(Builder.CreateFAdd(LastRet, Builder.CreateFDiv(LastRet, Input, "fdiv_tmp_"), "fadd_tmp_"),
+                       llvm::ConstantFP::get(Builder.getDoubleTy(), 2.0)),
+    ret
+  );
+  LastRet = Builder.CreateLoad(ret);
+  // 计算误差eps <- fabs(ret * ret - x)
+  auto* eps = Builder.CreateCall(Module->getFunction("fabs"), {
+    Builder.CreateFSub(Builder.CreateFMul(LastRet, LastRet, "fmul_tmp_"),
+                       Input,
+                       "fsub_tmp_")
+  });
+  // 判断条件eps <= EPS(0.00001)
+  auto* Condition = Builder.CreateFCmp(llvm::FCmpInst::Predicate::FCMP_OLE, eps,
+                                       llvm::ConstantFP::get(Builder.getDoubleTy(), 0.00001),
+                                       "fle_tmp_");
+  Builder.CreateCondBr(Condition, LoopBlock, AfterBlock);
+  Builder.SetInsertPoint(AfterBlock);
+  // 结束循环，返回值
+  Builder.CreateRet(LastRet);
+}
+```
+
+
+
+## 7. 测试用例
+
+### 7.1 平方根
+
+*  测试点：
+   *  函数调用：mySquareRoot
+   *  系统函数调用：sqr、read、writeln、sqrt
+   *  repeat循环
+   *  引用参数：eps
+
+*  spl代码（`square_root.spl`）：
+
+   ```pascal
+   program square_root;
+   var
+   	x : real;
+   	eps : real;
+   	EPS : real;
+   
+   
+   function mySquareRoot(
+   	x : real;
+   var
+   	eps: real;
+   	EPS: real
+   	) : real;
+   begin
+   	mySquareRoot := x;
+   	repeat
+   		mySquareRoot := (mySquareRoot + x / mySquareRoot) / 2;
+   		eps := sqr(mySquareRoot) - x;
+   	until eps <= EPS;
+   end
+   ;
+   
+   begin
+   	read("Please enter the number you want to compute: ", x);
+   	read("Please enter the EPS: ", EPS);
+   
+   	writeln("sqrt(", x, ") = ", mySquareRoot(x, eps, EPS));
+   	writeln("eps = ", eps);
+   	writeln("systemSqrt(", x, ") = ", sqrt(x));
+   end
+   .
+   ```
+
+*  运行结果：
+
+<img src="Resource/square_root运行2.png" alt="square_root运行2" style="zoom:50%;" />
+
+### 7.2 $\pi$的近似
+
+用BBP公式进行计算：
+$$
+\pi=\sum\limits_{k=0}^{\infty}\frac{1}{16^{k}}(\frac{4}{8k+1}-\frac{2}{8k+4}-\frac{1}{8k+5}-\frac{1}{8k+6})
+$$
+
+*  测试点：
+   *  系统函数调用：read、writeln
+   *  for循环
+
+*  spl代码（`pi_calculate.spl`）：
+
+```pascal
+program pi_calculate;
+var
+	pi 	  : real;
+	temp  : real;
+	factor: real;
+	index : integer;
+	steps : integer;
+begin
+	read("please enter your steps: ", steps);
+	index := 0;
+	pi    := 0;
+	factor:= 1;
+	
+	for index := 0 to steps-1 do
+	begin
+		temp := 8 * index;
+		pi := pi + factor * (4.0/(temp + 1) - 2.0/(temp+4) - 1.0/(temp+5)-1.0/(temp+6));
+		factor := factor / 16;
+		writeln("pi: ", pi, "	steps: ", index+1, "/", steps);
+	end;
+end
+.
+```
+
+*  运行结果
+
+<img src="Resource/pi_calculate运行2.png" alt="pi_calculate运行2" style="zoom:50%;" />
+
+###7.3 堆栈的实现
+
+*  测试点
+
+   *  常数的定义和使用：ZERO、MAX_LEN
+   *  自定义类型：List、Stack
+   *  复杂类型的变量：stack【一个包含数组的结构体】
+   *  函数之间的调用：pop调用get、push调用set
+   *  复杂类型的函数引用传递：list、stack
+   *  If-else语句
+   *  函数的多层调用：主函数->push->set、主函数->pop->get
+   *  结构体和数组的访问与设置
+
+*  spl代码`stack.spl`
+
+   ```pascal
+   program Stack;
+   const 
+   	MAX_LEN = 1000;
+   	ZERO = 0;
+   type
+   	List  = array[ZERO .. MAX_LEN] of real;
+   	Stack = record
+   				list	: List;
+   				idx : integer;
+   		   end;
+   var 
+   	stack : Stack;
+   	index : integer;
+   	option: integer; // 选择是要pop(0)还是push(1)还是结束(2)
+   	element: real;
+   
+   
+   
+   function get(
+   	list : List;
+   	index: integer
+   ) : real;
+   begin
+   	get := list[index];
+   end;
+   
+   function pop(
+   	var stack : Stack
+   ) : real;	// 返回结果
+   begin
+   	if stack.idx > 0 then begin
+   		pop := get(stack.list, stack.idx);
+   		stack.idx := stack.idx - 1;
+   	end
+   	else begin
+   		writeln("[Error]: No more element to be popped!");
+   	end;
+   end
+   ;
+   
+   
+   procedure set(
+   	element: real;
+   var
+   	list : List;
+   	index: integer
+   );
+   begin
+   	list[index] := element;
+   end
+   ;
+   
+   procedure push(
+   	element   : real;
+   var 
+   	stack : Stack
+   );
+   begin
+   	if stack.idx < MAX_LEN then begin
+   		stack.idx := stack.idx + 1;
+   		set(element, stack.list, stack.idx);
+   	end
+   	else begin
+   		writeln("[Error]: The stack is full!");
+   	end;
+   end
+   ;
+   
+   begin
+   	stack.idx := 0;
+   	writeln("option: [0]: pop	[1]: push	[other]: exit");
+   	repeat
+   		read("Please enter your option: ", option);
+   		if option = 0 then begin
+   			writeln(pop(stack));	
+   		end
+   		else if option = 1 then begin
+   			read("Please enter the element you want to push: ", element);
+   			push(element, stack);
+   		end
+   		else begin
+   			option := 2;
+   		end;
+   	until option = 2;
+   end
+   .
+   ```
+
+*  运行结果
+
+   <img src="Resource/stack运行2.png" alt="stack运行2" style="zoom:50%;" />
+
+### 7.4 Fibonacci数计算
+
+*  测试点
+
+   *  结构体的引用传递
+   *  函数的递归
+   *  大计算量下的稳定性
+
+*  spl代码`fibonacci.spl`
+
+   ```pascal
+   program Fibo;
+   type
+   	Info = record
+   				n_steps : integer;
+   				fibo_n  : integer;
+   			end;
+   var
+   	n : integer;
+   	info : Info;
+   function fibo(
+   	n : integer;
+   var
+   	info    : Info
+   ) : integer;
+   begin
+   	info.n_steps := info.n_steps + 1;
+   	if n <= 1 then begin
+   		fibo := n;
+   		info.fibo_n := fibo;
+   	end
+   	else begin
+   		fibo := fibo(n-1, info) + fibo(n-2, info);
+   		info.fibo_n := fibo;
+   	end;
+   end
+   ;
+   
+   begin
+   	info.n_steps := 0;
+   	read("Please enter your n: ", n);
+   	writeln("fibo(", n, ") = ", fibo(n, info));
+   	writeln("using ", info.n_steps, " steps");
+   end
+   .
+   ```
+
+*  运行结果
+
+<img src="Resource/fibo运行.png" alt="fibo运行" style="zoom:50%;" />
+
+### 7.5 冒泡排序
+
+*  测试点
+
+   *  函数之间的调用：sort调用swap
+   *  数组的引用：sort引用了数组arr、swap引用了两个浮点数x、y
+
+*  spl代码`bubble_sort.spl`
+
+   ```pascal
+   program bubble_sort;
+   const
+   	ZERO = 0;
+   	MAX_LEN = 100;
+   type
+   	Array = array[ZERO .. MAX_LEN] of real;
+   var
+   	i, j : integer;
+   	temp : real;
+   	size : integer;
+   	arr  : Array;
+   
+   
+   procedure swap(
+   	temp : real;
+   var
+   	x, y : real
+   );
+   begin
+   	temp := x;
+   	x := y;
+   	y := temp;
+   end;
+   
+   procedure sort(
+   	i, j : integer;
+   	temp : real;
+   var	arr : Array;
+   	size : integer
+   );
+   
+   begin
+   	for i := 0 to size-1 do
+   	begin
+   		for j := i downto 1 do
+   		begin
+   			if (arr[j] < arr[j-1]) then
+   			begin	// 交换，气泡上浮
+   				swap(temp, arr[j], arr[j-1]);
+   			end;
+   		end;
+   	end;
+   end;
+   
+   begin
+   	read("Please enter your array size: ", size);
+   	for i := 1 to size do begin
+   		write("Please enter arr[", i-1, "]: ");
+   		read("", arr[i-1]);
+   	end;
+   	sort(i, j, temp, arr, size);
+   	writeln("after sort: ");
+   	i := 0;
+   	repeat
+   		writeln("arr[i] = ", arr[i]);
+   		i := i + 1;
+   	until i = size;
+   end
+   .
+   ```
+
+*  运行结果
+
+<img src="Resource/sort运行.png" alt="sort运行" style="zoom:50%;" />

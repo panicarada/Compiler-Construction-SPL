@@ -7,13 +7,13 @@ var
 	avg   : real;
 begin
 	repeat
-		read(temp);
+		read("Please enter the number: ", temp);
 		total := total + temp;
 		count := count + 1;
 	until temp = 0;
 
 	count := count - 1;
-	avg := 1 * total / count;
+	avg := 1.0 * total / count;
 	writeln(avg);
 end
 .

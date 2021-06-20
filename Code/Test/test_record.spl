@@ -9,13 +9,16 @@ type
 			 GPA    : real;
 		  end;
 var
-	temp : int;
+	info : Info;
 
-function wrap(
+
+procedure wrap(
 	Age : int;
 	Name : string;
-	GPA  : real
-) : integer;
+	GPA  : real;
+var
+	info : Info
+);
 begin
 	info.Age := Age;
 	info.Name := Name;
@@ -24,7 +27,7 @@ end
 ;
 
 begin
-	temp := wrap(8, "QZH", 5.555);
+	wrap(8, "QZH", 5.555, info);
 	writeln("Name: ", info.Name, "	age: ", info.Age, "	GPA: ", info.GPA);
 end
 .

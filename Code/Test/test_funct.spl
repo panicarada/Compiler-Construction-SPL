@@ -17,6 +17,6 @@ end
 
 begin
 	read("Please Enter your value: ", tmp);
-	tmp := print("Ni hao a", tmp);
+	tmp := print("Ni hao a ", tmp);
 end
 .

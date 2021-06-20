@@ -4,14 +4,13 @@ const
 var
 	value : real;
 begin
-	write("Input your value: ");
-	read("%lf", value);
+	read("Input your value: ", value);
 
 	if value >= pi then begin
-		writeln("%lf >= %lf", value, pi);
+		writeln(value, " >= ", pi);
 	end
 	else begin
-		writeln("%lf < %lf", value, pi);
+		writeln(value, " < ", pi);
 	end;
 	writeln("ending!");
 end

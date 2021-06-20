@@ -194,12 +194,13 @@ void CodeGenerator::setupGlobal()
                     break;
                 case Typing::DataType::d_BOOLEAN:
                     GlobalConst[Name] = llvm::ConstantInt::get(Builder.getInt1Ty(),
-                                                               constNode->m_Constant.bValue);
+                                                               (constNode->m_Constant.bValue) ? 1 : 0, true);
                     break;
 
                 case Typing::DataType::d_REAL:
                     GlobalConst[Name] = llvm::ConstantFP::get(Builder.getDoubleTy(),
                                                               constNode->m_Constant.dValue);
+                    break;
                 case Typing::DataType::d_CHAR:
                     GlobalConst[Name] = llvm::ConstantInt::get(Builder.getInt8Ty(),
                                                                constNode->m_Constant.cValue);
@@ -290,7 +291,7 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
 
                     if (!getVarByAddr)
                     {
-                        ret = Builder.CreateLoad(ret);
+                        ret = Builder.CreateLoad(ret, "load_tmp_");
                     }
                     return ret;
                 }
@@ -308,10 +309,13 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                         CaseConditionBlocks[i] = llvm::BasicBlock::Create(Context, "case_condition_" + std::to_string(i), Builder.GetInsertBlock()->getParent());
                         CaseBodyBlocks[i] = llvm::BasicBlock::Create(Context, "case_body_" + std::to_string(i), Builder.GetInsertBlock()->getParent());
                     }
+
+                    Builder.CreateBr(CaseConditionBlocks[0]);
+
                     for (int i = 0;i < NumCases; ++i)
                     {
                         auto CaseUnit = CaseList.List_Operands[i]->m_Operation;
-                        Builder.CreateBr(CaseConditionBlocks[i]);
+                        Builder.SetInsertPoint(CaseConditionBlocks[i]);
                         auto* TargetValue = genCode(CaseUnit.List_Operands[0], false);
                         llvm::Value* Condition;
                         // 如果之一为浮点数，则都变成浮点数
@@ -326,7 +330,7 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                             Condition = Builder.CreateICmp(llvm::ICmpInst::Predicate::ICMP_EQ, TestedValue, TargetValue, "ieq_tmp_");
                         }
                         // 如果条件满足，则跳到函数体，否则下一个条件
-                        if (i < NumCases)
+                        if (i < NumCases - 1)
                         {
                             Builder.CreateCondBr(Condition, CaseBodyBlocks[i], CaseConditionBlocks[i+1]);
                         }
@@ -335,12 +339,14 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                             Builder.CreateCondBr(Condition, CaseBodyBlocks[i], AfterBlock);
                         }
 
+
                         // 构造case函数体
                         Builder.SetInsertPoint(CaseBodyBlocks[i]);
                         genCode(CaseUnit.List_Operands[1], getVarByAddr);
                         // 跳转到after
                         Builder.CreateBr(AfterBlock);
                     }
+
                     // 结束case语句处理
                     Builder.SetInsertPoint(AfterBlock);
                     break;
@@ -362,7 +368,7 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                     auto* ret = Builder.CreateStructGEP(Record, MemberIndex, "record_access_tmp_");
                     if (!getVarByAddr)
                     {
-                        ret = Builder.CreateLoad(ret);
+                        ret = Builder.CreateLoad(ret, "load_tmp_");
                     }
                     return ret;
                 }
@@ -658,7 +664,6 @@ llvm::Value *CodeGenerator::genCode(AST::Node *ASTNode, bool getVarByAddr)
                     { // 系统函数调用
                         // 函数名
                         std::string FunctionName = ASTNode->m_Operation.List_Operands[0]->m_Identifier.Name;
-                        // 函数参数
                         if (FunctionName == "write" || FunctionName == "writeln")
                         {
                             std::vector<llvm::Value*> Params;
@@ -795,7 +800,7 @@ void CodeGenerator::defineFunctions()
 
         // 返回值
         auto* RetPtr = ArgumentMap[std::string(Function->getName())];
-        Builder.CreateRet(Builder.CreateLoad(RetPtr));
+        Builder.CreateRet(Builder.CreateLoad(RetPtr, "load_tmp_"));
     }
 }
 

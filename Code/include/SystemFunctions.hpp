@@ -11,6 +11,10 @@ namespace SystemFunctions
 {
     void declare(const std::string& Name, llvm::IRBuilder<>& Builder, llvm::Module* Module)
     {
+        if (Module->getFunction(Name))
+        { // 这个函数已经声明过了
+            return ;
+        }
         if (Name == "odd")
         { // 判断整数输入是否为奇数
             llvm::Function::Create(
@@ -77,44 +81,29 @@ namespace SystemFunctions
         }
         else if (Name == "iabs")
         {
-            ret = Builder.CreateAlloca(Builder.getInt32Ty(), nullptr, "ret_");
             auto* Condition = Builder.CreateICmp(llvm::ICmpInst::Predicate::ICMP_SLT, Input, llvm::ConstantInt::get(Builder.getInt32Ty(), 0), "ile_tmp_");
             auto* IFBlock = llvm::BasicBlock::Create(Context, "if_lt_0_", Builder.GetInsertBlock()->getParent());
-            auto* ElseBlock = llvm::BasicBlock::Create(Context, "else_", Builder.GetInsertBlock()->getParent());
-            auto* AfterBlock = llvm::BasicBlock::Create(Context, "after_", Builder.GetInsertBlock()->getParent());
+            auto* ELSEBlock = llvm::BasicBlock::Create(Context, "after_", Builder.GetInsertBlock()->getParent());
 
-            Builder.CreateCondBr(Condition, IFBlock, ElseBlock);
+            Builder.CreateCondBr(Condition, IFBlock, ELSEBlock);
             Builder.SetInsertPoint(IFBlock);
-            Builder.CreateStore(Builder.CreateNeg(Input, "neg_tmp_"), ret);
-            Builder.CreateBr(AfterBlock);
+            Builder.CreateRet(Builder.CreateNeg(Input, "ineg_tmp_"));
 
-            Builder.SetInsertPoint(ElseBlock);
-            Builder.CreateStore(Input, ret);
-            Builder.CreateBr(AfterBlock);
-
-            Builder.SetInsertPoint(AfterBlock);
-            Builder.CreateRet(Builder.CreateLoad(ret, "load_tmp_"));
+            Builder.SetInsertPoint(ELSEBlock);
+            Builder.CreateRet(Input);
         }
         else if (Name == "fabs")
         {
-            ret = Builder.CreateAlloca(Builder.getDoubleTy(), nullptr, "ret_");
-
-            auto* Condition = Builder.CreateFCmp(llvm::FCmpInst::Predicate::FCMP_OLT, Input, llvm::ConstantFP::get(Builder.getDoubleTy(), 0), "fle_tmp_");
+            auto* Condition = Builder.CreateFCmp(llvm::ICmpInst::Predicate::FCMP_OLT, Input, llvm::ConstantFP::get(Builder.getDoubleTy(), 0), "fle_tmp_");
             auto* IFBlock = llvm::BasicBlock::Create(Context, "if_lt_0_", Builder.GetInsertBlock()->getParent());
-            auto* ElseBlock = llvm::BasicBlock::Create(Context, "else_", Builder.GetInsertBlock()->getParent());
-            auto* AfterBlock = llvm::BasicBlock::Create(Context, "after_", Builder.GetInsertBlock()->getParent());
+            auto* ELSEBlock = llvm::BasicBlock::Create(Context, "after_", Builder.GetInsertBlock()->getParent());
 
-            Builder.CreateCondBr(Condition, IFBlock, ElseBlock);
+            Builder.CreateCondBr(Condition, IFBlock, ELSEBlock);
             Builder.SetInsertPoint(IFBlock);
-            Builder.CreateStore(Builder.CreateFNeg(Input, "fneg_tmp_"), ret);
-            Builder.CreateBr(AfterBlock);
+            Builder.CreateRet(Builder.CreateFNeg(Input, "fneg_tmp_"));
 
-            Builder.SetInsertPoint(ElseBlock);
-            Builder.CreateStore(Input, ret);
-            Builder.CreateBr(AfterBlock);
-
-            Builder.SetInsertPoint(AfterBlock);
-            Builder.CreateRet(Builder.CreateLoad(ret, "load_tmp_"));
+            Builder.SetInsertPoint(ELSEBlock);
+            Builder.CreateRet(Input);;
         }
         else if (Name == "sqrt")
         { // 平方根
@@ -132,7 +121,7 @@ namespace SystemFunctions
             // 采用repeat until的写法
             ret = Builder.CreateAlloca(Builder.getDoubleTy(), nullptr, "ret_");
             Builder.CreateStore(Input, ret); // 首先ret <- x
-            auto* LastRet = Builder.CreateLoad(ret);
+            auto* LastRet = Builder.CreateLoad(ret, "load_tmp_");
 
             // 循环代码块
             auto* LoopBlock = llvm::BasicBlock::Create(Context, "loop_", Builder.GetInsertBlock()->getParent());
@@ -148,7 +137,7 @@ namespace SystemFunctions
                                             llvm::ConstantFP::get(Builder.getDoubleTy(), 2.0)),
                     ret
             );
-            LastRet = Builder.CreateLoad(ret);
+            LastRet = Builder.CreateLoad(ret, "load_tmp_");
             // 计算误差eps <- fabs(ret * ret - x)
             auto* eps = Builder.CreateCall(Module->getFunction("fabs"), {
                                     Builder.CreateFSub(Builder.CreateFMul(LastRet, LastRet, "fmul_tmp_"),

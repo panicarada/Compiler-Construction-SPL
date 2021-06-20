@@ -3,6 +3,8 @@ type
 	Date = record 
 				Year, Month, Day : integer;
 	 	   end;
+var
+	date : Date;
 
 function get_date(
 	date : Date
@@ -19,7 +21,11 @@ begin
 	end;
 end;
 
-
 begin
+	read("Year: ", date.Year);
+	read("Month: ", date.Month);
+	read("Day: ", date.Day);
+	
+	writeln(get_date(date));
 end
 .

@@ -53,7 +53,6 @@
 %type <NodePtr> para_decl_list para_type_list sub_routine procedure_decl procedure_head
 %type <NodePtr> simple_type_decl type_decl field_decl record_type_decl array_type_decl
 %type <sValue> program_head 
-%type <iValue> direction
 
 // 运算符、定界符
 %token _LP_ RP LB RB DOT COMMA COLON MUL DIV UNEQUAL NOT
@@ -204,7 +203,7 @@ const_value
 		AST::ValConstant temp;
 		temp.Type = AST::ConstantType::Boolean;
 		// std::cout << $1 << std::endl;
-		temp.bValue = $1;
+		temp.bValue = (strcmp($1, "true") == 0);
 		$$ = new AST::Node(@1.first_line, temp);
 	}
 	;
